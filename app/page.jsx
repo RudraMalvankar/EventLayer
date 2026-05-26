@@ -1,5 +1,7 @@
 "use client";
 
+import { Navbar } from "../components/Navbar";
+
 const floatingEvents = [
   {
     platform: "LUMA",
@@ -150,36 +152,7 @@ export default function LandingPage() {
         "--accent-soft": "#FFF2EE",
       }}
     >
-      <nav className="sticky top-0 z-20 border-b border-[var(--border)] bg-[rgba(250,250,248,0.85)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          <div className="serif text-xl font-semibold">TechPulse</div>
-          <div className="hidden items-center gap-6 text-sm text-[var(--muted)] md:flex">
-            <a href="#features" className="transition hover:text-[var(--text)]">
-              Features
-            </a>
-            <a href="#events" className="transition hover:text-[var(--text)]">
-              Events
-            </a>
-            <a href="#about" className="transition hover:text-[var(--text)]">
-              About
-            </a>
-          </div>
-          <div className="flex items-center gap-3">
-            <a
-              href="/login"
-              className="rounded-full border border-[var(--border)] px-4 py-1.5 text-xs font-medium text-[var(--text)] transition hover:bg-[var(--surface-2)]"
-            >
-              Sign in
-            </a>
-            <a
-              href="/events"
-              className="rounded-full bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[var(--accent-h)]"
-            >
-              Get Started
-            </a>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <section className="mx-auto grid w-full max-w-6xl gap-10 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-2 lg:items-center">
         <div className="animate-fade-in-up">

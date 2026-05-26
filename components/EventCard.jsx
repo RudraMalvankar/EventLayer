@@ -35,9 +35,9 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
 
   if (variant === "list") {
     return (
-      <article className="group overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/95 shadow-[0_12px_40px_rgba(0,0,0,0.18)] transition duration-200 hover:-translate-y-0.5 hover:border-zinc-700">
+      <article className="group overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_16px_48px_rgba(24,24,20,0.12)] transition duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)]">
         <div className="flex flex-col gap-0 md:flex-row">
-          <div className="relative h-56 w-full shrink-0 overflow-hidden bg-zinc-950 md:h-auto md:w-[260px] lg:w-[300px]">
+          <div className="relative h-56 w-full shrink-0 overflow-hidden bg-[var(--surface-2)] md:h-auto md:w-[260px] lg:w-[300px]">
             {detailsHref ? (
               <Link
                 href={detailsHref}
@@ -53,9 +53,9 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
                 className="object-contain p-3 transition duration-500 group-hover:scale-[1.01]"
               />
             ) : (
-              <div className="h-full w-full bg-gradient-to-br from-zinc-800 via-zinc-900 to-slate-950" />
+              <div className="h-full w-full bg-gradient-to-br from-[#ECE9DF] via-[#F5F4F0] to-[#E1DDCF]" />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/5" />
             <div className="absolute left-4 top-4 flex gap-2">
               <span
                 className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white ${platformColor}`}
@@ -72,18 +72,18 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
 
           <div className="flex min-w-0 flex-1 flex-col gap-4 p-5 md:p-6">
             <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-400">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--muted)]">
                 <span>{dateDisplay}</span>
-                <span className="h-1 w-1 rounded-full bg-zinc-600" />
+                <span className="h-1 w-1 rounded-full bg-[var(--border)]" />
                 <span>{timeDisplay}</span>
-                <span className="h-1 w-1 rounded-full bg-zinc-600" />
+                <span className="h-1 w-1 rounded-full bg-[var(--border)]" />
                 <span>{event?.city || "Online"}</span>
               </div>
-              <h3 className="text-xl font-semibold leading-tight text-white line-clamp-2">
+              <h3 className="text-xl font-semibold leading-tight text-[var(--text)] line-clamp-2">
                 {detailsHref ? (
                   <Link
                     href={detailsHref}
-                    className="transition hover:text-cyan-200"
+                    className="transition hover:text-[var(--accent)]"
                   >
                     {event?.title}
                   </Link>
@@ -91,12 +91,12 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
                   event?.title
                 )}
               </h3>
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-[var(--muted)]">
                 {event?.organizer || "Unknown organizer"}
               </p>
             </div>
 
-            <p className="max-w-3xl text-sm leading-6 text-zinc-300 line-clamp-3">
+            <p className="max-w-3xl text-sm leading-6 text-[var(--muted)] line-clamp-3">
               {event?.description || "No description available."}
             </p>
 
@@ -105,12 +105,12 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
                 {(event?.tags || []).slice(0, 5).map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-xs text-sky-300"
+                    className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--accent)]"
                   >
                     {tag}
                   </span>
                 ))}
-                <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-xs text-zinc-300">
+                <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--muted)]">
                   {event?.is_free ? "Free" : "Paid"}
                 </span>
               </div>
@@ -118,14 +118,14 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onSave?.(event)}
-                  className="rounded-full border border-zinc-700 px-4 py-2 text-sm font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-800"
+                  className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text)] transition hover:bg-[var(--surface-2)]"
                 >
                   {isSaved ? "Saved" : "Save"}
                 </button>
                 {detailsHref ? (
                   <Link
                     href={detailsHref}
-                    className="rounded-full border border-zinc-700 px-4 py-2 text-sm font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-800"
+                    className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text)] transition hover:bg-[var(--surface-2)]"
                   >
                     Details
                   </Link>
@@ -134,7 +134,7 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
                   href={event?.event_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-black transition hover:bg-cyan-300"
+                  className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--accent-h)]"
                 >
                   Register
                 </a>
@@ -147,8 +147,8 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
   }
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-lg transition-transform duration-200 hover:scale-[1.01]">
-      <div className="relative h-48 w-full overflow-hidden bg-zinc-950">
+    <article className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_16px_40px_rgba(24,24,20,0.12)] transition-transform duration-200 hover:scale-[1.01]">
+      <div className="relative h-48 w-full overflow-hidden bg-[var(--surface-2)]">
         {detailsHref ? (
           <Link
             href={detailsHref}
@@ -164,16 +164,16 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
             className="object-contain p-3"
           />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-sky-900 to-slate-900" />
+          <div className="h-full w-full bg-gradient-to-br from-[#ECE9DF] to-[#F5F4F0]" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
         <div className="absolute left-4 bottom-4 right-4 flex items-end justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-white line-clamp-2">
+            <h3 className="text-lg font-semibold text-[var(--text)] line-clamp-2">
               {detailsHref ? (
                 <Link
                   href={detailsHref}
-                  className="transition hover:text-cyan-200"
+                  className="transition hover:text-[var(--accent)]"
                 >
                   {event?.title}
                 </Link>
@@ -181,7 +181,7 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
                 event?.title
               )}
             </h3>
-            <p className="mt-1 text-sm text-white/80">
+            <p className="mt-1 text-sm text-[var(--muted)]">
               {event?.organizer || "Unknown"} · {dateDisplay}
             </p>
           </div>
@@ -199,7 +199,7 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
           </div>
         </div>
       </div>
-      <div className="space-y-3 bg-zinc-900 p-4">
+      <div className="space-y-3 bg-[var(--surface)] p-4">
         <p className="line-clamp-3 text-sm text-[var(--muted)]">
           {event?.description || "No description available."}
         </p>
@@ -208,26 +208,26 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
             {(event?.tags || []).slice(0, 4).map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-zinc-800 px-2 py-1 text-xs text-sky-300"
+                className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs text-[var(--accent)]"
               >
                 {tag}
               </span>
             ))}
           </div>
           <div className="flex gap-2">
-            <span className="rounded-full bg-zinc-800 px-2 py-1 text-xs">
+            <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs text-[var(--muted)]">
               {event?.is_free ? "Free" : "Paid"}
             </span>
             <button
               onClick={() => onSave?.(event)}
-              className="rounded-md border border-zinc-700 px-3 py-1 text-sm text-white/90"
+              className="rounded-md border border-[var(--border)] px-3 py-1 text-sm text-[var(--text)]"
             >
               {isSaved ? "Saved" : "Save"}
             </button>
             {detailsHref ? (
               <Link
                 href={detailsHref}
-                className="rounded-md border border-zinc-700 px-3 py-1 text-sm text-white/90 transition hover:bg-zinc-800"
+                className="rounded-md border border-[var(--border)] px-3 py-1 text-sm text-[var(--text)] transition hover:bg-[var(--surface-2)]"
               >
                 Details
               </Link>
@@ -236,7 +236,7 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
               href={event?.event_url}
               target="_blank"
               rel="noreferrer"
-              className="rounded-md bg-cyan-400 px-3 py-1 text-sm text-black"
+              className="rounded-md bg-[var(--accent)] px-3 py-1 text-sm text-white"
             >
               Register
             </a>
