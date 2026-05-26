@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0d0f14;
+  --surface: #141821;
+  --surface-2: #1b2130;
+  --border: #2b3345;
+  --text: #f4f6fb;
+  --muted: #a4aec2;
+  --faint: #7f899d;
+  --accent: #ff6b2c;
+  --accent-h: #ff5a14;
+  --accent-soft: #2a1f18;
+  --positive: #34d399;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(1200px 500px at 10% -20%, #1d2740 0%, transparent 60%), var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+.serif {
+  font-family: var(--serif-font), Georgia, serif;
+}
+
+.glass {
+  backdrop-filter: blur(12px);
+}
+
+.surface-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.accent-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
