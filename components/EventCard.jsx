@@ -5,6 +5,8 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
   const detailsHref = event?.id ? `/events/${event.id}` : null;
   const start = event?.start_date ? new Date(event.start_date) : null;
   const end = event?.end_date ? new Date(event.end_date) : null;
+  const locationDisplay =
+    [event?.city, event?.country].filter(Boolean).join(", ") || "Online";
 
   const formatDate = (date, includeTime = false) => {
     if (!date) return "";
@@ -66,6 +68,9 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
                 className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white/90 ${modeColor}`}
               >
                 {event?.mode}
+              </span>
+              <span className="rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm">
+                {locationDisplay}
               </span>
             </div>
           </div>
@@ -195,6 +200,9 @@ export function EventCard({ event, onSave, isSaved, variant = "list" }) {
               className={`rounded-full px-2 py-1 text-xs text-white ${modeColor}`}
             >
               {event?.mode}
+            </span>
+            <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs text-[var(--text)]">
+              {locationDisplay}
             </span>
           </div>
         </div>

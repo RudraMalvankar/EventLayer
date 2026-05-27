@@ -47,7 +47,8 @@ export default function EventsPage() {
   function buildParams({ search } = {}) {
     const params = new URLSearchParams();
     if (filters.city) params.set("city", filters.city);
-    if (filters.category !== "All") params.set("category", filters.category.toLowerCase());
+    if (filters.category !== "All")
+      params.set("category", filters.category.toLowerCase());
     if (filters.mode !== "All") params.set("mode", filters.mode.toLowerCase());
     if (filters.price === "Free") params.set("is_free", "true");
     params.set("platform", devfolioPast ? "devfolio" : "luma");
@@ -63,19 +64,29 @@ export default function EventsPage() {
     setEvents(next);
     const firstId = next?.[0]?.id || next?.[0]?.event_url || null;
     setSelectedMapId(firstId);
-    setSelectedDateKey(next?.[0]?.start_date ? dayKey(next[0].start_date) : null);
+    setSelectedDateKey(
+      next?.[0]?.start_date ? dayKey(next[0].start_date) : null,
+    );
     setLoading(false);
   }
 
   useEffect(() => {
     load();
-  }, [filters.city, filters.category, filters.mode, filters.price, devfolioPast]);
+  }, [
+    filters.city,
+    filters.category,
+    filters.mode,
+    filters.price,
+    devfolioPast,
+  ]);
 
   async function onSearch(query) {
     if (!query?.trim()) return load();
     setLoading(true);
     if (devfolioPast) {
-      const res = await fetch(`/api/events?${buildParams({ search: query }).toString()}`);
+      const res = await fetch(
+        `/api/events?${buildParams({ search: query }).toString()}`,
+      );
       const json = await res.json();
       setEvents(json?.data?.events || []);
       setLoading(false);
@@ -91,27 +102,39 @@ export default function EventsPage() {
     setEvents(next);
     const firstId = next?.[0]?.id || next?.[0]?.event_url || null;
     setSelectedMapId(firstId);
-    setSelectedDateKey(next?.[0]?.start_date ? dayKey(next[0].start_date) : null);
+    setSelectedDateKey(
+      next?.[0]?.start_date ? dayKey(next[0].start_date) : null,
+    );
     setLoading(false);
   }
 
   const groupedEvents = useMemo(() => {
     const groups = new Map();
     const ordered = [...events].sort((a, b) => {
-      const aTime = a?.start_date ? new Date(a.start_date).getTime() : Number.POSITIVE_INFINITY;
-      const bTime = b?.start_date ? new Date(b.start_date).getTime() : Number.POSITIVE_INFINITY;
+      const aTime = a?.start_date
+        ? new Date(a.start_date).getTime()
+        : Number.POSITIVE_INFINITY;
+      const bTime = b?.start_date
+        ? new Date(b.start_date).getTime()
+        : Number.POSITIVE_INFINITY;
       return aTime - bTime;
     });
 
     ordered.forEach((event) => {
       const key = dayKey(event?.start_date);
       if (!groups.has(key)) {
-        groups.set(key, { label: formatDayLabel(event?.start_date), items: [] });
+        groups.set(key, {
+          label: formatDayLabel(event?.start_date),
+          items: [],
+        });
       }
       groups.get(key).items.push(event);
     });
 
-    return Array.from(groups.entries()).map(([key, group]) => ({ key, ...group }));
+    return Array.from(groups.entries()).map(([key, group]) => ({
+      key,
+      ...group,
+    }));
   }, [events]);
 
   const eventsByDate = useMemo(() => {
@@ -150,12 +173,20 @@ export default function EventsPage() {
 
   const selectedMapEvent = useMemo(() => {
     const key = selectedMapId;
-    return events.find((event) => (event.id || event.event_url) === key) || events[0] || null;
+    return (
+      events.find((event) => (event.id || event.event_url) === key) ||
+      events[0] ||
+      null
+    );
   }, [events, selectedMapId]);
 
   const mapQuery = useMemo(() => {
     if (!selectedMapEvent) return "Mumbai, India";
-    return [selectedMapEvent.city, selectedMapEvent.country].filter(Boolean).join(", ") || "Mumbai, India";
+    return (
+      [selectedMapEvent.city, selectedMapEvent.country]
+        .filter(Boolean)
+        .join(", ") || "Mumbai, India"
+    );
   }, [selectedMapEvent]);
 
   const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&t=&z=11&ie=UTF8&iwloc=&output=embed`;
@@ -216,7 +247,12 @@ export default function EventsPage() {
               ))}
               <button
                 type="button"
-                onClick={() => setFilters((prev) => ({ ...prev, price: prev.price === "Free" ? "All" : "Free" }))}
+                onClick={() =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    price: prev.price === "Free" ? "All" : "Free",
+                  }))
+                }
                 className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] transition ${
                   filters.price === "Free"
                     ? "bg-[var(--accent)] text-white"
@@ -229,13 +265,17 @@ export default function EventsPage() {
                 className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm text-[var(--text)]"
                 placeholder="City"
                 value={filters.city}
-                onChange={(e) => setFilters((prev) => ({ ...prev, city: e.target.value }))}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, city: e.target.value }))
+                }
               />
               <button
                 type="button"
                 onClick={() => setDevfolioPast((value) => !value)}
                 className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] transition ${
-                  devfolioPast ? "bg-[var(--accent)] text-white" : "bg-[var(--surface-2)] text-[var(--muted)]"
+                  devfolioPast
+                    ? "bg-[var(--accent)] text-white"
+                    : "bg-[var(--surface-2)] text-[var(--muted)]"
                 }`}
               >
                 Devfolio archive
@@ -257,7 +297,9 @@ export default function EventsPage() {
             ) : (
               groupedEvents.map((group) => (
                 <section key={group.key} className="space-y-4">
-                  <h2 className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">{group.label}</h2>
+                  <h2 className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">
+                    {group.label}
+                  </h2>
                   <div className="space-y-4">
                     {group.items.map((event) => (
                       <div
@@ -282,15 +324,27 @@ export default function EventsPage() {
               <div className="mb-4 flex items-center justify-between">
                 <button
                   type="button"
-                  onClick={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+                  onClick={() =>
+                    setMonthCursor(
+                      (prev) =>
+                        new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
+                    )
+                  }
                   className="rounded-full bg-[var(--surface-2)] px-3 py-2 text-sm"
                 >
                   Prev
                 </button>
-                <h2 className="text-base font-semibold">{monthLabel(monthCursor)}</h2>
+                <h2 className="text-base font-semibold">
+                  {monthLabel(monthCursor)}
+                </h2>
                 <button
                   type="button"
-                  onClick={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+                  onClick={() =>
+                    setMonthCursor(
+                      (prev) =>
+                        new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
+                    )
+                  }
                   className="rounded-full bg-[var(--surface-2)] px-3 py-2 text-sm"
                 >
                   Next
@@ -315,7 +369,10 @@ export default function EventsPage() {
                       type="button"
                       onClick={() => {
                         setSelectedDateKey(key);
-                        if (dayEvents[0]) setSelectedMapId(dayEvents[0].id || dayEvents[0].event_url);
+                        if (dayEvents[0])
+                          setSelectedMapId(
+                            dayEvents[0].id || dayEvents[0].event_url,
+                          );
                       }}
                       className={`min-h-14 rounded-xl border p-1 text-left transition ${
                         isActive
@@ -323,7 +380,9 @@ export default function EventsPage() {
                           : "border-[var(--border)] bg-[var(--surface-2)]"
                       } ${inMonth ? "opacity-100" : "opacity-50"}`}
                     >
-                      <div className="text-[11px] font-semibold">{date.getDate()}</div>
+                      <div className="text-[11px] font-semibold">
+                        {date.getDate()}
+                      </div>
                       {dayEvents.length ? (
                         <div className="mt-1 inline-flex h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
                       ) : null}
@@ -334,18 +393,26 @@ export default function EventsPage() {
 
               <div className="mt-3 rounded-xl bg-[var(--surface-2)] p-3">
                 <div className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
-                  {selectedDateKey ? formatDayLabel(selectedDateKey) : "Select a date"}
+                  {selectedDateKey
+                    ? formatDayLabel(selectedDateKey)
+                    : "Select a date"}
                 </div>
                 <div className="mt-2 space-y-1">
                   {selectedDayEvents.slice(0, 3).map((event) => (
                     <button
                       key={event.id || event.event_url}
                       type="button"
-                      onClick={() => setSelectedMapId(event.id || event.event_url)}
+                      onClick={() =>
+                        setSelectedMapId(event.id || event.event_url)
+                      }
                       className="w-full rounded-lg bg-[var(--surface)] p-2 text-left text-xs"
                     >
-                      <div className="font-semibold line-clamp-1">{event.title}</div>
-                      <div className="text-[var(--muted)]">{event.city || "Online"}</div>
+                      <div className="font-semibold line-clamp-1">
+                        {event.title}
+                      </div>
+                      <div className="text-[var(--muted)]">
+                        {event.city || "Online"}
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -354,13 +421,32 @@ export default function EventsPage() {
 
             <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-4">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold">{selectedMapEvent?.city || "Event location"}</h3>
-                <a href={appleMapsUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-[var(--accent)]">
+                <h3 className="text-sm font-semibold">
+                  {selectedMapEvent?.city || "Event location"}
+                </h3>
+                <a
+                  href={appleMapsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm font-semibold text-[var(--accent)]"
+                >
                   Apple Maps
                 </a>
               </div>
+              <div className="mb-3 inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+                {selectedMapEvent?.city
+                  ? [selectedMapEvent.city, selectedMapEvent.country]
+                      .filter(Boolean)
+                      .join(", ")
+                  : "Online event"}
+              </div>
               <div className="overflow-hidden rounded-2xl border border-[var(--border)]">
-                <iframe title="Event map" src={mapEmbedUrl} className="h-64 w-full" loading="lazy" />
+                <iframe
+                  title="Event map"
+                  src={mapEmbedUrl}
+                  className="h-64 w-full"
+                  loading="lazy"
+                />
               </div>
             </div>
           </aside>
