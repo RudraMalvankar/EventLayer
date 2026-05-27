@@ -1,0 +1,15 @@
+{
+  "platform": "Devfolio",
+  "page": {
+    "title": "Hackathons in Mumbai, Navi Mumbai +1 more | Devfolio",
+    "description": "Hackathons in Mumbai, Navi Mumbai +1 more",
+    "image": "https://devfolio.co/static/og-image-3.png",
+    "location": "Mumbai, Navi Mumbai +1 more",
+    "url": "https://devfolio.co/search?location[]={%22label%22%3A%22Mumbai%22%2C%22id%22%3A%22Mumbai%22}&location[]={%22label%22%3A%22Navi%20Mumbai%22%2C%22id%22%3A%22Navi%20Mumbai%22}&location[]={%22label%22%3A%22Thane%22%2C%22id%22%3A%22Thane%22}&primary_filter=hackathons",
+    "countText": ""
+  },
+  "events": [],
+  "count": 0,
+  "searchCount": null,
+  "fetchedAt": "2026-05-27T09:22:19.933Z"
+}

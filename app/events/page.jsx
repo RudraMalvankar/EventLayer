@@ -27,6 +27,7 @@ function dayKey(value) {
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [devfolioPast, setDevfolioPast] = useState(false);
   const [filters, setFilters] = useState({
     category: "All",
     mode: "All",
@@ -34,16 +35,21 @@ export default function EventsPage() {
     city: "",
   });
 
-  async function load() {
-    setLoading(true);
+  function buildParams({ search } = {}) {
     const params = new URLSearchParams();
     if (filters.city) params.set("city", filters.city);
     if (filters.category !== "All")
       params.set("category", filters.category.toLowerCase());
     if (filters.mode !== "All") params.set("mode", filters.mode.toLowerCase());
     if (filters.price === "Free") params.set("is_free", "true");
-    params.set("platform", "luma");
-    const res = await fetch(`/api/events?${params.toString()}`);
+    params.set("platform", devfolioPast ? "devfolio" : "luma");
+    if (search) params.set("search", search);
+    return params;
+  }
+
+  async function load() {
+    setLoading(true);
+    const res = await fetch(`/api/events?${buildParams().toString()}`);
     const json = await res.json();
     setEvents(json?.data?.events || []);
     setLoading(false);
@@ -51,11 +57,26 @@ export default function EventsPage() {
 
   useEffect(() => {
     load();
-  }, [filters.city, filters.category, filters.mode, filters.price]);
+  }, [
+    filters.city,
+    filters.category,
+    filters.mode,
+    filters.price,
+    devfolioPast,
+  ]);
 
   async function onSearch(query) {
     if (!query?.trim()) return load();
     setLoading(true);
+    if (devfolioPast) {
+      const res = await fetch(
+        `/api/events?${buildParams({ search: query }).toString()}`,
+      );
+      const json = await res.json();
+      setEvents(json?.data?.events || []);
+      setLoading(false);
+      return;
+    }
     const res = await fetch("/api/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -209,6 +230,23 @@ export default function EventsPage() {
                 </div>
               </div>
               <div className="mt-6 space-y-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setDevfolioPast((value) => !value)}
+                    aria-pressed={devfolioPast}
+                    className={`rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
+                      devfolioPast
+                        ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                        : "border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)]"
+                    }`}
+                  >
+                    Devfolio (past)
+                  </button>
+                  <span className="text-xs text-[var(--muted)]">
+                    Temporary feed toggle for older Devfolio listings.
+                  </span>
+                </div>
                 <SearchBar onSearch={onSearch} loading={loading} />
                 <FilterBar filters={filters} onChange={setFilters} />
               </div>
