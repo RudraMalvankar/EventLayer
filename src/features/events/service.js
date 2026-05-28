@@ -5,8 +5,8 @@ import {
   upsertEventsRepo,
   findSavedEvents,
   toggleSavedEventRepo,
-} from "./repository";
-import { fetchEventDetails } from "../scrapers/luma/details";
+} from "./repository.js";
+import { fetchEventDetails } from "../scrapers/luma/details.js";
 
 export async function getEventsService(filters = {}) {
   return findEvents(filters);
