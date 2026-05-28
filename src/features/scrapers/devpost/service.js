@@ -1,9 +1,39 @@
 import axios from "axios";
+import * as cheerio from "cheerio";
 
 export async function scrapeDevpost() {
   try {
     const baseURL = process.env.DEVPOST_API;
-    if (!baseURL) return [];
+    if (!baseURL) {
+      // Basic HTML fallback to scrape public devpost listing page
+      try {
+        const resp = await axios.get("https://devpost.com/hackathons", {
+          headers: { "User-Agent": "TechPulse/1.0" },
+        });
+        const $ = cheerio.load(resp.data || "");
+        const items = [];
+        $("a[href]").each((_, el) => {
+          const href = $(el).attr("href") || "";
+          if (!/\/hackathons\//i.test(href)) return;
+          const title = $(el).text().trim();
+          if (!title || title.length < 5) return;
+          const url = href.startsWith("http")
+            ? href
+            : `https://devpost.com${href}`;
+          items.push({ title, url });
+        });
+        return items.slice(0, 50).map((it) => ({
+          title: it.title,
+          description: it.title,
+          redirectURL: it.url,
+          hostedBy: "Devpost",
+          verified: false,
+          type: "hackathon",
+        }));
+      } catch (e) {
+        return [];
+      }
+    }
 
     let page = 1;
     const maxPages = 4;

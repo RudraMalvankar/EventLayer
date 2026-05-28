@@ -1,9 +1,42 @@
 import axios from "axios";
+import * as cheerio from "cheerio";
 
 export async function scrapeUnstop() {
   try {
     const baseUrl = process.env.UNSTOP_API;
-    if (!baseUrl) return [];
+    if (!baseUrl) {
+      // try a very small HTML fallback to discover some public events
+      try {
+        const fallbackUrl = "https://unstop.com/search?query=hackathon";
+        const resp = await axios.get(fallbackUrl, {
+          headers: { "User-Agent": "TechPulse/1.0" },
+        });
+        const $ = cheerio.load(resp.data || "");
+        const found = [];
+        $("a[href]").each((_, el) => {
+          const href = $(el).attr("href") || "";
+          // prefer challenge/event links
+          if (!/\/challenge\/|\/event\/|\/hackathon\//i.test(href)) return;
+          const title = $(el).text().trim();
+          if (!title || title.length < 5) return;
+          const url = href.startsWith("http")
+            ? href
+            : `https://unstop.com${href}`;
+          found.push({ title, url });
+        });
+        // map to similar shape used by main pipeline
+        return found.slice(0, 30).map((it) => ({
+          title: it.title,
+          description: it.title,
+          redirectURL: it.url,
+          hostedBy: "Unstop",
+          verified: false,
+          type: "hackathon",
+        }));
+      } catch (e) {
+        return [];
+      }
+    }
 
     let allEvents = [];
     let currentPage = 1;

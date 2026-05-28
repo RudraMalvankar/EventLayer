@@ -7,15 +7,34 @@ import path from "path";
 const outDir = path.resolve("scripts", "scrape_outputs");
 
 async function enrichEvent(event) {
-  if (!event || !event.url) return event;
+  if (!event) return event;
+  // support multiple possible url fields from different scrapers
+  const url =
+    event.url ||
+    event.event_url ||
+    event.redirectURL ||
+    event.link ||
+    event.href ||
+    null;
+  if (!url) return event;
   try {
-    const meta = await fetchEventDetails(event.url);
+    const meta = await fetchEventDetails(url);
     return {
       ...event,
       description: event.description || meta.description || null,
       banner_url: event.banner_url || meta.banner_url || null,
-      startDate: event.startDate || meta.start_date || null,
-      endDate: event.endDate || meta.end_date || null,
+      startDate:
+        event.startDate ||
+        event.starts_at ||
+        event.start_date ||
+        meta.start_date ||
+        null,
+      endDate:
+        event.endDate ||
+        event.ends_at ||
+        event.end_date ||
+        meta.end_date ||
+        null,
       organizer: event.organizer || meta.organizer || null,
       city: event.city || meta.city || null,
     };
@@ -49,18 +68,26 @@ function normalizeForDb(event) {
 async function run() {
   await fs.mkdir(outDir, { recursive: true });
   console.error("Running combined scrape -> enrich -> upsert");
-  const { platform, events, error } = await scrapeByPlatform("all");
-  if (error) {
-    console.error("Scrape error:", error);
-    await fs.writeFile(
-      path.join(outDir, "upsert_error.json"),
-      JSON.stringify({ error }, null, 2),
-    );
-    process.exit(1);
+  // Run each scraper explicitly so local runs include all platforms regardless of env flags
+  const platforms = ["luma", "devfolio", "unstop", "devpost", "eventbrite"];
+  let allEvents = [];
+  for (const p of platforms) {
+    try {
+      const res = await scrapeByPlatform(p);
+      if (res?.events && res.events.length) {
+        console.error(`Scraped ${res.events.length} from ${p}`);
+        allEvents.push(...res.events);
+      } else {
+        console.error(`No events from ${p}`);
+      }
+    } catch (err) {
+      console.error(`Scrape failed for ${p}:`, err?.message || err);
+    }
   }
-  console.error("Scraped", events.length, "events. Enriching...");
+
+  console.error("Total scraped", allEvents.length, "events. Enriching...");
   const enriched = [];
-  for (const e of events) {
+  for (const e of allEvents) {
     const enrichedEvent = await enrichEvent(e);
     enriched.push(enrichedEvent);
   }
@@ -88,8 +115,8 @@ async function run() {
     path.join(outDir, "upsert_result.json"),
     JSON.stringify(
       {
-        platform,
-        scraped: events.length,
+        platforms,
+        scraped: allEvents.length,
         enriched: enriched.length,
         upserted: inserted,
       },

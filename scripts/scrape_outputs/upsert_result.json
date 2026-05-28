@@ -1,6 +1,12 @@
 {
-  "platform": "all",
-  "scraped": 7,
-  "enriched": 7,
-  "upserted": 7
+  "platforms": [
+    "luma",
+    "devfolio",
+    "unstop",
+    "devpost",
+    "eventbrite"
+  ],
+  "scraped": 3,
+  "enriched": 3,
+  "upserted": 3
 }

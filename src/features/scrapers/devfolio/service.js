@@ -8,12 +8,22 @@ function sleep(ms) {
 
 const mumbaiAllowlist = ["mumbai", "navi mumbai", "mumbai, india", "bombay"];
 const allowAnyRegion = true;
+const currentYear = new Date().getFullYear();
 const defaultSearchUrl =
   "https://devfolio.co/search?location[]={%22label%22%3A%22Mumbai%22%2C%22id%22%3A%22Mumbai%22}&location[]={%22label%22%3A%22Navi%20Mumbai%22%2C%22id%22%3A%22Navi%20Mumbai%22}&location[]={%22label%22%3A%22Thane%22%2C%22id%22%3A%22Thane%22}&primary_filter=hackathons";
 
 function isOnlineOnly(text) {
   const value = String(text || "").toLowerCase();
   return value.includes("online") || value.includes("virtual");
+}
+
+function isArchivedDevfolioTitle(title) {
+  const value = String(title || "").toLowerCase();
+  if (!value) return false;
+  if (value.includes("past") || value.includes("archive")) return true;
+  const yearMatch = value.match(/\b(20\d{2})\b/);
+  if (!yearMatch) return false;
+  return Number(yearMatch[1]) < currentYear;
 }
 
 async function scrapeDevfolioPlaywright() {
@@ -146,6 +156,7 @@ async function scrapeDevfolioPlaywright() {
 
     payload.cards.forEach((event) => {
       const title = event?.title || "";
+      if (isArchivedDevfolioTitle(title)) return;
       const locationText =
         `${pageLocation} ${event?.rawText || ""} ${title}`.toLowerCase();
       const isMumbai = mumbaiAllowlist.some((entry) =>
@@ -203,6 +214,7 @@ async function scrapeDevfolioApi() {
 
       data.forEach((event) => {
         const title = event?.name || event?.title || "";
+        if (isArchivedDevfolioTitle(title)) return;
         const description =
           event?.desc || event?.description || event?.tagline || "";
         const location = event?.city || event?.location || event?.region || "";
@@ -261,26 +273,45 @@ export async function scrapeDevfolio() {
     const events = [];
     $('[href*="/hackathons/"], .hackathon-card, .Listing_container__').each(
       (_, element) => {
-        const a = $(element).is("a")
-          ? $(element)
-          : $(element).find("a").first();
-        const href = a.attr("href");
+        const el = $(element);
+        const a = el.is("a") ? el : el.find("a").first();
+        const href = a.attr("href") || "";
+
+        // prefer hackathon links; allow if it contains /hackathons/ and card-like content
+        const looksLikeHackathonLink = /\/hackathons\//i.test(href);
+        const hasImage = !!el.find("img").first().attr("src");
+        const hasHeading = !!el.find("h3,h2").first().text().trim();
+        if (!looksLikeHackathonLink || (!hasImage && !hasHeading)) return;
+
         const title =
-          $(element).find("h3,h2,.title").first().text().trim() ||
-          a.text().trim();
-        const description = $(element)
+          el.find("h3,h2,.title").first().text().trim() || a.text().trim();
+        if (isArchivedDevfolioTitle(title)) return;
+        const description = el
           .find("p,.subtitle,.description")
           .first()
           .text()
           .trim();
-        const location = $(element)
+        const location = el
           .find('[class*="location"], .location, .city, .Listing_location__')
           .first()
           .text()
           .trim();
-        const image = $(element).find("img").first().attr("src");
+        const image = el.find("img").first().attr("src");
+
         const locationText =
           `${location} ${title} ${description}`.toLowerCase();
+
+        // filter out obvious nav/section tiles
+        const skipPatterns = [
+          /^all\b/i,
+          /^your\b/i,
+          /all\s+past/i,
+          /all\s+open/i,
+        ];
+        const shortOrNav =
+          !title || title.length < 8 || skipPatterns.some((p) => p.test(title));
+        if (shortOrNav) return;
+
         const isMumbai = mumbaiAllowlist.some((entry) =>
           locationText.includes(entry),
         );
@@ -288,11 +319,12 @@ export async function scrapeDevfolio() {
         const city = isOnlineOnly(locationText)
           ? null
           : location || (isMumbai ? "Mumbai" : null);
+
         const normalized = normalizeEvent(
           {
             title,
             tagline: description,
-            url: href?.startsWith("http")
+            url: href.startsWith("http")
               ? href
               : href
                 ? `https://devfolio.co${href}`
@@ -300,7 +332,7 @@ export async function scrapeDevfolio() {
             image,
             city,
             organizer: "Devfolio",
-            mode: "online",
+            mode: isOnlineOnly(locationText) ? "online" : "offline",
             category: "hackathon",
           },
           "devfolio",

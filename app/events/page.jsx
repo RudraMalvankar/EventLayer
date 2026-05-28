@@ -7,6 +7,8 @@ import { Navbar } from "../../components/Navbar";
 
 const CATEGORY_OPTIONS = ["All", "Hackathon", "Meetup", "Workshop"];
 const MODE_OPTIONS = ["All", "Online", "Offline"];
+const PLATFORM_ORDER = ["devfolio", "eventbrite", "unstop", "devpost", "luma"];
+const currentYear = new Date().getFullYear();
 
 function dayKey(value) {
   if (!value) return "tba";
@@ -30,6 +32,15 @@ function monthLabel(date) {
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
+function isArchivedCard(event) {
+  const title = String(event?.title || "").toLowerCase();
+  if (!title) return false;
+  if (title.includes("past") || title.includes("archive")) return true;
+  const yearMatch = title.match(/\b(20\d{2})\b/);
+  if (!yearMatch) return false;
+  return Number(yearMatch[1]) < currentYear;
+}
+
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,16 +53,20 @@ export default function EventsPage() {
     mode: "All",
     price: "All",
     city: "",
+    hackathon: false,
   });
 
   function buildParams({ search } = {}) {
     const params = new URLSearchParams();
+    params.set("limit", "48");
     if (filters.city) params.set("city", filters.city);
     if (filters.category !== "All")
       params.set("category", filters.category.toLowerCase());
     if (filters.mode !== "All") params.set("mode", filters.mode.toLowerCase());
     if (filters.price === "Free") params.set("is_free", "true");
-    params.set("platform", devfolioPast ? "devfolio" : "luma");
+    if (devfolioPast) params.set("platform", "devfolio");
+    // if hackathon toggle is enabled, prefer keyword search for 'hack'
+    if (filters.hackathon && !search) search = "hack";
     if (search) params.set("search", search);
     return params;
   }
@@ -77,6 +92,7 @@ export default function EventsPage() {
     filters.category,
     filters.mode,
     filters.price,
+    filters.hackathon,
     devfolioPast,
   ]);
 
@@ -135,6 +151,35 @@ export default function EventsPage() {
       key,
       ...group,
     }));
+  }, [events]);
+
+  const groupedByPlatform = useMemo(() => {
+    const buckets = new Map();
+    PLATFORM_ORDER.forEach((platform) => buckets.set(platform, []));
+    events.forEach((event) => {
+      if (
+        String(event?.platform || "").toLowerCase() === "devfolio" &&
+        isArchivedCard(event)
+      ) {
+        return;
+      }
+      const platform = String(event?.platform || "luma").toLowerCase();
+      if (!buckets.has(platform)) buckets.set(platform, []);
+      buckets.get(platform).push(event);
+    });
+
+    return PLATFORM_ORDER.map((platform) => ({
+      platform,
+      items: (buckets.get(platform) || []).sort((a, b) => {
+        const aTime = a?.start_date
+          ? new Date(a.start_date).getTime()
+          : Number.POSITIVE_INFINITY;
+        const bTime = b?.start_date
+          ? new Date(b.start_date).getTime()
+          : Number.POSITIVE_INFINITY;
+        return aTime - bTime;
+      }),
+    })).filter((group) => group.items.length);
   }, [events]);
 
   const eventsByDate = useMemo(() => {
@@ -261,6 +306,22 @@ export default function EventsPage() {
               >
                 Free only
               </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    hackathon: !prev.hackathon,
+                  }))
+                }
+                className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] transition ${
+                  filters.hackathon
+                    ? "bg-[var(--accent)] text-white"
+                    : "bg-[var(--surface-2)] text-[var(--muted)]"
+                }`}
+              >
+                Hackathons
+              </button>
               <input
                 className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm text-[var(--text)]"
                 placeholder="City"
@@ -278,7 +339,7 @@ export default function EventsPage() {
                     : "bg-[var(--surface-2)] text-[var(--muted)]"
                 }`}
               >
-                Devfolio archive
+                Devfolio only
               </button>
             </div>
           </div>
@@ -295,27 +356,34 @@ export default function EventsPage() {
                 No events found. Try different search or filters.
               </div>
             ) : (
-              groupedEvents.map((group) => (
-                <section key={group.key} className="space-y-4">
-                  <h2 className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">
-                    {group.label}
-                  </h2>
-                  <div className="space-y-4">
-                    {group.items.map((event) => (
-                      <div
-                        key={event.id || event.event_url}
-                        onClick={() => {
-                          setSelectedMapId(event.id || event.event_url);
-                          setSelectedDateKey(dayKey(event?.start_date));
-                        }}
-                        className="block w-full cursor-pointer"
-                      >
-                        <EventCard event={event} variant="list" />
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ))
+              <div className="space-y-8">
+                {groupedByPlatform.map((group) => (
+                  <section key={group.platform} className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">
+                        {group.platform}
+                      </h2>
+                      <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 text-xs text-[var(--muted)]">
+                        {group.items.length}
+                      </span>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+                      {group.items.map((event) => (
+                        <div
+                          key={event.id || event.event_url}
+                          onClick={() => {
+                            setSelectedMapId(event.id || event.event_url);
+                            setSelectedDateKey(dayKey(event?.start_date));
+                          }}
+                          className="block w-full cursor-pointer"
+                        >
+                          <EventCard event={event} variant="grid" />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
             )}
           </div>
 

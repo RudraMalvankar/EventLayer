@@ -1,6 +1,6 @@
-"use client";
-
 import { Navbar } from "../components/Navbar";
+import { EventCard } from "../components/EventCard";
+import { getEventsService } from "../src/features/events/service";
 
 const floatingEvents = [
   {
@@ -135,7 +135,20 @@ function FloatingCards() {
   );
 }
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  let events = [];
+  try {
+    const { data, error } = await getEventsService({ limit: 6 });
+    events = data?.events || [];
+  } catch (err) {
+    try {
+      const res = await fetch("http://localhost:3001/api/events?limit=6");
+      const json = await res.json();
+      events = json?.data?.events || [];
+    } catch (e) {
+      events = [];
+    }
+  }
   return (
     <main
       className="min-h-screen bg-[var(--bg)] text-[var(--text)]"
@@ -302,6 +315,35 @@ export default function LandingPage() {
           <div className="absolute right-4 bottom-4 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-[11px] text-[var(--muted)]">
             Powered by MapKit JS
           </div>
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6">
+        <div className="mb-2 text-xs font-semibold tracking-[0.3em] text-[var(--accent)]">
+          UPCOMING
+        </div>
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <h2 className="serif text-2xl sm:text-3xl">Upcoming events</h2>
+          <p className="max-w-lg text-sm leading-6 text-[var(--muted)]">
+            Cleaner cards, bigger banner space, and less visual clutter so the
+            event details are easier to scan.
+          </p>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2 lg:auto-rows-fr lg:grid-cols-3">
+          {events && events.length ? (
+            events.map((ev) => (
+              <EventCard
+                key={ev.id || ev.event_url}
+                event={ev}
+                variant="grid"
+              />
+            ))
+          ) : (
+            <div className="text-sm text-[var(--muted)]">
+              No upcoming events.
+            </div>
+          )}
         </div>
       </section>
 

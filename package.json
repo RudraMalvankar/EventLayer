@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "start:cron": "node ./src/cron/scraperCron.js",
+    "playwright:install": "npx playwright install",
     "start": "next start",
     "lint": "next lint"
   },
