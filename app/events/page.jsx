@@ -289,7 +289,10 @@ export default function EventsPage() {
                 style={
                   MAP_PREVIEW_URL
                     ? { backgroundImage: `url(${MAP_PREVIEW_URL})` }
-                    : { background: "linear-gradient(135deg, #111827 0%, #020617 100%)" }
+                    : {
+                        background:
+                          "linear-gradient(135deg, #111827 0%, #020617 100%)",
+                      }
                 }
               >
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />

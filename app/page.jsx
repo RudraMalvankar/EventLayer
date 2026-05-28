@@ -10,21 +10,24 @@ const floatingEvents = [
     title: "Builder Hack Night",
     meta: "Jun 14 · Online",
     accent: "from-[#6D28D9] to-[#4F46E5]",
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+    image:
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
   },
   {
     platform: "DEVFOLIO",
     title: "GDG Mumbai DevFest",
     meta: "Jun 20 · Mumbai",
     accent: "from-[#0EA5E9] to-[#0284C7]",
-    image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
+    image:
+      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
   },
   {
     platform: "UNSTOP",
     title: "Startup Weekend Pune",
     meta: "Jun 28 · Pune",
     accent: "from-[#F59E0B] to-[#F97316]",
-    image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80",
+    image:
+      "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80",
   },
 ];
 
@@ -32,17 +35,20 @@ const featureCards = [
   {
     icon: "🔍",
     title: "AI Natural Search",
-    description: '"Free AI hackathons in Mumbai this weekend" just works with GPT-4o.',
+    description:
+      '"Free AI hackathons in Mumbai this weekend" just works with GPT-4o.',
   },
   {
     icon: "⚡",
     title: "Real-time Aggregation",
-    description: "Events from Luma, Devfolio, Unstop, and more synced every 6 hours.",
+    description:
+      "Events from Luma, Devfolio, Unstop, and more synced every 6 hours.",
   },
   {
     icon: "🗺️",
     title: "Map Discovery",
-    description: "Explore what is happening near you with quick city clustering.",
+    description:
+      "Explore what is happening near you with quick city clustering.",
   },
   {
     icon: "🔔",
@@ -135,7 +141,7 @@ export default async function LandingPage() {
   let events = [];
   try {
     const { data, error } = await getEventsService({ limit: 6 });
-    events = (data?.events || []).filter(e => e.start_date);
+    events = (data?.events || []).filter((e) => e.start_date);
   } catch (err) {
     events = [];
   }
@@ -155,7 +161,8 @@ export default async function LandingPage() {
             <span className="text-orange-500">One ecosystem.</span>
           </h1>
           <p className="mb-10 max-w-lg text-lg text-gray-400 leading-relaxed">
-            The ultimate discovery layer for India's tech ecosystem. Unified feed, AI-powered discovery, and zero noise.
+            The ultimate discovery layer for India's tech ecosystem. Unified
+            feed, AI-powered discovery, and zero noise.
           </p>
 
           <div className="flex flex-wrap items-center gap-4">
@@ -180,14 +187,22 @@ export default async function LandingPage() {
                   key={letter}
                   className="flex h-10 w-10 items-center justify-center rounded-full border-4 border-[#030407] text-[10px] font-black text-white"
                   style={{
-                    backgroundColor: ["#7C3AED", "#2563EB", "#16A34A", "#F59E0B", "#EC4899"][index],
+                    backgroundColor: [
+                      "#7C3AED",
+                      "#2563EB",
+                      "#16A34A",
+                      "#F59E0B",
+                      "#EC4899",
+                    ][index],
                   }}
                 >
                   {letter}
                 </div>
               ))}
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Trusted by <span className="text-white">2,000+</span> developers</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+              Trusted by <span className="text-white">2,000+</span> developers
+            </span>
           </div>
         </div>
 
@@ -208,7 +223,9 @@ export default async function LandingPage() {
             {beforeItems.map((item) => (
               <div key={item} className="flex items-start gap-3">
                 <span className="text-base text-red-500 font-bold">✗</span>
-                <span className="text-sm text-gray-400 font-medium">{item}</span>
+                <span className="text-sm text-gray-400 font-medium">
+                  {item}
+                </span>
               </div>
             ))}
           </div>
@@ -233,7 +250,8 @@ export default async function LandingPage() {
           CORE CAPABILITIES
         </div>
         <h2 className="text-4xl font-black tracking-tighter mb-12">
-          Everything you need to <span className="text-gray-700">stay ahead.</span>
+          Everything you need to{" "}
+          <span className="text-gray-700">stay ahead.</span>
         </h2>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -245,7 +263,9 @@ export default async function LandingPage() {
               <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/5 text-2xl group-hover:bg-orange-500 group-hover:text-white transition-all duration-500">
                 {feature.icon}
               </div>
-              <div className="text-lg font-black tracking-tight text-white mb-3 uppercase tracking-wider text-xs">{feature.title}</div>
+              <div className="text-lg font-black tracking-tight text-white mb-3 uppercase tracking-wider text-xs">
+                {feature.title}
+              </div>
               <div className="text-sm text-gray-500 leading-relaxed font-medium">
                 {feature.description}
               </div>
@@ -267,11 +287,14 @@ export default async function LandingPage() {
             style={
               MAP_PREVIEW_URL
                 ? { backgroundImage: `url(${MAP_PREVIEW_URL})` }
-                : { background: "linear-gradient(135deg, #111827 0%, #020617 100%)" }
+                : {
+                    background:
+                      "linear-gradient(135deg, #111827 0%, #020617 100%)",
+                  }
             }
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#030407] via-transparent to-transparent" />
-          
+
           <div className="absolute left-[25%] top-[55%] rounded-full bg-orange-500 px-4 py-2 text-[10px] font-black text-white uppercase tracking-widest shadow-[0_8px_30px_rgba(255,77,0,0.4)] animate-bounce">
             Mumbai · 12
           </div>
@@ -281,7 +304,7 @@ export default async function LandingPage() {
           <div className="absolute left-[31%] top-[58%] rounded-full bg-[#2563EB] px-4 py-2 text-[10px] font-black text-white uppercase tracking-widest shadow-[0_8px_30px_rgba(37,99,235,0.3)]">
             Pune · 5
           </div>
-          
+
           <div className="absolute right-8 bottom-8 rounded-full border border-white/10 bg-black/60 backdrop-blur-xl px-6 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">
             Visualizing Mumbai Ecosystem
           </div>
@@ -294,10 +317,13 @@ export default async function LandingPage() {
             <div className="mb-4 text-[10px] font-black tracking-[0.3em] text-orange-500 uppercase">
               LIVE CURATION
             </div>
-            <h2 className="text-4xl font-black tracking-tighter">Upcoming highlights.</h2>
+            <h2 className="text-4xl font-black tracking-tighter">
+              Upcoming highlights.
+            </h2>
           </div>
           <p className="max-w-md text-sm leading-relaxed text-gray-500 font-medium">
-            Handpicked events with cinematic visuals and zero clutter. Verified metadata synced in real-time.
+            Handpicked events with cinematic visuals and zero clutter. Verified
+            metadata synced in real-time.
           </p>
         </div>
 
@@ -326,22 +352,29 @@ export default async function LandingPage() {
             {
               step: "01",
               title: "Scrape",
-              description: "Distributed workers collect raw data from 10+ platforms every 6 hours.",
+              description:
+                "Distributed workers collect raw data from 10+ platforms every 6 hours.",
             },
             {
               step: "02",
               title: "Normalize",
-              description: "AI pipelines clean, tag, and categorize events for maximum searchability.",
+              description:
+                "AI pipelines clean, tag, and categorize events for maximum searchability.",
             },
             {
               step: "03",
               title: "Discover",
-              description: "Search, filter, and save events in one high-performance interface.",
+              description:
+                "Search, filter, and save events in one high-performance interface.",
             },
           ].map((item) => (
             <div key={item.step} className="relative group">
-              <div className="text-6xl font-black text-white/5 mb-4 group-hover:text-orange-500/10 transition-colors duration-500">{item.step}</div>
-              <div className="text-lg font-black tracking-tight text-white mb-3 uppercase tracking-wider text-xs">{item.title}</div>
+              <div className="text-6xl font-black text-white/5 mb-4 group-hover:text-orange-500/10 transition-colors duration-500">
+                {item.step}
+              </div>
+              <div className="text-lg font-black tracking-tight text-white mb-3 uppercase tracking-wider text-xs">
+                {item.title}
+              </div>
               <div className="text-sm text-gray-500 leading-relaxed font-medium">
                 {item.description}
               </div>
@@ -355,7 +388,8 @@ export default async function LandingPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_70%)]" />
           <div className="relative z-10">
             <h2 className="text-5xl font-black tracking-tighter text-white mb-6 leading-none">
-              Stop missing out on <br/>the tech ecosystem.
+              Stop missing out on <br />
+              the tech ecosystem.
             </h2>
             <p className="mb-10 text-orange-100 font-bold uppercase tracking-widest text-[10px]">
               No signup required to browse. Open access for everyone.
@@ -377,27 +411,66 @@ export default async function LandingPage() {
               EVENT<span className="text-orange-500">LAYER</span>
             </div>
             <div className="text-[10px] font-bold uppercase tracking-widest text-gray-600 leading-relaxed">
-              The premium discovery layer for India's high-performance tech ecosystem.
+              The premium discovery layer for India's high-performance tech
+              ecosystem.
             </div>
           </div>
           <div className="flex flex-wrap gap-x-16 gap-y-8">
             <div className="flex flex-col gap-4">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">Platform</span>
-              <a href="/events" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Events</a>
-              <a href="/explore" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Explore</a>
-              <a href="/saved" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Saved</a>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">
+                Platform
+              </span>
+              <a
+                href="/events"
+                className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
+              >
+                Events
+              </a>
+              <a
+                href="/explore"
+                className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
+              >
+                Explore
+              </a>
+              <a
+                href="/saved"
+                className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
+              >
+                Saved
+              </a>
             </div>
             <div className="flex flex-col gap-4">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">Connect</span>
-              <a href="https://github.com" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">GitHub</a>
-              <a href="/about" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">About</a>
-              <a href="#" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Twitter</a>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">
+                Connect
+              </span>
+              <a
+                href="https://github.com"
+                className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
+              >
+                GitHub
+              </a>
+              <a
+                href="/about"
+                className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
+              >
+                About
+              </a>
+              <a
+                href="#"
+                className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
+              >
+                Twitter
+              </a>
             </div>
           </div>
         </div>
         <div className="max-w-6xl mx-auto mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-[9px] font-black text-gray-700 uppercase tracking-[0.4em]">© 2026 EVENTLAYER TECHNOLOGY</div>
-          <div className="text-[9px] font-black text-gray-700 uppercase tracking-[0.4em]">Built for the Mumbai Ecosystem</div>
+          <div className="text-[9px] font-black text-gray-700 uppercase tracking-[0.4em]">
+            © 2026 EVENTLAYER TECHNOLOGY
+          </div>
+          <div className="text-[9px] font-black text-gray-700 uppercase tracking-[0.4em]">
+            Built for the Mumbai Ecosystem
+          </div>
         </div>
       </footer>
     </main>
