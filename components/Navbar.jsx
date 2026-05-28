@@ -16,17 +16,22 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 glass border-b border-white/5">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-10">
-          <Link href="/" className="text-xl font-black tracking-tighter text-white">
-            EVENT<span className="text-orange-500">LAYER</span>
+          <Link
+            href="/"
+            className="text-xl font-black tracking-tighter text-white"
+          >
+            EventLayer<span className="text-orange-500">.dev</span>
           </Link>
-          
+
           <div className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`text-xs font-bold uppercase tracking-widest transition-all duration-200 ${
-                  pathname === item.href ? "text-orange-500" : "text-gray-400 hover:text-white"
+                  pathname === item.href
+                    ? "text-orange-500"
+                    : "text-gray-400 hover:text-white"
                 }`}
               >
                 {item.label}

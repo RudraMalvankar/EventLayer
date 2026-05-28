@@ -217,7 +217,7 @@ export default async function LandingPage() {
       <section className="mx-auto grid w-full max-w-5xl gap-10 px-6 pb-32 sm:px-6 md:grid-cols-2">
         <div className="rounded-[32px] border border-white/5 bg-white/2 p-8 transition-all hover:border-white/10">
           <div className="mb-6 text-[10px] font-black tracking-[0.3em] text-gray-600 uppercase">
-            BEFORE TECHPULSE
+            BEFORE EVENTLAYER.DEV
           </div>
           <div className="space-y-4">
             {beforeItems.map((item) => (
@@ -232,7 +232,7 @@ export default async function LandingPage() {
         </div>
         <div className="rounded-[32px] border border-orange-500/30 bg-orange-500/5 p-8 transition-all hover:border-orange-500/50">
           <div className="mb-6 text-[10px] font-black tracking-[0.3em] text-orange-500 uppercase">
-            WITH TECHPULSE
+            WITH EVENTLAYER.DEV
           </div>
           <div className="space-y-4">
             {afterItems.map((item) => (
@@ -466,7 +466,7 @@ export default async function LandingPage() {
         </div>
         <div className="max-w-6xl mx-auto mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-[9px] font-black text-gray-700 uppercase tracking-[0.4em]">
-            © 2026 EVENTLAYER TECHNOLOGY
+            © 2026 EVENTLAYER.DEV
           </div>
           <div className="text-[9px] font-black text-gray-700 uppercase tracking-[0.4em]">
             Built for the Mumbai Ecosystem
