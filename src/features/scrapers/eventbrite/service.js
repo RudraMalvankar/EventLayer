@@ -10,6 +10,8 @@ export async function scrapeEventbrite() {
     const $ = cheerio.load(resp.data);
     const events = [];
 
+    const seen = new Set();
+
     $(
       '.event-card, .search-event-card, [class*="event-card"], .eds-event-card',
     ).each((i, el) => {
@@ -40,6 +42,9 @@ export async function scrapeEventbrite() {
             ? href
             : `https://www.eventbrite.com${href}`
           : "";
+        const dedupeKey = redirectURL || title;
+        if (seen.has(dedupeKey)) return;
+        seen.add(dedupeKey);
         const price = $el
           .find('.event-price, .price, [class*="price"]')
           .first()
@@ -52,6 +57,9 @@ export async function scrapeEventbrite() {
           title,
           description: desc || "",
           type: "hackathon",
+          mode: "online",
+          city: "Online",
+          country: "Online",
           startDate: null,
           endDate: null,
           deadline: null,

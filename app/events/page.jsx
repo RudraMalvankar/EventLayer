@@ -7,7 +7,7 @@ import { Navbar } from "../../components/Navbar";
 
 const CATEGORY_OPTIONS = ["All", "Hackathon", "Meetup", "Workshop"];
 const MODE_OPTIONS = ["All", "Online", "Offline"];
-const PLATFORM_ORDER = ["devfolio", "eventbrite", "unstop", "devpost", "luma"];
+const PLATFORM_ORDER = ["luma", "devfolio", "unstop", "devpost", "eventbrite", "eventtier"];
 const currentYear = new Date().getFullYear();
 
 function dayKey(value) {
@@ -32,6 +32,15 @@ function monthLabel(date) {
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
+function isFutureDate(value) {
+  if (!value) return false;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date.getTime() >= today.getTime();
+}
+
 function isArchivedCard(event) {
   const title = String(event?.title || "").toLowerCase();
   if (!title) return false;
@@ -41,8 +50,22 @@ function isArchivedCard(event) {
   return Number(yearMatch[1]) < currentYear;
 }
 
+function shouldShowEvent(event) {
+  if (String(event?.platform || "").toLowerCase() !== "devfolio") return true;
+  if (isArchivedCard(event)) return false;
+  return isFutureDate(event?.start_date);
+}
+
+function getVisibleEvents(items = []) {
+  return items.filter(shouldShowEvent);
+}
+
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
+  const [scraperStatus, setScraperStatus] = useState([]);
+  const [liveScraperEvents, setLiveScraperEvents] = useState([]);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [liveLoading, setLiveLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [devfolioPast, setDevfolioPast] = useState(false);
   const [monthCursor, setMonthCursor] = useState(new Date());
@@ -77,16 +100,47 @@ export default function EventsPage() {
     const json = await res.json();
     const next = json?.data?.events || [];
     setEvents(next);
-    const firstId = next?.[0]?.id || next?.[0]?.event_url || null;
+    const visibleNext = getVisibleEvents(next);
+    const firstId = visibleNext?.[0]?.id || visibleNext?.[0]?.event_url || null;
     setSelectedMapId(firstId);
     setSelectedDateKey(
-      next?.[0]?.start_date ? dayKey(next[0].start_date) : null,
+      visibleNext?.[0]?.start_date ? dayKey(visibleNext[0].start_date) : null,
     );
     setLoading(false);
   }
 
+  async function loadScraperStatus() {
+    setStatusLoading(true);
+    try {
+      const res = await fetch("/api/scrapers/status");
+      const json = await res.json();
+      setScraperStatus(json?.data?.platforms || []);
+    } catch {
+      setScraperStatus([]);
+    } finally {
+      setStatusLoading(false);
+    }
+  }
+
+  async function loadLiveScraperEvents() {
+    setLiveLoading(true);
+    try {
+      const res = await fetch("/api/scrapers/live");
+      const json = await res.json();
+      setLiveScraperEvents(json?.data?.events || []);
+      // Refresh main list to include newly scraped/upserted events
+      load();
+    } catch {
+      setLiveScraperEvents([]);
+    } finally {
+      setLiveLoading(false);
+    }
+  }
+
   useEffect(() => {
     load();
+    loadScraperStatus();
+    loadLiveScraperEvents();
   }, [
     filters.city,
     filters.category,
@@ -116,17 +170,20 @@ export default function EventsPage() {
     const json = await res.json();
     const next = json?.data?.events || [];
     setEvents(next);
-    const firstId = next?.[0]?.id || next?.[0]?.event_url || null;
+    const visibleNext = getVisibleEvents(next);
+    const firstId = visibleNext?.[0]?.id || visibleNext?.[0]?.event_url || null;
     setSelectedMapId(firstId);
     setSelectedDateKey(
-      next?.[0]?.start_date ? dayKey(next[0].start_date) : null,
+      visibleNext?.[0]?.start_date ? dayKey(visibleNext[0].start_date) : null,
     );
     setLoading(false);
   }
 
+  const visibleEvents = useMemo(() => getVisibleEvents(events), [events]);
+
   const groupedEvents = useMemo(() => {
     const groups = new Map();
-    const ordered = [...events].sort((a, b) => {
+    const ordered = [...visibleEvents].sort((a, b) => {
       const aTime = a?.start_date
         ? new Date(a.start_date).getTime()
         : Number.POSITIVE_INFINITY;
@@ -151,18 +208,12 @@ export default function EventsPage() {
       key,
       ...group,
     }));
-  }, [events]);
+  }, [visibleEvents]);
 
   const groupedByPlatform = useMemo(() => {
     const buckets = new Map();
     PLATFORM_ORDER.forEach((platform) => buckets.set(platform, []));
-    events.forEach((event) => {
-      if (
-        String(event?.platform || "").toLowerCase() === "devfolio" &&
-        isArchivedCard(event)
-      ) {
-        return;
-      }
+    visibleEvents.forEach((event) => {
       const platform = String(event?.platform || "luma").toLowerCase();
       if (!buckets.has(platform)) buckets.set(platform, []);
       buckets.get(platform).push(event);
@@ -180,17 +231,17 @@ export default function EventsPage() {
         return aTime - bTime;
       }),
     })).filter((group) => group.items.length);
-  }, [events]);
+  }, [visibleEvents]);
 
   const eventsByDate = useMemo(() => {
     const map = new Map();
-    events.forEach((event) => {
+    visibleEvents.forEach((event) => {
       const key = dayKey(event?.start_date);
       if (!map.has(key)) map.set(key, []);
       map.get(key).push(event);
     });
     return map;
-  }, [events]);
+  }, [visibleEvents]);
 
   const calendarCells = useMemo(() => {
     const year = monthCursor.getFullYear();
@@ -219,11 +270,11 @@ export default function EventsPage() {
   const selectedMapEvent = useMemo(() => {
     const key = selectedMapId;
     return (
-      events.find((event) => (event.id || event.event_url) === key) ||
-      events[0] ||
+      visibleEvents.find((event) => (event.id || event.event_url) === key) ||
+      visibleEvents[0] ||
       null
     );
-  }, [events, selectedMapId]);
+  }, [visibleEvents, selectedMapId]);
 
   const mapQuery = useMemo(() => {
     if (!selectedMapEvent) return "Mumbai, India";
@@ -265,10 +316,10 @@ export default function EventsPage() {
                   key={category}
                   type="button"
                   onClick={() => setFilters((prev) => ({ ...prev, category }))}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] transition ${
+                  className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition ${
                     filters.category === category
-                      ? "bg-[var(--accent)] text-white"
-                      : "bg-[var(--surface-2)] text-[var(--muted)]"
+                      ? "bg-[var(--accent)] text-white shadow-lg shadow-orange-500/20"
+                      : "bg-[var(--surface-2)] text-[var(--muted)] hover:bg-[var(--border)]"
                   }`}
                 >
                   {category}
@@ -281,15 +332,16 @@ export default function EventsPage() {
                   key={mode}
                   type="button"
                   onClick={() => setFilters((prev) => ({ ...prev, mode }))}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] transition ${
+                  className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition ${
                     filters.mode === mode
-                      ? "bg-[var(--accent)] text-white"
-                      : "bg-[var(--surface-2)] text-[var(--muted)]"
+                      ? "bg-[var(--accent)] text-white shadow-lg shadow-orange-500/20"
+                      : "bg-[var(--surface-2)] text-[var(--muted)] hover:bg-[var(--border)]"
                   }`}
                 >
                   {mode}
                 </button>
               ))}
+              <div className="h-4 w-px bg-[var(--border)] mx-1" />
               <button
                 type="button"
                 onClick={() =>
@@ -298,10 +350,10 @@ export default function EventsPage() {
                     price: prev.price === "Free" ? "All" : "Free",
                   }))
                 }
-                className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] transition ${
+                className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition ${
                   filters.price === "Free"
-                    ? "bg-[var(--accent)] text-white"
-                    : "bg-[var(--surface-2)] text-[var(--muted)]"
+                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
+                    : "bg-[var(--surface-2)] text-[var(--muted)] hover:bg-[var(--border)]"
                 }`}
               >
                 Free only
@@ -314,60 +366,76 @@ export default function EventsPage() {
                     hackathon: !prev.hackathon,
                   }))
                 }
-                className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] transition ${
+                className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition ${
                   filters.hackathon
-                    ? "bg-[var(--accent)] text-white"
-                    : "bg-[var(--surface-2)] text-[var(--muted)]"
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                    : "bg-[var(--surface-2)] text-[var(--muted)] hover:bg-[var(--border)]"
                 }`}
               >
                 Hackathons
-              </button>
-              <input
-                className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm text-[var(--text)]"
-                placeholder="City"
-                value={filters.city}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, city: e.target.value }))
-                }
-              />
-              <button
-                type="button"
-                onClick={() => setDevfolioPast((value) => !value)}
-                className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] transition ${
-                  devfolioPast
-                    ? "bg-[var(--accent)] text-white"
-                    : "bg-[var(--surface-2)] text-[var(--muted)]"
-                }`}
-              >
-                Devfolio only
               </button>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-6">
+        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="space-y-10">
+            {/* Live Scraper Feed - Moved here and made more compact */}
+            {liveScraperEvents.length > 0 && (
+              <section className="space-y-4">
+                <div className="flex items-center justify-between px-2">
+                  <div>
+                    <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-[var(--accent)]">
+                      Live Feed
+                    </h2>
+                    <p className="text-xs text-[var(--muted)]">Real-time discovered events</p>
+                  </div>
+                  <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-bold text-orange-600 uppercase">
+                    {liveScraperEvents.length} New
+                  </span>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {liveScraperEvents.map((event) => (
+                    <EventCard
+                      key={`${event.platform}-${event.event_url}-${event.title}`}
+                      event={event}
+                      variant="grid"
+                    />
+                  ))}
+                </div>
+                <div className="h-px bg-gradient-to-r from-transparent via-[var(--border)] to-transparent opacity-50" />
+              </section>
+            )}
+
             {loading ? (
-              <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 text-[var(--muted)]">
-                Loading events...
+              <div className="flex h-64 items-center justify-center rounded-[32px] border border-dashed border-[var(--border)] bg-[var(--surface)] text-[var(--muted)]">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+                  <span className="text-sm font-medium">Curating your experience...</span>
+                </div>
               </div>
-            ) : !events.length ? (
-              <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 text-[var(--muted)]">
-                No events found. Try different search or filters.
+            ) : !visibleEvents.length ? (
+              <div className="flex h-64 items-center justify-center rounded-[32px] border border-dashed border-[var(--border)] bg-[var(--surface)] text-[var(--muted)]">
+                <p className="text-sm">No events matching your filters.</p>
               </div>
             ) : (
-              <div className="space-y-8">
-                {groupedByPlatform.map((group) => (
-                  <section key={group.platform} className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">
-                        {group.platform}
-                      </h2>
-                      <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 text-xs text-[var(--muted)]">
-                        {group.items.length}
-                      </span>
+              <div className="space-y-12">
+                {groupedEvents.map((group) => (
+                  <section key={group.key} className="space-y-5">
+                    <div className="sticky top-24 z-20 -mx-4 flex items-center gap-4 bg-[var(--bg)]/80 px-4 py-2 backdrop-blur-md lg:mx-0 lg:px-0">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--surface)] text-lg shadow-sm border border-[var(--border)]">
+                        📅
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-bold text-[var(--text)]">
+                          {group.label}
+                        </h2>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
+                          {group.items.length} {group.items.length === 1 ? "Event" : "Events"}
+                        </p>
+                      </div>
                     </div>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+                    <div className="grid gap-6 sm:grid-cols-2">
                       {group.items.map((event) => (
                         <div
                           key={event.id || event.event_url}
@@ -375,7 +443,7 @@ export default function EventsPage() {
                             setSelectedMapId(event.id || event.event_url);
                             setSelectedDateKey(dayKey(event?.start_date));
                           }}
-                          className="block w-full cursor-pointer"
+                          className="block w-full transition active:scale-[0.98]"
                         >
                           <EventCard event={event} variant="grid" />
                         </div>
@@ -387,134 +455,143 @@ export default function EventsPage() {
             )}
           </div>
 
-          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-4">
-              <div className="mb-4 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMonthCursor(
-                      (prev) =>
-                        new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
-                    )
-                  }
-                  className="rounded-full bg-[var(--surface-2)] px-3 py-2 text-sm"
-                >
-                  Prev
-                </button>
-                <h2 className="text-base font-semibold">
-                  {monthLabel(monthCursor)}
-                </h2>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMonthCursor(
-                      (prev) =>
-                        new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
-                    )
-                  }
-                  className="rounded-full bg-[var(--surface-2)] px-3 py-2 text-sm"
-                >
-                  Next
-                </button>
-              </div>
-
-              <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
-                {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
-                  <div key={`${day}-${idx}`}>{day}</div>
-                ))}
-              </div>
-
-              <div className="mt-2 grid grid-cols-7 gap-1">
-                {calendarCells.map((date) => {
-                  const key = dayKey(date.toISOString());
-                  const dayEvents = eventsByDate.get(key) || [];
-                  const inMonth = date.getMonth() === monthCursor.getMonth();
-                  const isActive = selectedDateKey === key;
-                  return (
+          <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+            {/* Unified Sidebar: Calendar + Location */}
+            <div className="overflow-hidden rounded-[32px] border border-[var(--border)] bg-[var(--surface)] shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+              <div className="bg-[var(--surface-2)] p-6">
+                <div className="mb-6 flex items-center justify-between">
+                  <h2 className="text-sm font-bold uppercase tracking-widest text-[var(--text)]">
+                    Timeline
+                  </h2>
+                  <div className="flex gap-1">
                     <button
-                      key={key}
-                      type="button"
-                      onClick={() => {
-                        setSelectedDateKey(key);
-                        if (dayEvents[0])
-                          setSelectedMapId(
-                            dayEvents[0].id || dayEvents[0].event_url,
-                          );
-                      }}
-                      className={`min-h-14 rounded-xl border p-1 text-left transition ${
-                        isActive
-                          ? "border-[var(--accent)] bg-[var(--accent-soft)]"
-                          : "border-[var(--border)] bg-[var(--surface-2)]"
-                      } ${inMonth ? "opacity-100" : "opacity-50"}`}
-                    >
-                      <div className="text-[11px] font-semibold">
-                        {date.getDate()}
-                      </div>
-                      {dayEvents.length ? (
-                        <div className="mt-1 inline-flex h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-                      ) : null}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="mt-3 rounded-xl bg-[var(--surface-2)] p-3">
-                <div className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
-                  {selectedDateKey
-                    ? formatDayLabel(selectedDateKey)
-                    : "Select a date"}
-                </div>
-                <div className="mt-2 space-y-1">
-                  {selectedDayEvents.slice(0, 3).map((event) => (
-                    <button
-                      key={event.id || event.event_url}
                       type="button"
                       onClick={() =>
-                        setSelectedMapId(event.id || event.event_url)
+                        setMonthCursor(
+                          (prev) =>
+                            new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
+                        )
                       }
-                      className="w-full rounded-lg bg-[var(--surface)] p-2 text-left text-xs"
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text)] shadow-sm transition hover:bg-[var(--accent)] hover:text-white"
                     >
-                      <div className="font-semibold line-clamp-1">
-                        {event.title}
-                      </div>
-                      <div className="text-[var(--muted)]">
-                        {event.city || "Online"}
-                      </div>
+                      ←
                     </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setMonthCursor(
+                          (prev) =>
+                            new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
+                        )
+                      }
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text)] shadow-sm transition hover:bg-[var(--accent)] hover:text-white"
+                    >
+                      →
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="mb-2 text-center text-xs font-bold text-[var(--muted)]">
+                  {monthLabel(monthCursor)}
+                </div>
+
+                <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-[var(--faint)]">
+                  {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
+                    <div key={day} className="py-2">{day}</div>
                   ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-1">
+                  {calendarCells.map((date) => {
+                    const key = dayKey(date.toISOString());
+                    const dayEvents = eventsByDate.get(key) || [];
+                    const inMonth = date.getMonth() === monthCursor.getMonth();
+                    const isActive = selectedDateKey === key;
+                    const isToday = dayKey(new Date().toISOString()) === key;
+
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          setSelectedDateKey(key);
+                          if (dayEvents[0])
+                            setSelectedMapId(
+                              dayEvents[0].id || dayEvents[0].event_url,
+                            );
+                        }}
+                        className={`group relative flex aspect-square items-center justify-center rounded-xl text-[11px] font-bold transition ${
+                          isActive
+                            ? "bg-[var(--accent)] text-white shadow-lg shadow-orange-500/40"
+                            : isToday
+                              ? "bg-orange-50 text-[var(--accent)] ring-1 ring-inset ring-orange-200"
+                              : "text-[var(--text)] hover:bg-[var(--surface)]"
+                        } ${!inMonth ? "opacity-20" : "opacity-100"}`}
+                      >
+                        {date.getDate()}
+                        {dayEvents.length > 0 && !isActive && (
+                          <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-[var(--accent)]" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted)]">
+                    At a Glance
+                  </h3>
+                  <a
+                    href={appleMapsUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent)] hover:underline"
+                  >
+                    Maps →
+                  </a>
+                </div>
+                
+                <div className="mb-4 rounded-2xl bg-[var(--surface-2)] p-4">
+                  <p className="text-[11px] font-bold text-[var(--text)] line-clamp-1">
+                    {selectedMapEvent?.title || "Select an event"}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-[var(--muted)]">
+                    {selectedMapEvent?.city || "Online"}
+                  </p>
+                </div>
+
+                <div className="overflow-hidden rounded-2xl border border-[var(--border)] grayscale transition duration-500 hover:grayscale-0">
+                  <iframe
+                    title="Event map"
+                    src={mapEmbedUrl}
+                    className="h-40 w-full"
+                    loading="lazy"
+                  />
                 </div>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold">
-                  {selectedMapEvent?.city || "Event location"}
-                </h3>
-                <a
-                  href={appleMapsUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-sm font-semibold text-[var(--accent)]"
-                >
-                  Apple Maps
-                </a>
-              </div>
-              <div className="mb-3 inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-                {selectedMapEvent?.city
-                  ? [selectedMapEvent.city, selectedMapEvent.country]
-                      .filter(Boolean)
-                      .join(", ")
-                  : "Online event"}
-              </div>
-              <div className="overflow-hidden rounded-2xl border border-[var(--border)]">
-                <iframe
-                  title="Event map"
-                  src={mapEmbedUrl}
-                  className="h-64 w-full"
-                  loading="lazy"
-                />
+            {/* Scraper Status - Moved to bottom of sidebar and made very minimal */}
+            <div className="rounded-[32px] border border-[var(--border)] bg-[var(--surface)] p-6">
+              <h3 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted)]">
+                Network Status
+              </h3>
+              <div className="space-y-3">
+                {scraperStatus.map((item) => (
+                  <div key={item.platform} className="flex items-center justify-between">
+                    <span className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">
+                      {item.platform}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-[var(--text)]">
+                        {item.count}
+                      </span>
+                      <div className={`h-1.5 w-1.5 rounded-full ${item.error ? "bg-red-500" : "bg-emerald-500"}`} />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </aside>

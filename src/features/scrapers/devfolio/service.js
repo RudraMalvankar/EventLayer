@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { normalizeEvent } from "../normalizer.js";
+import { fetchDevfolioEventDetails } from "./details.js";
 import { env } from "../../../shared/config/env.js";
 
 function sleep(ms) {
@@ -24,6 +25,50 @@ function isArchivedDevfolioTitle(title) {
   const yearMatch = value.match(/\b(20\d{2})\b/);
   if (!yearMatch) return false;
   return Number(yearMatch[1]) < currentYear;
+}
+
+function isFutureDate(value) {
+  if (!value) return false;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date.getTime() >= today.getTime();
+}
+
+function shouldKeepDevfolioEvent(event) {
+  if (!event) return false;
+  const title = event?.title || "";
+  if (isArchivedDevfolioTitle(title)) return false;
+  return isFutureDate(event?.start_date);
+}
+
+async function enrichDevfolioEvents(events) {
+  const enriched = [];
+  for (const event of events) {
+    const url = event?.url || event?.event_url || null;
+    if (!url) {
+      enriched.push(event);
+      continue;
+    }
+
+    try {
+      const details = await fetchDevfolioEventDetails(url);
+      enriched.push({
+        ...event,
+        description: event?.description || details?.description || null,
+        banner_url: event?.banner_url || details?.banner_url || null,
+        start_date: event?.start_date || details?.start_date || null,
+        end_date: event?.end_date || details?.end_date || null,
+        organizer: event?.organizer || details?.organizer || null,
+        city: event?.city || details?.city || null,
+        country: event?.country || details?.country || null,
+      });
+    } catch {
+      enriched.push(event);
+    }
+  }
+  return enriched;
 }
 
 async function scrapeDevfolioPlaywright() {
@@ -183,7 +228,7 @@ async function scrapeDevfolioPlaywright() {
       if (normalized) events.push(normalized);
     });
 
-    return events;
+    return (await enrichDevfolioEvents(events)).filter(shouldKeepDevfolioEvent);
   } catch (error) {
     console.error("Devfolio Playwright scrape failed", error?.message || error);
     return [];
@@ -251,7 +296,7 @@ async function scrapeDevfolioApi() {
         if (normalized) events.push(normalized);
       });
     }
-    return events;
+    return (await enrichDevfolioEvents(events)).filter(shouldKeepDevfolioEvent);
   } catch {
     return [];
   }
@@ -340,7 +385,7 @@ export async function scrapeDevfolio() {
         if (normalized) events.push(normalized);
       },
     );
-    return events;
+    return (await enrichDevfolioEvents(events)).filter(shouldKeepDevfolioEvent);
   } catch {
     return [];
   }

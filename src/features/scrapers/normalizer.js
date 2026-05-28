@@ -10,8 +10,15 @@ function parseDate(value) {
   if (!value) return null
   try {
     const d = new Date(value)
-    if (isNaN(d.getTime())) return null
-    return d.toISOString()
+    if (!isNaN(d.getTime())) return d.toISOString()
+    
+    // Handle formats like "Mon, Jun 8" by adding current year
+    if (typeof value === 'string' && value.match(/^[A-Za-z]{3},\s[A-Za-z]{3}\s\d{1,2}$/)) {
+      const withYear = new Date(`${value}, ${new Date().getFullYear()}`)
+      if (!isNaN(withYear.getTime())) return withYear.toISOString()
+    }
+    
+    return null
   } catch {
     return null
   }
@@ -43,6 +50,17 @@ function isFree(rawPrice) {
   return Number(rawPrice) === 0
 }
 
+export function detectPlatform(url) {
+  if (!url) return 'scraper'
+  const lower = url.toLowerCase()
+  if (lower.includes('lu.ma')) return 'luma'
+  if (lower.includes('devfolio.co')) return 'devfolio'
+  if (lower.includes('unstop.com')) return 'unstop'
+  if (lower.includes('devpost.com')) return 'devpost'
+  if (lower.includes('eventbrite.com')) return 'eventbrite'
+  return 'scraper'
+}
+
 export function normalizeEvent(rawEvent, platform) {
   try {
     const title = cleanText(rawEvent?.title || rawEvent?.name || rawEvent?.event_name, 140)
@@ -51,6 +69,15 @@ export function normalizeEvent(rawEvent, platform) {
     const description = cleanText(rawEvent?.description || rawEvent?.tagline || rawEvent?.summary || '')
     const city = cleanText(rawEvent?.city || rawEvent?.location?.city || rawEvent?.location || '', 80)
     const country = cleanText(rawEvent?.country || rawEvent?.location?.country || 'India', 80)
+    
+    const rawStart = rawEvent?.start_date ||
+      rawEvent?.start_at ||
+      rawEvent?.starts_at ||
+      rawEvent?.startTime ||
+      rawEvent?.start_time ||
+      rawEvent?.startsOn ||
+      rawEvent?.starts_on
+      
     return {
       title,
       description,
@@ -62,16 +89,8 @@ export function normalizeEvent(rawEvent, platform) {
       tags: detectTags(rawEvent?.tags, title),
       banner_url: rawEvent?.banner_url || rawEvent?.cover_url || rawEvent?.image || null,
       event_url: eventUrl,
-      start_date: parseDate(
-        rawEvent?.start_date ||
-          rawEvent?.start_at ||
-          rawEvent?.starts_at ||
-          rawEvent?.startTime ||
-          rawEvent?.start_time ||
-          rawEvent?.startsOn ||
-          rawEvent?.starts_on ||
-          null
-      ),
+      start_date: parseDate(rawStart),
+      raw_date: typeof rawStart === 'string' ? rawStart : null,
       end_date: parseDate(
         rawEvent?.end_date ||
           rawEvent?.end_at ||

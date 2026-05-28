@@ -1,6 +1,7 @@
 import { scrapeByPlatform } from "../src/features/scrapers/service.js";
 import { upsertEventsService } from "../src/features/events/service.js";
 import { fetchEventDetails } from "../src/features/scrapers/luma/details.js";
+import { fetchDevfolioEventDetails } from "../src/features/scrapers/devfolio/details.js";
 import fs from "fs/promises";
 import path from "path";
 
@@ -18,7 +19,10 @@ async function enrichEvent(event) {
     null;
   if (!url) return event;
   try {
-    const meta = await fetchEventDetails(url);
+    const meta =
+      String(event.platform || "").toLowerCase() === "devfolio"
+        ? await fetchDevfolioEventDetails(url)
+        : await fetchEventDetails(url);
     return {
       ...event,
       description: event.description || meta.description || null,
@@ -49,17 +53,32 @@ function normalizeForDb(event) {
   return {
     title: event.title || "",
     description: event.description || null,
-    event_url: event.url || event.redirectURL || null,
+    event_url: event.url || event.redirectURL || event.event_url || null,
     banner_url: event.banner_url || event.image || null,
     start_date: event.startDate || event.starts_at || event.start_date || null,
     end_date: event.endDate || event.ends_at || event.end_date || null,
     organizer: event.organizer || event.hostedBy || null,
-    city: event.city || null,
-    country: event.country || null,
-    platform: event.platform || "scraper",
+    city:
+      event.city ||
+      (String(event.platform || event.sourcePlatform || "").toLowerCase() ===
+      "eventbrite"
+        ? "Online"
+        : null),
+    country:
+      event.country ||
+      (String(event.platform || event.sourcePlatform || "").toLowerCase() ===
+      "eventbrite"
+        ? "Online"
+        : null),
+    platform: event.platform || event.sourcePlatform || "scraper",
     category: event.category || event.type || null,
     tags: event.tags || [],
-    mode: event.mode || null,
+    mode:
+      event.mode ||
+      (String(event.platform || event.sourcePlatform || "").toLowerCase() ===
+      "eventbrite"
+        ? "online"
+        : null),
     is_free: event.tags && event.tags.includes("free") ? true : null,
     created_at: new Date().toISOString(),
   };
@@ -76,7 +95,13 @@ async function run() {
       const res = await scrapeByPlatform(p);
       if (res?.events && res.events.length) {
         console.error(`Scraped ${res.events.length} from ${p}`);
-        allEvents.push(...res.events);
+        allEvents.push(
+          ...res.events.map((event) => ({
+            ...event,
+            sourcePlatform: event.platform || p,
+            platform: event.platform || p,
+          })),
+        );
       } else {
         console.error(`No events from ${p}`);
       }

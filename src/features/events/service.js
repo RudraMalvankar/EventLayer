@@ -7,6 +7,15 @@ import {
   toggleSavedEventRepo,
 } from "./repository.js";
 import { fetchEventDetails } from "../scrapers/luma/details.js";
+import { fetchDevfolioEventDetails } from "../scrapers/devfolio/details.js";
+
+async function fetchLiveDetailsForEvent(event) {
+  const platform = String(event?.platform || "").toLowerCase();
+  if (platform === "devfolio") {
+    return fetchDevfolioEventDetails(event.event_url);
+  }
+  return fetchEventDetails(event.event_url);
+}
 
 export async function getEventsService(filters = {}) {
   return findEvents(filters);
@@ -21,7 +30,7 @@ export async function refreshEventDetailsService(id) {
   if (current.error || !current.data) return current;
   if (!current.data.event_url) return current;
 
-  const meta = await fetchEventDetails(current.data.event_url);
+  const meta = await fetchLiveDetailsForEvent(current.data);
   const update = {
     title: meta.title || current.data.title || "",
     description: meta.description || current.data.description || "",
@@ -42,7 +51,7 @@ export async function getEventDetailsLiveService(id) {
   if (!current.data.event_url)
     return { data: { event: current.data, details: null }, error: null };
 
-  const details = await fetchEventDetails(current.data.event_url);
+  const details = await fetchLiveDetailsForEvent(current.data);
   const update = {
     title: details.title || current.data.title || "",
     description: details.description || current.data.description || "",
