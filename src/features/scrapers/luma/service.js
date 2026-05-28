@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio'
-import { normalizeEvent } from '../normalizer'
+import { normalizeEvent } from '../normalizer.js'
 
 const STATIC_PATHS = new Set(['discover', 'pricing', 'help', 'signin', 'app', 'login', 'home', 'events'])
 

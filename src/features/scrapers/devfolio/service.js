@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
-import { normalizeEvent } from "../normalizer";
-import { env } from "../../../shared/config/env";
+import { normalizeEvent } from "../normalizer.js";
+import { env } from "../../../shared/config/env.js";
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));

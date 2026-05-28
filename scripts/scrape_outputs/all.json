@@ -1,0 +1,115 @@
+{
+  "platform": "all",
+  "count": 7,
+  "events": [
+    {
+      "title": "Your hackathons",
+      "description": "",
+      "platform": "devfolio",
+      "city": null,
+      "country": "India",
+      "mode": "hybrid",
+      "category": "hackathon",
+      "tags": [],
+      "banner_url": null,
+      "event_url": "https://devfolio.co/hackathons/applied",
+      "start_date": null,
+      "end_date": null,
+      "organizer": "Devfolio",
+      "is_free": true
+    },
+    {
+      "title": "All open hackathons",
+      "description": "",
+      "platform": "devfolio",
+      "city": null,
+      "country": "India",
+      "mode": "hybrid",
+      "category": "hackathon",
+      "tags": [],
+      "banner_url": null,
+      "event_url": "https://devfolio.co/hackathons/open",
+      "start_date": null,
+      "end_date": null,
+      "organizer": "Devfolio",
+      "is_free": true
+    },
+    {
+      "title": "All upcoming hackathons",
+      "description": "",
+      "platform": "devfolio",
+      "city": null,
+      "country": "India",
+      "mode": "hybrid",
+      "category": "hackathon",
+      "tags": [],
+      "banner_url": null,
+      "event_url": "https://devfolio.co/hackathons/upcoming",
+      "start_date": null,
+      "end_date": null,
+      "organizer": "Devfolio",
+      "is_free": true
+    },
+    {
+      "title": "All past hackathons",
+      "description": "",
+      "platform": "devfolio",
+      "city": null,
+      "country": "India",
+      "mode": "hybrid",
+      "category": "hackathon",
+      "tags": [],
+      "banner_url": null,
+      "event_url": "https://devfolio.co/hackathons/past",
+      "start_date": null,
+      "end_date": null,
+      "organizer": "Devfolio",
+      "is_free": true
+    },
+    {
+      "title": "UX Design Hackathon with UX Woman",
+      "description": "Sunday at 1:00 PM EDT",
+      "type": "hackathon",
+      "startDate": null,
+      "endDate": null,
+      "deadline": null,
+      "tags": [
+        "hackathon",
+        "eventbrite"
+      ],
+      "hostedBy": "Eventbrite",
+      "verified": true,
+      "redirectURL": "https://www.eventbrite.com/e/ux-design-hackathon-with-ux-woman-tickets-1980891134708?aff=ebdssbdestsearch"
+    },
+    {
+      "title": "UX Design Hackathon with UX Woman",
+      "description": "Sunday at 1:00 PM EDT",
+      "type": "hackathon",
+      "startDate": null,
+      "endDate": null,
+      "deadline": null,
+      "tags": [
+        "hackathon",
+        "eventbrite"
+      ],
+      "hostedBy": "Eventbrite",
+      "verified": true,
+      "redirectURL": "https://www.eventbrite.com/e/ux-design-hackathon-with-ux-woman-tickets-1980891134708?aff=ebdssbdestsearch"
+    },
+    {
+      "title": "UX Design Hackathon with UX Woman",
+      "description": "Sunday at 1:00 PM EDT",
+      "type": "hackathon",
+      "startDate": null,
+      "endDate": null,
+      "deadline": null,
+      "tags": [
+        "hackathon",
+        "eventbrite"
+      ],
+      "hostedBy": "Eventbrite",
+      "verified": true,
+      "redirectURL": "https://www.eventbrite.com/e/ux-design-hackathon-with-ux-woman-tickets-1980891134708?aff=ebdssbdestsearch"
+    }
+  ]
+}
