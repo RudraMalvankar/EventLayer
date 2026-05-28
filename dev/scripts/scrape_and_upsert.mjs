@@ -9,7 +9,6 @@ const outDir = path.resolve("scripts", "scrape_outputs");
 
 async function enrichEvent(event) {
   if (!event) return event;
-  // support multiple possible url fields from different scrapers
   const url =
     event.url ||
     event.event_url ||
@@ -49,7 +48,6 @@ async function enrichEvent(event) {
 }
 
 function normalizeForDb(event) {
-  // Map fields into DB shape used by upsert (best effort)
   return {
     title: event.title || "",
     description: event.description || null,
@@ -87,8 +85,14 @@ function normalizeForDb(event) {
 async function run() {
   await fs.mkdir(outDir, { recursive: true });
   console.error("Running combined scrape -> enrich -> upsert");
-  // Run each scraper explicitly so local runs include all platforms regardless of env flags
-  const platforms = ["luma", "devfolio", "unstop", "devpost", "eventbrite"];
+  const platforms = [
+    "luma",
+    "meetup",
+    "devfolio",
+    "unstop",
+    "devpost",
+    "eventbrite",
+  ];
   let allEvents = [];
   for (const p of platforms) {
     try {
@@ -117,7 +121,6 @@ async function run() {
     enriched.push(enrichedEvent);
   }
 
-  // Normalize and upsert in batches
   const batchSize = 50;
   const dbItems = enriched.map(normalizeForDb);
   let inserted = 0;

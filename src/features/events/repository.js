@@ -1,5 +1,32 @@
 import { supabaseAdmin } from "../../shared/clients/supabase.js";
 
+const ALLOWED_PLATFORMS = new Set([
+  "luma",
+  "meetup",
+  "devfolio",
+  "unstop",
+  "devpost",
+  "eventbrite",
+  "eventtier",
+  "scraper",
+]);
+
+function normalizePlatform(value) {
+  const platform = String(value || "scraper")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .trim();
+  if (ALLOWED_PLATFORMS.has(platform)) return platform;
+  return "scraper";
+}
+
+function sanitizeEventRow(event = {}) {
+  return {
+    ...event,
+    platform: normalizePlatform(event.platform || event.sourcePlatform),
+  };
+}
+
 function ok(data) {
   return { data, error: null };
 }
@@ -17,8 +44,11 @@ export async function findEvents({
   keyword,
   page = 1,
   limit = 12,
+  upcomingOnly = true,
 } = {}) {
   try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     let query = supabaseAdmin
       .from("events")
       .select("*", { count: "exact" })
@@ -28,6 +58,11 @@ export async function findEvents({
     if (mode) query = query.eq("mode", mode);
     if (platform) query = query.eq("platform", platform);
     if (typeof is_free === "boolean") query = query.eq("is_free", is_free);
+    if (upcomingOnly) {
+      query = query
+        .not("start_date", "is", null)
+        .gte("start_date", today.toISOString());
+    }
     if (keyword)
       query = query.or(
         `title.ilike.%${keyword}%,description.ilike.%${keyword}%`,
@@ -74,14 +109,18 @@ export async function updateEventById(id, payload = {}) {
 export async function upsertEventsRepo(eventsArray = []) {
   try {
     if (!eventsArray.length) return ok({ inserted: 0, skipped: 0 });
+    const sanitizedEvents = eventsArray.map(sanitizeEventRow);
     const { data, error } = await supabaseAdmin
       .from("events")
-      .upsert(eventsArray, { onConflict: "event_url" })
+      .upsert(sanitizedEvents, { onConflict: "event_url" })
       .select("id");
-    if (error) return fail(error.message);
+    if (error) {
+      console.error("Upsert error from Supabase:", error);
+      return fail(error.message);
+    }
     return ok({
       inserted: data?.length || 0,
-      skipped: Math.max(eventsArray.length - (data?.length || 0), 0),
+      skipped: Math.max(sanitizedEvents.length - (data?.length || 0), 0),
     });
   } catch {
     return fail("Failed to upsert events");

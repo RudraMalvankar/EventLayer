@@ -2,6 +2,5 @@ export {
   parseSearchQuery,
   autoTagEvent,
   generateSummary,
-  dateRangeToFilter
-} from '../src/features/ai/service'
-
+  dateRangeToFilter,
+} from "../src/features/ai/service";

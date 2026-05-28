@@ -3,241 +3,165 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export function EventCard({ event, onSave, isSaved, variant = "list" }) {
+export function EventCard({ event, onSave, isSaved }) {
   const detailsHref = event?.id ? `/events/${event.id}` : null;
   const start = event?.start_date ? new Date(event.start_date) : null;
-  const end = event?.end_date ? new Date(event.end_date) : null;
-  const locationDisplay =
-    [event?.city, event?.country].filter(Boolean).join(", ") || "Online";
+  const displayPlatform = String(
+    event?.raw_data?.sourcePlatform ||
+      event?.raw_data?.originalPlatform ||
+      event?.platform ||
+      "scraper",
+  ).toLowerCase();
 
-  const formatDate = (date, includeTime = false) => {
-    if (!date) return "";
-    return date.toLocaleDateString(
-      "en-US",
-      includeTime
-        ? { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }
-        : { month: "short", day: "numeric" },
-    );
+  const formatDate = (date) => {
+    if (!date) return "TBA";
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
   };
 
-  const dateDisplay =
-    start && end
-      ? `${formatDate(start)}${start.toDateString() !== end.toDateString() ? ` — ${formatDate(end)}` : ""}`
-      : start
-        ? formatDate(start)
-        : event?.raw_date || "TBA";
+  const platformEmoji =
+    displayPlatform === "luma"
+      ? "✨"
+      : displayPlatform === "meetup"
+        ? "🤝"
+        : displayPlatform === "devfolio"
+          ? "⚡"
+          : displayPlatform === "unstop"
+            ? "🚀"
+            : "📅";
 
-  const timeDisplay = start ? formatDate(start, true) : "Time TBA";
   const platformColor =
-    event?.platform === "luma"
-      ? "bg-violet-600"
-      : event?.platform === "devfolio"
-        ? "bg-blue-600"
-        : event?.platform === "eventbrite"
-          ? "bg-orange-600"
-          : "bg-amber-600";
-  const modeColor =
-    event?.mode === "online" ? "bg-emerald-600" : "bg-slate-600";
-
-  if (variant === "list") {
-    return (
-      <article className="group overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-        <div className="flex flex-col gap-0 md:flex-row">
-          <div className="relative h-52 w-full shrink-0 overflow-hidden bg-[var(--surface-2)] md:h-auto md:w-[240px] lg:w-[280px]">
-            {detailsHref ? (
-              <Link
-                href={detailsHref}
-                className="absolute inset-0 z-10"
-                aria-label="View event details"
-              />
-            ) : null}
-            {event?.banner_url ? (
-              <Image
-                src={event.banner_url}
-                alt={event.title}
-                fill
-                className="object-cover transition duration-500 group-hover:scale-105"
-              />
-            ) : (
-              <div className="h-full w-full bg-gradient-to-br from-[#ECE9DF] via-[#F5F4F0] to-[#E1DDCF] flex items-center justify-center">
-                <span className="text-4xl">🗓️</span>
-              </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-            <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-              <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white ${platformColor}`}
-              >
-                {event?.platform}
-              </span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/90 ${modeColor}`}
-              >
-                {event?.mode}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex min-w-0 flex-1 flex-col gap-3 p-5 md:p-6">
-            <div className="space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-[var(--muted)]">
-                <span className="flex items-center gap-1">
-                  <span className="text-sm">📅</span> {dateDisplay}
-                </span>
-                <span className="h-1 w-1 rounded-full bg-[var(--border)]" />
-                <span className="flex items-center gap-1">
-                  <span className="text-sm">📍</span> {event?.city || "Online"}
-                </span>
-              </div>
-              <h3 className="text-lg font-bold leading-tight text-[var(--text)] line-clamp-2">
-                {detailsHref ? (
-                  <Link
-                    href={detailsHref}
-                    className="transition hover:text-[var(--accent)]"
-                  >
-                    {event?.title}
-                  </Link>
-                ) : (
-                  event?.title
-                )}
-              </h3>
-              <p className="text-sm font-medium text-[var(--muted)]">
-                {event?.organizer || "Unknown organizer"}
-              </p>
-            </div>
-
-            <p className="text-sm leading-relaxed text-[var(--muted)] line-clamp-2 opacity-80">
-              {event?.description || "No description available."}
-            </p>
-
-            <div className="mt-auto flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap gap-1.5">
-                {(event?.tags || []).slice(0, 3).map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-[11px] font-medium text-[var(--accent)] border border-[var(--border)]"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-100 uppercase tracking-tight">
-                  {event?.is_free ? "Free" : "Paid"}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => onSave?.(event)}
-                  className="flex h-9 items-center justify-center rounded-full border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--text)] transition hover:bg-[var(--surface-2)] active:scale-95"
-                >
-                  {isSaved ? "Saved" : "Save"}
-                </button>
-                <a
-                  href={event?.event_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex h-9 items-center justify-center rounded-full bg-[var(--accent)] px-5 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition hover:bg-[var(--accent-h)] hover:shadow-orange-500/40 active:scale-95"
-                >
-                  Register
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </article>
-    );
-  }
+    displayPlatform === "luma"
+      ? "text-purple-400"
+      : displayPlatform === "meetup"
+        ? "text-red-400"
+        : displayPlatform === "devfolio"
+          ? "text-blue-400"
+          : displayPlatform === "unstop"
+            ? "text-yellow-400"
+            : "text-orange-400";
 
   return (
-    <article className="group h-full flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] hover:border-[var(--accent)]">
-      <div className="relative h-48 w-full overflow-hidden bg-[var(--surface-2)]">
+    <article className="group flex flex-col bg-[#0a0c12] rounded-[32px] overflow-hidden border border-white/5 hover:border-white/10 transition-all duration-500 hover:shadow-[0_20px_80px_rgba(0,0,0,0.4)] relative">
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#121620]">
         {detailsHref ? (
-          <Link
-            href={detailsHref}
+          <Link href={detailsHref} className="absolute inset-0 z-10" />
+        ) : (
+          <a
+            href={event?.event_url}
+            target="_blank"
+            rel="noreferrer"
             className="absolute inset-0 z-10"
-            aria-label="View event details"
           />
-        ) : null}
+        )}
+
         {event?.banner_url ? (
           <Image
             src={event.banner_url}
             alt={event.title}
             fill
-            className="object-cover transition duration-500 group-hover:scale-110"
+            className="object-cover transition duration-1000 group-hover:scale-110 opacity-80 group-hover:opacity-100"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-[#ECE9DF] to-[#F5F4F0] flex items-center justify-center">
-            <span className="text-4xl opacity-50 group-hover:scale-110 transition duration-500">🗓️</span>
+          <div className="h-full w-full bg-gradient-to-br from-[#121620] to-[#0a0c12] flex items-center justify-center">
+            <span className="text-5xl opacity-10 group-hover:scale-110 transition duration-700">
+              {platformEmoji}
+            </span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-          <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm ${platformColor}`}
+
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0c12] via-transparent to-transparent opacity-60" />
+
+        <div className="absolute top-5 right-5 z-20">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onSave?.(event);
+            }}
+            className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 ${
+              isSaved
+                ? "bg-orange-500 text-white"
+                : "bg-black/20 text-white/70 hover:bg-black/40 hover:text-white border border-white/10"
+            }`}
           >
-            {event?.platform}
-          </span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill={isSaved ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="absolute bottom-5 left-5 z-20 flex items-center gap-2">
           <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/90 shadow-sm ${modeColor}`}
+            className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 ${platformColor}`}
           >
-            {event?.mode}
+            {displayPlatform}
           </span>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-5">
-        <div className="mb-3 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
-          <span>{dateDisplay}</span>
-          <span className="h-1 w-1 rounded-full bg-[var(--border)]" />
-          <span className="text-[var(--accent)]">{event?.is_free ? "Free" : "Paid"}</span>
+      <div className="p-7 flex flex-col flex-1">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-[10px] font-bold text-orange-500 uppercase tracking-[0.2em]">
+            {start ? formatDate(start) : ""}
+          </span>
+          <span className="w-1 h-1 rounded-full bg-white/10" />
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] line-clamp-1">
+            {event?.city || "Online"}
+          </span>
         </div>
 
-        <div className="mb-3 space-y-1">
-          <h3 className="text-base font-bold leading-snug text-[var(--text)] line-clamp-2 transition group-hover:text-[var(--accent)]">
-            {detailsHref ? (
-              <Link href={detailsHref}>{event?.title}</Link>
-            ) : (
-              event?.title
-            )}
-          </h3>
-          <p className="text-xs font-medium text-[var(--muted)] truncate">
-            {event?.organizer || "Unknown"} · {locationDisplay}
-          </p>
-        </div>
+        <h3 className="text-xl font-bold text-white mb-3 leading-tight group-hover:text-orange-400 transition-colors duration-300 line-clamp-2">
+          {detailsHref ? (
+            <Link href={detailsHref}>{event?.title}</Link>
+          ) : (
+            <a href={event?.event_url} target="_blank" rel="noreferrer">
+              {event?.title}
+            </a>
+          )}
+        </h3>
 
-        <p className="mb-4 text-xs leading-relaxed text-[var(--muted)] line-clamp-2 opacity-80">
-          {event?.description || "No description available."}
+        <p className="text-sm text-gray-400 line-clamp-2 mb-8 flex-1 leading-relaxed">
+          {event?.description || "Join us for this exclusive event."}
         </p>
 
-        <div className="mt-auto space-y-4">
-          <div className="flex flex-wrap gap-1.5">
-            {(event?.tags || []).slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)] border border-[var(--border)]"
+        <div className="flex items-center justify-between pt-6 border-t border-white/5">
+          <div className="flex -space-x-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="w-6 h-6 rounded-full border-2 border-[#0a0c12] bg-[#121620] overflow-hidden"
               >
-                #{tag}
-              </span>
+                <div className="w-full h-full bg-gradient-to-br from-orange-500/20 to-transparent" />
+              </div>
             ))}
+            <div className="pl-4 text-[10px] font-bold text-gray-500 flex items-center uppercase tracking-widest">
+              +12 joined
+            </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onSave?.(event)}
-              className="flex-1 flex h-9 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[11px] font-bold uppercase tracking-wider text-[var(--text)] transition hover:bg-[var(--surface-2)] active:scale-95"
-            >
-              {isSaved ? "Saved" : "Save"}
-            </button>
-            <a
-              href={event?.event_url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 flex h-9 items-center justify-center rounded-full bg-[var(--accent)] text-[11px] font-bold uppercase tracking-wider text-white shadow-lg shadow-orange-500/20 transition hover:bg-[var(--accent-h)] hover:shadow-orange-500/40 active:scale-95"
-            >
-              Register
-            </a>
-          </div>
+          <span
+            className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-[0.2em] ${
+              event?.is_free
+                ? "text-emerald-400 bg-emerald-400/10"
+                : "text-blue-400 bg-blue-400/10"
+            }`}
+          >
+            {event?.is_free ? "Free" : "Paid"}
+          </span>
         </div>
       </div>
     </article>

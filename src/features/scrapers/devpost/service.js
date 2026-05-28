@@ -4,39 +4,52 @@ import * as cheerio from "cheerio";
 export async function scrapeDevpost() {
   try {
     const baseURL = process.env.DEVPOST_API;
-    if (!baseURL) {
-      // Basic HTML fallback to scrape public devpost listing page
-      try {
-        const resp = await axios.get("https://devpost.com/hackathons", {
-          headers: { "User-Agent": "TechPulse/1.0" },
-        });
-        const $ = cheerio.load(resp.data || "");
-        const items = [];
-        $("a[href]").each((_, el) => {
-          const href = $(el).attr("href") || "";
-          if (!/\/hackathons\//i.test(href)) return;
-          const title = $(el).text().trim();
-          if (!title || title.length < 5) return;
-          const url = href.startsWith("http")
-            ? href
-            : `https://devpost.com${href}`;
-          items.push({ title, url });
-        });
-        return items.slice(0, 50).map((it) => ({
-          title: it.title,
-          description: it.title,
-          redirectURL: it.url,
-          hostedBy: "Devpost",
-          verified: false,
-          type: "hackathon",
-        }));
-      } catch (e) {
-        return [];
-      }
+    
+    // Always attempt HTML scraping if API is not available or as a fallback
+    try {
+      const resp = await axios.get("https://devpost.com/hackathons", {
+        headers: { 
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        },
+      });
+      const $ = cheerio.load(resp.data || "");
+      const items = [];
+      
+      $(".hackathon-tile, .featured-hackathon-tile").each((_, el) => {
+        const $el = $(el);
+        const title = $el.find("h3, h2").text().trim();
+        const url = $el.find("a").attr("href") || "";
+        const banner = $el.find("img").attr("src") || "";
+        const description = $el.find(".tagline, .description").text().trim();
+        const dateStr = $el.find(".submission-period, .date-range").text().trim();
+        
+        if (title && url) {
+          const { startDate, endDate } = parseSubmissionDates(dateStr);
+          items.push({
+            title,
+            description: description || title,
+            url: url.startsWith("http") ? url : `https://devpost.com${url}`,
+            banner_url: banner,
+            start_date: startDate,
+            end_date: endDate,
+            platform: "devpost",
+            organizer: "Devpost",
+            is_free: true,
+            category: "hackathon"
+          });
+        }
+      });
+
+      if (items.length > 0) return items;
+    } catch (e) {
+      console.error("Devpost HTML fallback failed:", e.message);
     }
 
+    if (!baseURL) return [];
+
     let page = 1;
-    const maxPages = 4;
+    const maxPages = 2;
     const events = [];
 
     while (page <= maxPages) {
@@ -47,43 +60,25 @@ export async function scrapeDevpost() {
         const data = response.data.hackathons;
         if (!Array.isArray(data) || data.length === 0) break;
 
-        for (let i = 0; i < data.length; i++) {
-          try {
-            const hackathon = data[i];
-            const submissionDates = hackathon.submission_period_dates || "";
-            const parsed = parseSubmissionDates(submissionDates);
-            const deadline = parseDeadline(
-              hackathon.time_left_to_submission || "",
-            );
-
-            const event = {
-              title: hackathon.title,
-              description: hackathon.description || "DevPost hackathon",
-              tags: hackathon.themes
-                ? hackathon.themes.map((t) => t.name)
-                : ["devpost"],
-              startDate: parsed.startDate,
-              endDate: parsed.endDate,
-              deadline: deadline,
-              redirectURL: hackathon.url || "https://devpost.com",
-              hostedBy: "Devpost",
-              verified: true,
-              type: "hackathon",
-            };
-            events.push(event);
-          } catch (eventError) {
-            console.error(
-              "Error processing DevPost event:",
-              eventError?.message || eventError,
-            );
-          }
+        for (const hackathon of data) {
+          const submissionDates = hackathon.submission_period_dates || "";
+          const parsed = parseSubmissionDates(submissionDates);
+          
+          events.push({
+            title: hackathon.title,
+            description: hackathon.description || hackathon.tagline || "DevPost hackathon",
+            url: hackathon.url || "https://devpost.com",
+            banner_url: hackathon.thumbnail_url || hackathon.large_gallery_url,
+            start_date: parsed.startDate,
+            end_date: parsed.endDate,
+            platform: "devpost",
+            organizer: hackathon.organization_name || "Devpost",
+            is_free: true,
+            category: "hackathon"
+          });
         }
         page++;
       } catch (pageError) {
-        console.error(
-          `Error fetching DevPost page ${page}:`,
-          pageError?.message || pageError,
-        );
         break;
       }
     }
@@ -97,35 +92,29 @@ export async function scrapeDevpost() {
 function parseSubmissionDates(dateString) {
   try {
     if (!dateString) return { startDate: null, endDate: null };
-    const parts = dateString.split(" - ");
-    if (parts.length !== 2) return { startDate: null, endDate: null };
-    const startPart = `${parts[0].trim()}, ${new Date().getFullYear()}`;
-    const endPart = `${parts[1].trim()}, ${new Date().getFullYear()}`;
-    const startDate = isNaN(new Date(startPart))
-      ? null
-      : new Date(startPart).toISOString().split("T")[0];
-    const endDate = isNaN(new Date(endPart))
-      ? null
-      : new Date(endPart).toISOString().split("T")[0];
-    return { startDate, endDate };
+    const clean = dateString.replace(/\s+/g, ' ').trim();
+    const parts = clean.split(" - ");
+    
+    const currentYear = new Date().getFullYear();
+    
+    if (parts.length === 2) {
+      const start = new Date(`${parts[0].trim()}, ${currentYear}`);
+      const end = new Date(`${parts[1].trim()}, ${currentYear}`);
+      
+      return {
+        startDate: !isNaN(start.getTime()) ? start.toISOString() : null,
+        endDate: !isNaN(end.getTime()) ? end.toISOString() : null
+      };
+    }
+    
+    const single = new Date(`${clean}, ${currentYear}`);
+    if (!isNaN(single.getTime())) {
+      return { startDate: single.toISOString(), endDate: null };
+    }
+    
+    return { startDate: null, endDate: null };
   } catch (err) {
     return { startDate: null, endDate: null };
-  }
-}
-
-function parseDeadline(deadline) {
-  try {
-    if (!deadline) return null;
-    const daysMatch = deadline.match(/(\d+)\s+days?\s+left/i);
-    if (daysMatch) {
-      const daysLeft = parseInt(daysMatch[1]);
-      const d = new Date();
-      d.setDate(d.getDate() + daysLeft);
-      return d.toISOString().split("T")[0];
-    }
-    return null;
-  } catch (err) {
-    return null;
   }
 }
 

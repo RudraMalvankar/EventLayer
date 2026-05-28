@@ -1,0 +1,42 @@
+{
+  "platform": "eventbrite",
+  "count": 3,
+  "events": [
+    {
+      "title": "UX Design Hackathon with UX Woman",
+      "description": "Sunday at 1:00 PM EDT",
+      "type": "hackathon",
+      "startDate": null,
+      "endDate": null,
+      "deadline": null,
+      "tags": ["hackathon", "eventbrite"],
+      "hostedBy": "Eventbrite",
+      "verified": true,
+      "redirectURL": "https://www.eventbrite.com/e/ux-design-hackathon-with-ux-woman-tickets-1980891134708?aff=ebdssbdestsearch"
+    },
+    {
+      "title": "UX Design Hackathon with UX Woman",
+      "description": "Sunday at 1:00 PM EDT",
+      "type": "hackathon",
+      "startDate": null,
+      "endDate": null,
+      "deadline": null,
+      "tags": ["hackathon", "eventbrite"],
+      "hostedBy": "Eventbrite",
+      "verified": true,
+      "redirectURL": "https://www.eventbrite.com/e/ux-design-hackathon-with-ux-woman-tickets-1980891134708?aff=ebdssbdestsearch"
+    },
+    {
+      "title": "UX Design Hackathon with UX Woman",
+      "description": "Sunday at 1:00 PM EDT",
+      "type": "hackathon",
+      "startDate": null,
+      "endDate": null,
+      "deadline": null,
+      "tags": ["hackathon", "eventbrite"],
+      "hostedBy": "Eventbrite",
+      "verified": true,
+      "redirectURL": "https://www.eventbrite.com/e/ux-design-hackathon-with-ux-woman-tickets-1980891134708?aff=ebdssbdestsearch"
+    }
+  ]
+}

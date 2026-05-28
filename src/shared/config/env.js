@@ -10,7 +10,7 @@ export const env = {
     (process.env.SCRAPER_DEVFOLIO_PLAYWRIGHT || "false").toLowerCase() ===
     "true",
   scraperDevfolioEnabled:
-    (process.env.SCRAPER_DEVFOLIO_ENABLED || "false").toLowerCase() === "true",
+    (process.env.SCRAPER_DEVFOLIO_ENABLED || "true").toLowerCase() === "true",
   scraperUnstopEnabled:
-    (process.env.SCRAPER_UNSTOP_ENABLED || "false").toLowerCase() === "true",
+    (process.env.SCRAPER_UNSTOP_ENABLED || "true").toLowerCase() === "true",
 };

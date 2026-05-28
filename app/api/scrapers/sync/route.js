@@ -4,7 +4,14 @@ import { fetchEventDetails } from "../../../../src/features/scrapers/luma/detail
 import { scrapeByPlatform } from "../../../../src/features/scrapers/service.js";
 import { detectPlatform } from "../../../../src/features/scrapers/normalizer.js";
 
-const PLATFORMS = ["luma", "devfolio", "unstop", "devpost", "eventbrite", "eventtier"];
+const PLATFORMS = [
+  "luma",
+  "meetup",
+  "devfolio",
+  "unstop",
+  "devpost",
+  "eventbrite",
+];
 
 async function enrichEvent(event) {
   if (!event) return event;
@@ -25,7 +32,7 @@ async function enrichEvent(event) {
 
   return {
     ...event,
-    platform: platform !== 'scraper' ? platform : (event.platform || 'scraper'),
+    platform: platform !== "scraper" ? platform : event.platform || "scraper",
     description: event.description || meta.description || null,
     banner_url: event.banner_url || meta.banner_url || null,
     startDate:
@@ -46,6 +53,9 @@ function normalizeForDb(event) {
   const platform = String(
     event.platform || event.sourcePlatform || "scraper",
   ).toLowerCase();
+  const finalPlatform = platform === "devfolio" ? "devfolio" : "luma";
+  const sourcePlatform =
+    platform === "scraper" ? event.sourcePlatform || null : platform;
   return {
     title: event.title || "",
     description: event.description || null,
@@ -54,14 +64,19 @@ function normalizeForDb(event) {
     start_date: event.startDate || event.starts_at || event.start_date || null,
     end_date: event.endDate || event.ends_at || event.end_date || null,
     organizer: event.organizer || event.hostedBy || null,
-    city: event.city || (platform === "eventbrite" ? "Online" : null),
-    country: event.country || (platform === "eventbrite" ? "Online" : null),
-    platform,
+    city: event.city || null,
+    country: event.country || null,
+    platform: finalPlatform,
     category: event.category || event.type || null,
     tags: event.tags || [],
-    mode: event.mode || (platform === "eventbrite" ? "online" : null),
+    mode: event.mode || null,
     is_free:
       Array.isArray(event.tags) && event.tags.includes("free") ? true : null,
+    raw_data: {
+      sourcePlatform: sourcePlatform || event.sourcePlatform || finalPlatform,
+      originalPlatform: event.platform || event.sourcePlatform || null,
+      sourceUrl: event.url || event.redirectURL || event.event_url || null,
+    },
     created_at: new Date().toISOString(),
   };
 }
@@ -106,11 +121,19 @@ export async function POST() {
 
   const uniqueEvents = dedupeEvents(scraped);
   const enriched = [];
-  for (const event of uniqueEvents) {
-    enriched.push(await enrichEvent(event));
-  }
 
-  const dbItems = enriched.map(normalizeForDb);
+  // Enrich in parallel with individual error handling to prevent blocking
+  const enrichmentPromises = uniqueEvents.map(async (event) => {
+    try {
+      return await enrichEvent(event);
+    } catch (err) {
+      console.error(`Enrichment failed for ${event.event_url}:`, err.message);
+      return event; // Fallback to raw event if enrichment fails
+    }
+  });
+
+  const enrichedResults = await Promise.all(enrichmentPromises);
+  const dbItems = enrichedResults.map(normalizeForDb);
   const upsert = await upsertEventsService(dbItems);
 
   return Response.json({

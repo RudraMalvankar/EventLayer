@@ -4,7 +4,7 @@ import { scrapeDevfolio } from "./devfolio/service.js";
 import { scrapeUnstop } from "./unstop/service.js";
 import { scrapeDevpost } from "./devpost/service.js";
 import { scrapeEventbrite } from "./eventbrite/service.js";
-import { scrapeEventTier } from "./eventtier/service.js";
+import { scrapeMeetup } from "./meetup/service.js";
 
 export function resolvePlatform(requestedPlatform) {
   if (!requestedPlatform || requestedPlatform === "default") return "luma";
@@ -16,6 +16,8 @@ export async function scrapeByPlatform(requestedPlatform) {
   try {
     if (platform === "luma")
       return { platform, events: await scrapeLuma(), error: null };
+    if (platform === "meetup")
+      return { platform, events: await scrapeMeetup(), error: null };
     if (platform === "devfolio") {
       if (!env.scraperDevfolioEnabled) {
         return {
@@ -33,18 +35,17 @@ export async function scrapeByPlatform(requestedPlatform) {
       return { platform, events: await scrapeDevpost(), error: null };
     if (platform === "eventbrite")
       return { platform, events: await scrapeEventbrite(), error: null };
-    if (platform === "eventtier")
-      return { platform, events: await scrapeEventTier(), error: null };
 
     // special "all" to run everything (limited)
     if (platform === "all") {
       const results = [];
       results.push(...(await scrapeLuma()));
+      results.push(...(await scrapeMeetup()));
       if (env.scraperDevfolioEnabled) results.push(...(await scrapeDevfolio()));
       results.push(...(await scrapeUnstop()));
       results.push(...(await scrapeDevpost()));
       results.push(...(await scrapeEventbrite()));
-      results.push(...(await scrapeEventTier()));
+      // eventtier scraper not present in this workspace — skip
       return { platform, events: results, error: null };
     }
 

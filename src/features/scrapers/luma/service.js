@@ -95,35 +95,35 @@ async function scrapeFromApi() {
     .filter(Boolean);
 }
 
-async function scrapeFromHtml(url = "https://luma.com/mumbai") {
+async function scrapeFromHtml(url = "https://lu.ma/discover") {
   const response = await fetch(url, {
     headers: {
-      "User-Agent": "Mozilla/5.0",
-      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     },
   });
   if (!response.ok) return [];
   const html = await response.text();
   const $ = cheerio.load(html);
   const events = [];
-  $("a[href]").each((_, element) => {
-    const href = absoluteUrl($(element).attr("href"), url);
+  
+  // Luma discover page often has event cards with specific classes or just links
+  $("a").each((_, element) => {
+    const href = absoluteUrl($(element).attr("href"), "https://lu.ma");
     if (!href || !isEventUrl(href)) return;
-    const card = $(element).closest("a,article,div");
-    const title =
-      normalizeText($(element).text()) ||
-      normalizeText(card.find("h1,h2,h3").first().text());
-    const rawText = normalizeText(card.text());
-    const organizer = normalizeText(
-      (rawText.split("By")[1] || "").split(/Sold Out|\+\d+/)[0],
-    );
+    
+    const card = $(element).closest("div");
+    const title = normalizeText($(element).find("h1,h2,h3,span").first().text()) || 
+                  normalizeText($(element).text());
+    
+    if (!title || title.length < 3) return;
+
     const normalized = normalizeEvent(
       {
         title,
         url: href,
-        organizer,
-        location: "Mumbai",
-        description: rawText,
+        location: "Global",
+        organizer: "Luma",
       },
       "luma",
     );

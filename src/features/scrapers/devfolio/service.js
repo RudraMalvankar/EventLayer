@@ -40,7 +40,9 @@ function shouldKeepDevfolioEvent(event) {
   if (!event) return false;
   const title = event?.title || "";
   if (isArchivedDevfolioTitle(title)) return false;
-  return isFutureDate(event?.start_date);
+  // If we don't have a start_date, we keep it as it might be a newly scraped event without enrichment yet
+  if (!event.start_date) return true;
+  return isFutureDate(event.start_date);
 }
 
 async function enrichDevfolioEvents(events) {
@@ -54,7 +56,7 @@ async function enrichDevfolioEvents(events) {
 
     try {
       const details = await fetchDevfolioEventDetails(url);
-      enriched.push({
+      const combined = {
         ...event,
         description: event?.description || details?.description || null,
         banner_url: event?.banner_url || details?.banner_url || null,
@@ -63,330 +65,72 @@ async function enrichDevfolioEvents(events) {
         organizer: event?.organizer || details?.organizer || null,
         city: event?.city || details?.city || null,
         country: event?.country || details?.country || null,
-      });
+      };
+      // Normalize after enrichment to ensure consistent shape
+      const normalized = normalizeEvent(combined, "devfolio");
+      if (normalized) enriched.push(normalized);
     } catch {
-      enriched.push(event);
+      const normalized = normalizeEvent(event, "devfolio");
+      if (normalized) enriched.push(normalized);
     }
   }
   return enriched;
 }
 
-async function scrapeDevfolioPlaywright() {
-  if (!env.devfolioPlaywrightEnabled) return null;
-  let browser = null;
+async function scrapeFromHtml(url = defaultSearchUrl) {
   try {
-    const { chromium } = await import("playwright");
-    const targetUrl = env.devfolioSearchUrl || defaultSearchUrl;
-    try {
-      browser = await chromium.launch({ headless: true, channel: "chrome" });
-    } catch {
-      try {
-        browser = await chromium.launch({ headless: true, channel: "msedge" });
-      } catch {
-        browser = await chromium.launch({ headless: true });
-      }
-    }
-    const page = await browser.newPage({ userAgent: "TechPulse/1.0" });
-    await page.goto(targetUrl, {
-      waitUntil: "domcontentloaded",
-      timeout: 45000,
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+      },
     });
-    await page.waitForFunction(
-      () =>
-        Array.from(document.querySelectorAll("a[href]")).some((anchor) =>
-          anchor.href.includes(".devfolio.co/"),
-        ),
-      { timeout: 15000 },
-    );
-    await page.waitForTimeout(1500);
-
-    const payload = await page.evaluate(() => {
-      const DEVFOLIO_HOST = "devfolio.co";
-      const IGNORED_HOSTS = new Set([
-        "devfolio.co",
-        "www.devfolio.co",
-        "guide.devfolio.co",
-        "status.devfolio.co",
-      ]);
-
-      function normalizeText(value) {
-        return String(value || "")
-          .replace(/[\u200B-\u200D\uFEFF]/g, "")
-          .replace(/\s+/g, " ")
-          .trim();
-      }
-
-      function isDevfolioHackathonUrl(url) {
-        try {
-          const parsed = new URL(url);
-          const host = parsed.hostname.toLowerCase();
-          const pathname = parsed.pathname.replace(/\/+$/, "") || "/";
-          if (!host.endsWith(DEVFOLIO_HOST)) return false;
-          if (IGNORED_HOSTS.has(host)) {
-            if (!pathname.startsWith("/hackathons/")) return false;
-            const slug = pathname.replace("/hackathons/", "");
-            return Boolean(slug) && !slug.includes("/");
-          }
-          if (pathname !== "/") return false;
-          const slug = host.slice(0, -(DEVFOLIO_HOST.length + 1));
-          return Boolean(slug) && !slug.includes("/");
-        } catch {
-          return false;
-        }
-      }
-
-      function extractTitle(text) {
-        let title = normalizeText(text);
-        const cutPoints = [
-          title.indexOf("By"),
-          title.search(/\bSold Out\b/i),
-          title.search(/\+\d+/),
-          title.search(/\b\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)\b/i),
-          title.search(
-            /\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b/i,
-          ),
-        ].filter((index) => index > 0);
-
-        if (cutPoints.length > 0) {
-          title = title.slice(0, Math.min(...cutPoints));
-        }
-
-        return normalizeText(title);
-      }
-
-      function extractCardImage(card) {
-        const img = card.querySelector("img");
-        if (!img) return "";
-        return img.getAttribute("src") || img.getAttribute("data-src") || "";
-      }
-
-      const anchors = Array.from(document.querySelectorAll("a[href]"));
-      const seen = new Set();
-      const cards = [];
-
-      anchors.forEach((anchor) => {
-        const href = anchor.getAttribute("href") || "";
-        const url = href.startsWith("http")
-          ? href
-          : `https://devfolio.co${href}`;
-        if (!isDevfolioHackathonUrl(url) || seen.has(url)) return;
-
-        let node = anchor.closest("div") || anchor.parentElement;
-        let title = "";
-        for (let i = 0; i < 6 && node; i += 1) {
-          const heading = node.querySelector("h3") || node.querySelector("h2");
-          title = normalizeText(heading?.textContent || "");
-          if (title) break;
-          node = node.parentElement;
-        }
-
-        const card = node || anchor;
-        const cardText = normalizeText(card.textContent);
-
-        seen.add(url);
-        cards.push({
-          title: extractTitle(title || cardText),
-          url,
-          image: extractCardImage(card),
-          rawText: cardText,
-        });
-      });
-
-      const pageTitle = normalizeText(document.title);
-      return { cards, pageTitle };
-    });
-
+    if (!response.ok) return [];
+    const html = await response.text();
+    const $ = cheerio.load(html);
     const events = [];
-    const pageLocation = payload?.pageTitle || "";
 
-    payload.cards.forEach((event) => {
-      const title = event?.title || "";
-      if (isArchivedDevfolioTitle(title)) return;
-      const locationText =
-        `${pageLocation} ${event?.rawText || ""} ${title}`.toLowerCase();
-      const isMumbai = mumbaiAllowlist.some((entry) =>
-        locationText.includes(entry),
-      );
-      if (!allowAnyRegion && !isMumbai) return;
-
-      const city = isOnlineOnly(locationText)
-        ? null
-        : isMumbai
-          ? "Mumbai"
-          : null;
-      const normalized = normalizeEvent(
-        {
-          title,
-          url: event?.url || null,
-          image: event?.image || null,
-          city,
-          organizer: "Devfolio",
-          category: "hackathon",
-        },
-        "devfolio",
-      );
-      if (normalized) events.push(normalized);
-    });
-
-    return (await enrichDevfolioEvents(events)).filter(shouldKeepDevfolioEvent);
-  } catch (error) {
-    console.error("Devfolio Playwright scrape failed", error?.message || error);
-    return [];
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
-  }
-}
-
-async function scrapeDevfolioApi() {
-  if (!env.devfolioApi) return null;
-  try {
-    const events = [];
-    for (let page = 1; page <= 2; page += 1) {
-      const joiner = env.devfolioApi.includes("?") ? "&" : "?";
-      const response = await fetch(`${env.devfolioApi}${joiner}page=${page}`, {
-        headers: { "User-Agent": "TechPulse/1.0" },
-      });
-      if (!response.ok) return [];
-      const payload = await response.json();
-      const data = Array.isArray(payload?.result)
-        ? payload.result
-        : Array.isArray(payload?.data)
-          ? payload.data
-          : [];
-      if (!data.length) break;
-
-      data.forEach((event) => {
-        const title = event?.name || event?.title || "";
-        if (isArchivedDevfolioTitle(title)) return;
-        const description =
-          event?.desc || event?.description || event?.tagline || "";
-        const location = event?.city || event?.location || event?.region || "";
-        const locationText =
-          `${location} ${title} ${description}`.toLowerCase();
-        const isMumbai = mumbaiAllowlist.some((entry) =>
-          locationText.includes(entry),
-        );
-        if (!allowAnyRegion && !isMumbai) return;
-
-        const city = isOnlineOnly(locationText)
-          ? null
-          : location || (isMumbai ? "Mumbai" : null);
-        const url =
-          event?.url ||
-          event?.link ||
-          (event?.slug ? `https://${event.slug}.devfolio.co` : null);
-        const normalized = normalizeEvent(
-          {
+    $('a[href*="devfolio.co"]').each((_, el) => {
+      const href = $(el).attr("href");
+      if (!href) return;
+      
+      const absolute = href.startsWith("http") ? href : `https://devfolio.co${href}`;
+      if (absolute.includes(".devfolio.co") || absolute.includes("devfolio.co/hackathons/")) {
+        const card = $(el).closest("div");
+        const title = card.find("h1, h2, h3, h4").first().text().trim() || $(el).text().trim();
+        const banner = card.find("img").attr("src");
+        
+        if (title && title.length > 3 && !isArchivedDevfolioTitle(title)) {
+          events.push({
             title,
-            description,
-            url,
-            image:
-              event?.cover_image || event?.banner_url || event?.logo || null,
-            city,
-            organizer: event?.organizer || "Devfolio",
-            category: "hackathon",
-            tags: event?.tagline ? [event.tagline] : [],
-            starts_at: event?.starts_at || event?.start_at || null,
-            ends_at: event?.ends_at || event?.end_at || null,
-          },
-          "devfolio",
-        );
-        if (normalized) events.push(normalized);
-      });
-    }
-    return (await enrichDevfolioEvents(events)).filter(shouldKeepDevfolioEvent);
-  } catch {
+            url: absolute,
+            banner_url: banner,
+            platform: "devfolio",
+            organizer: "Devfolio"
+          });
+        }
+      }
+    });
+
+    return events;
+  } catch (err) {
+    console.error("Devfolio HTML scrape failed:", err.message);
     return [];
   }
 }
 
 export async function scrapeDevfolio() {
   try {
-    const browserEvents = await scrapeDevfolioPlaywright();
-    if (browserEvents) return browserEvents;
-    const apiEvents = await scrapeDevfolioApi();
-    if (apiEvents) return apiEvents;
-    const response = await fetch("https://devfolio.co/hackathons", {
-      headers: { "User-Agent": "TechPulse/1.0" },
-    });
-    if (!response.ok) return [];
-    const html = await response.text();
-    await sleep(1000);
-    const $ = cheerio.load(html);
-    const events = [];
-    $('[href*="/hackathons/"], .hackathon-card, .Listing_container__').each(
-      (_, element) => {
-        const el = $(element);
-        const a = el.is("a") ? el : el.find("a").first();
-        const href = a.attr("href") || "";
-
-        // prefer hackathon links; allow if it contains /hackathons/ and card-like content
-        const looksLikeHackathonLink = /\/hackathons\//i.test(href);
-        const hasImage = !!el.find("img").first().attr("src");
-        const hasHeading = !!el.find("h3,h2").first().text().trim();
-        if (!looksLikeHackathonLink || (!hasImage && !hasHeading)) return;
-
-        const title =
-          el.find("h3,h2,.title").first().text().trim() || a.text().trim();
-        if (isArchivedDevfolioTitle(title)) return;
-        const description = el
-          .find("p,.subtitle,.description")
-          .first()
-          .text()
-          .trim();
-        const location = el
-          .find('[class*="location"], .location, .city, .Listing_location__')
-          .first()
-          .text()
-          .trim();
-        const image = el.find("img").first().attr("src");
-
-        const locationText =
-          `${location} ${title} ${description}`.toLowerCase();
-
-        // filter out obvious nav/section tiles
-        const skipPatterns = [
-          /^all\b/i,
-          /^your\b/i,
-          /all\s+past/i,
-          /all\s+open/i,
-        ];
-        const shortOrNav =
-          !title || title.length < 8 || skipPatterns.some((p) => p.test(title));
-        if (shortOrNav) return;
-
-        const isMumbai = mumbaiAllowlist.some((entry) =>
-          locationText.includes(entry),
-        );
-        if (!allowAnyRegion && !isMumbai) return;
-        const city = isOnlineOnly(locationText)
-          ? null
-          : location || (isMumbai ? "Mumbai" : null);
-
-        const normalized = normalizeEvent(
-          {
-            title,
-            tagline: description,
-            url: href.startsWith("http")
-              ? href
-              : href
-                ? `https://devfolio.co${href}`
-                : null,
-            image,
-            city,
-            organizer: "Devfolio",
-            mode: isOnlineOnly(locationText) ? "online" : "offline",
-            category: "hackathon",
-          },
-          "devfolio",
-        );
-        if (normalized) events.push(normalized);
-      },
-    );
-    return (await enrichDevfolioEvents(events)).filter(shouldKeepDevfolioEvent);
-  } catch {
+    const htmlEvents = await scrapeFromHtml();
+    if (htmlEvents.length > 0) {
+      const enriched = await enrichDevfolioEvents(htmlEvents);
+      return enriched.filter(shouldKeepDevfolioEvent);
+    }
+    return [];
+  } catch (error) {
+    console.error("Error in Devfolio scraping:", error?.message || error);
     return [];
   }
 }
+
+export default scrapeDevfolio;

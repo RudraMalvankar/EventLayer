@@ -2,30 +2,29 @@ import { Navbar } from "../components/Navbar";
 import { EventCard } from "../components/EventCard";
 import { getEventsService } from "../src/features/events/service";
 
+const MAP_PREVIEW_URL = process.env.NEXT_PUBLIC_MAPBOX_STATIC_PREVIEW_URL || "";
+
 const floatingEvents = [
   {
     platform: "LUMA",
     title: "Builder Hack Night",
     meta: "Jun 14 · Online",
     accent: "from-[#6D28D9] to-[#4F46E5]",
-    image:
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
   },
   {
     platform: "DEVFOLIO",
     title: "GDG Mumbai DevFest",
     meta: "Jun 20 · Mumbai",
     accent: "from-[#0EA5E9] to-[#0284C7]",
-    image:
-      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
   },
   {
     platform: "UNSTOP",
     title: "Startup Weekend Pune",
     meta: "Jun 28 · Pune",
     accent: "from-[#F59E0B] to-[#F97316]",
-    image:
-      "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80",
   },
 ];
 
@@ -33,20 +32,17 @@ const featureCards = [
   {
     icon: "🔍",
     title: "AI Natural Search",
-    description:
-      '"Free AI hackathons in Mumbai this weekend" just works with GPT-4o.',
+    description: '"Free AI hackathons in Mumbai this weekend" just works with GPT-4o.',
   },
   {
     icon: "⚡",
     title: "Real-time Aggregation",
-    description:
-      "Events from Luma, Devfolio, Unstop, and more synced every 6 hours.",
+    description: "Events from Luma, Devfolio, Unstop, and more synced every 6 hours.",
   },
   {
     icon: "🗺️",
     title: "Map Discovery",
-    description:
-      "Explore what is happening near you with quick city clustering.",
+    description: "Explore what is happening near you with quick city clustering.",
   },
   {
     icon: "🔔",
@@ -84,7 +80,7 @@ const afterItems = [
 function FloatingCards() {
   return (
     <div className="relative h-[380px] sm:h-[420px]">
-      <div className="absolute inset-0 rounded-2xl opacity-40 [background-image:radial-gradient(circle,#C8C5BC_1px,transparent_1px)] [background-size:24px_24px]" />
+      <div className="absolute inset-0 rounded-2xl opacity-10 [background-image:radial-gradient(circle,#ffffff_1px,transparent_1px)] [background-size:24px_24px]" />
 
       {floatingEvents.map((event, index) => {
         const positions = [
@@ -96,7 +92,7 @@ function FloatingCards() {
         return (
           <div
             key={event.title}
-            className={`absolute w-[220px] overflow-hidden rounded-2xl bg-white shadow-[0_12px_36px_rgba(24,24,20,0.14)] ${
+            className={`absolute w-[220px] overflow-hidden rounded-2xl bg-[#0a0c12] border border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.5)] ${
               positions[index]
             }`}
           >
@@ -108,22 +104,22 @@ function FloatingCards() {
                 backgroundPosition: "center",
               }}
             >
-              <span className="absolute left-3 top-3 rounded-full bg-white/20 px-2 py-1 text-[10px] font-semibold tracking-wider text-white">
+              <span className="absolute left-3 top-3 rounded-full bg-white/10 backdrop-blur-md px-2 py-1 text-[10px] font-bold tracking-wider text-white uppercase border border-white/10">
                 {event.platform}
               </span>
             </div>
             <div className="p-3">
-              <div className="text-xs font-semibold text-[#1A1916]">
+              <div className="text-xs font-bold text-white uppercase tracking-tight">
                 {event.title}
               </div>
-              <div className="mt-1 text-[11px] text-[#6B6860]">
+              <div className="mt-1 text-[11px] text-gray-500 font-medium">
                 {event.meta}
               </div>
               <div className="mt-3 flex items-center justify-between">
-                <span className="rounded-full bg-[#ECFDF5] px-2 py-0.5 text-[10px] font-semibold text-[#16A34A]">
+                <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
                   Free
                 </span>
-                <span className="rounded-full bg-[var(--accent)] px-2 py-0.5 text-[10px] font-semibold text-white">
+                <span className="rounded-full bg-orange-500 px-3 py-1 text-[10px] font-bold text-white uppercase tracking-widest shadow-lg shadow-orange-500/20">
                   Register
                 </span>
               </div>
@@ -139,147 +135,118 @@ export default async function LandingPage() {
   let events = [];
   try {
     const { data, error } = await getEventsService({ limit: 6 });
-    events = data?.events || [];
+    events = (data?.events || []).filter(e => e.start_date);
   } catch (err) {
-    try {
-      const res = await fetch("http://localhost:3001/api/events?limit=6");
-      const json = await res.json();
-      events = json?.data?.events || [];
-    } catch (e) {
-      events = [];
-    }
+    events = [];
   }
   return (
-    <main
-      className="min-h-screen bg-[var(--bg)] text-[var(--text)]"
-      style={{
-        "--bg": "#FAFAF8",
-        "--surface": "#FFFFFF",
-        "--surface-2": "#F5F4F0",
-        "--border": "#E8E6E0",
-        "--text": "#1A1916",
-        "--muted": "#6B6860",
-        "--faint": "#9B9890",
-        "--accent": "#FF4F17",
-        "--accent-h": "#E64410",
-        "--accent-soft": "#FFF2EE",
-      }}
-    >
+    <main className="min-h-screen text-white bg-[#030407]">
       <Navbar />
 
-      <section className="mx-auto grid w-full max-w-6xl gap-10 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-2 lg:items-center">
+      <section className="mx-auto grid w-full max-w-6xl gap-16 px-6 pb-24 pt-20 lg:grid-cols-2 lg:items-center">
         <div className="animate-fade-in-up">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#FFCFBF] bg-[var(--accent-soft)] px-4 py-1 text-xs font-semibold tracking-wide text-[var(--accent)]">
-            Now aggregating Luma · Devfolio · Unstop
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">
+            <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+            Now aggregating Luma · Meetup · Devfolio · Unstop
           </div>
-          <h1 className="serif mb-6 text-4xl leading-tight sm:text-5xl lg:text-6xl">
+          <h1 className="text-6xl font-black tracking-tighter leading-[0.95] mb-8">
             Every tech event.
             <br />
-            <span className="text-[var(--accent)]">One place.</span>
+            <span className="text-orange-500">One ecosystem.</span>
           </h1>
-          <p className="mb-7 max-w-xl text-base text-[var(--muted)] sm:text-lg">
-            Discover hackathons, meetups, and workshops across India. Powered by
-            AI that understands what you are looking for.
+          <p className="mb-10 max-w-lg text-lg text-gray-400 leading-relaxed">
+            The ultimate discovery layer for India's tech ecosystem. Unified feed, AI-powered discovery, and zero noise.
           </p>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
             <a
               href="/events"
-              className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--accent-h)] hover:-translate-y-0.5"
+              className="rounded-full bg-orange-500 px-10 py-5 text-xs font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-orange-600 hover:-translate-y-1 active:scale-95 accent-glow"
             >
               Explore Events →
             </a>
             <a
               href="#how"
-              className="rounded-full border border-[var(--border)] px-6 py-3 text-sm text-[var(--text)] transition hover:bg-[var(--surface-2)]"
+              className="rounded-full border border-white/10 bg-white/5 px-10 py-5 text-xs font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 active:scale-95"
             >
               See how it works
             </a>
           </div>
 
-          <div className="mt-6 flex items-center gap-3 text-xs text-[var(--muted)]">
-            <div className="flex -space-x-2">
+          <div className="mt-12 flex items-center gap-6">
+            <div className="flex -space-x-3">
               {["R", "A", "S", "P", "K"].map((letter, index) => (
                 <div
                   key={letter}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-[10px] font-semibold text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border-4 border-[#030407] text-[10px] font-black text-white"
                   style={{
-                    backgroundColor: [
-                      "#7C3AED",
-                      "#2563EB",
-                      "#16A34A",
-                      "#F59E0B",
-                      "#EC4899",
-                    ][index],
+                    backgroundColor: ["#7C3AED", "#2563EB", "#16A34A", "#F59E0B", "#EC4899"][index],
                   }}
                 >
                   {letter}
                 </div>
               ))}
             </div>
-            <span>Trusted by 2,000+ developers</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Trusted by <span className="text-white">2,000+</span> developers</span>
           </div>
         </div>
 
-        <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_24px_48px_rgba(24,24,20,0.08)]">
-          <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_20%_10%,rgba(255,79,23,0.18),transparent_55%)]" />
+        <div className="relative glass p-10 rounded-[40px] border border-white/5 shadow-2xl">
+          <div className="absolute inset-0 rounded-[40px] bg-[radial-gradient(circle_at_20%_10%,rgba(255,77,0,0.1),transparent_60%)]" />
           <div className="relative">
             <FloatingCards />
           </div>
         </div>
       </section>
 
-      <section className="mx-auto grid w-full max-w-5xl gap-6 px-4 pb-16 sm:px-6 md:grid-cols-2">
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
-          <div className="mb-4 text-xs font-semibold tracking-[0.2em] text-[var(--muted)]">
+      <section className="mx-auto grid w-full max-w-5xl gap-10 px-6 pb-32 sm:px-6 md:grid-cols-2">
+        <div className="rounded-[32px] border border-white/5 bg-white/2 p-8 transition-all hover:border-white/10">
+          <div className="mb-6 text-[10px] font-black tracking-[0.3em] text-gray-600 uppercase">
             BEFORE TECHPULSE
           </div>
-          <div className="space-y-3 text-sm text-[var(--text)]">
+          <div className="space-y-4">
             {beforeItems.map((item) => (
-              <div key={item} className="flex items-start gap-2">
-                <span className="text-base text-[#EF4444]">✗</span>
-                <span>{item}</span>
+              <div key={item} className="flex items-start gap-3">
+                <span className="text-base text-red-500 font-bold">✗</span>
+                <span className="text-sm text-gray-400 font-medium">{item}</span>
               </div>
             ))}
           </div>
         </div>
-        <div className="rounded-2xl border border-[var(--accent)] bg-[var(--accent-soft)] p-6">
-          <div className="mb-4 text-xs font-semibold tracking-[0.2em] text-[var(--accent)]">
+        <div className="rounded-[32px] border border-orange-500/30 bg-orange-500/5 p-8 transition-all hover:border-orange-500/50">
+          <div className="mb-6 text-[10px] font-black tracking-[0.3em] text-orange-500 uppercase">
             WITH TECHPULSE
           </div>
-          <div className="space-y-3 text-sm text-[var(--text)]">
+          <div className="space-y-4">
             {afterItems.map((item) => (
-              <div key={item} className="flex items-start gap-2">
-                <span className="text-base text-[#16A34A]">✓</span>
-                <span>{item}</span>
+              <div key={item} className="flex items-start gap-3">
+                <span className="text-base text-emerald-500 font-bold">✓</span>
+                <span className="text-sm text-white font-bold">{item}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section
-        id="features"
-        className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6"
-      >
-        <div className="mb-2 text-xs font-semibold tracking-[0.3em] text-[var(--accent)]">
-          FEATURES
+      <section id="features" className="mx-auto w-full max-w-6xl px-6 pb-32">
+        <div className="mb-4 text-[10px] font-black tracking-[0.3em] text-orange-500 uppercase">
+          CORE CAPABILITIES
         </div>
-        <h2 className="serif mb-10 text-3xl sm:text-4xl">
-          Everything you need to never miss an event.
+        <h2 className="text-4xl font-black tracking-tighter mb-12">
+          Everything you need to <span className="text-gray-700">stay ahead.</span>
         </h2>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featureCards.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 transition hover:-translate-y-1 hover:border-[var(--accent)] hover:shadow-[0_12px_24px_rgba(255,79,23,0.12)]"
+              className="rounded-[32px] border border-white/5 bg-white/2 p-8 transition-all duration-500 hover:-translate-y-2 hover:border-orange-500/20 hover:bg-orange-500/5 group"
             >
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-lg">
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/5 text-2xl group-hover:bg-orange-500 group-hover:text-white transition-all duration-500">
                 {feature.icon}
               </div>
-              <div className="text-sm font-semibold">{feature.title}</div>
-              <div className="mt-2 text-sm text-[var(--muted)]">
+              <div className="text-lg font-black tracking-tight text-white mb-3 uppercase tracking-wider text-xs">{feature.title}</div>
+              <div className="text-sm text-gray-500 leading-relaxed font-medium">
                 {feature.description}
               </div>
             </div>
@@ -287,102 +254,95 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section
-        id="events"
-        className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6"
-      >
-        <div className="mb-2 text-xs font-semibold tracking-[0.3em] text-[var(--accent)]">
-          MAP DISCOVERY
+      <section id="events" className="mx-auto w-full max-w-6xl px-6 pb-32">
+        <div className="mb-4 text-[10px] font-black tracking-[0.3em] text-orange-500 uppercase">
+          GEOSPATIAL DISCOVERY
         </div>
-        <div className="serif mb-5 text-2xl sm:text-3xl">
-          Find events near you
+        <div className="text-4xl font-black tracking-tighter mb-8">
+          Find events <span className="text-gray-700">near you.</span>
         </div>
-        <div className="relative h-64 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] sm:h-72">
-          <div className="absolute inset-0 bg-[linear-gradient(120deg,#E8E4D8,#F6F4EF)]" />
-          <div className="absolute inset-0 opacity-50 [background-image:linear-gradient(transparent_0,transparent_39px,#C8C5BC_40px),linear-gradient(90deg,transparent_0,transparent_39px,#C8C5BC_40px)] [background-size:40px_40px]" />
-          <div className="absolute left-[25%] top-[55%] rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-semibold text-white shadow-[0_8px_18px_rgba(255,79,23,0.3)]">
+        <div className="relative h-[450px] overflow-hidden rounded-[48px] border border-white/5 bg-[#0a0c12] shadow-2xl group">
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-60 transition-transform duration-[10s] group-hover:scale-110"
+            style={
+              MAP_PREVIEW_URL
+                ? { backgroundImage: `url(${MAP_PREVIEW_URL})` }
+                : { background: "linear-gradient(135deg, #111827 0%, #020617 100%)" }
+            }
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#030407] via-transparent to-transparent" />
+          
+          <div className="absolute left-[25%] top-[55%] rounded-full bg-orange-500 px-4 py-2 text-[10px] font-black text-white uppercase tracking-widest shadow-[0_8px_30px_rgba(255,77,0,0.4)] animate-bounce">
             Mumbai · 12
           </div>
-          <div className="absolute left-[35%] top-[68%] rounded-full bg-[#7C3AED] px-3 py-1 text-xs font-semibold text-white shadow-[0_8px_18px_rgba(124,58,237,0.25)]">
+          <div className="absolute left-[35%] top-[68%] rounded-full bg-[#7C3AED] px-4 py-2 text-[10px] font-black text-white uppercase tracking-widest shadow-[0_8px_30px_rgba(124,58,237,0.3)] animate-pulse">
             Bangalore · 8
           </div>
-          <div className="absolute left-[31%] top-[58%] rounded-full bg-[#2563EB] px-3 py-1 text-xs font-semibold text-white shadow-[0_8px_18px_rgba(37,99,235,0.25)]">
+          <div className="absolute left-[31%] top-[58%] rounded-full bg-[#2563EB] px-4 py-2 text-[10px] font-black text-white uppercase tracking-widest shadow-[0_8px_30px_rgba(37,99,235,0.3)]">
             Pune · 5
           </div>
-          <div className="absolute left-[42%] top-[30%] rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-semibold text-white shadow-[0_8px_18px_rgba(255,79,23,0.3)]">
-            Delhi · 6
-          </div>
-          <div className="absolute right-4 bottom-4 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-[11px] text-[var(--muted)]">
-            Powered by MapKit JS
+          
+          <div className="absolute right-8 bottom-8 rounded-full border border-white/10 bg-black/60 backdrop-blur-xl px-6 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+            Visualizing Mumbai Ecosystem
           </div>
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6">
-        <div className="mb-2 text-xs font-semibold tracking-[0.3em] text-[var(--accent)]">
-          UPCOMING
-        </div>
-        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="serif text-2xl sm:text-3xl">Upcoming events</h2>
-          <p className="max-w-lg text-sm leading-6 text-[var(--muted)]">
-            Cleaner cards, bigger banner space, and less visual clutter so the
-            event details are easier to scan.
+      <section className="mx-auto w-full max-w-6xl px-6 pb-32">
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-12">
+          <div>
+            <div className="mb-4 text-[10px] font-black tracking-[0.3em] text-orange-500 uppercase">
+              LIVE CURATION
+            </div>
+            <h2 className="text-4xl font-black tracking-tighter">Upcoming highlights.</h2>
+          </div>
+          <p className="max-w-md text-sm leading-relaxed text-gray-500 font-medium">
+            Handpicked events with cinematic visuals and zero clutter. Verified metadata synced in real-time.
           </p>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:auto-rows-fr lg:grid-cols-3">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
           {events && events.length ? (
             events.map((ev) => (
-              <EventCard
-                key={ev.id || ev.event_url}
-                event={ev}
-                variant="grid"
-              />
+              <EventCard key={ev.id || ev.event_url} event={ev} />
             ))
           ) : (
-            <div className="text-sm text-[var(--muted)]">
-              No upcoming events.
+            <div className="text-xs font-black uppercase tracking-[0.3em] text-gray-700 py-20 border border-dashed border-white/5 rounded-[40px] text-center w-full col-span-full">
+              Feeds are being refreshed...
             </div>
           )}
         </div>
       </section>
 
-      <section id="how" className="mx-auto w-full max-w-5xl px-4 pb-16 sm:px-6">
-        <div className="mb-2 text-xs font-semibold tracking-[0.3em] text-[var(--accent)]">
-          HOW IT WORKS
+      <section id="how" className="mx-auto w-full max-w-5xl px-6 pb-32">
+        <div className="mb-4 text-[10px] font-black tracking-[0.3em] text-orange-500 uppercase">
+          OUR PROCESS
         </div>
-        <div className="serif mb-6 text-2xl sm:text-3xl">
-          Three steps to discovery.
+        <div className="text-4xl font-black tracking-tighter mb-12">
+          Three steps to <span className="text-gray-700">discovery.</span>
         </div>
-        <div className="grid gap-6 sm:grid-cols-3">
+        <div className="grid gap-10 sm:grid-cols-3">
           {[
             {
-              step: "1",
-              title: "We Scrape",
-              description:
-                "Collect events from Luma, Devfolio, Unstop every 6 hours.",
+              step: "01",
+              title: "Scrape",
+              description: "Distributed workers collect raw data from 10+ platforms every 6 hours.",
             },
             {
-              step: "2",
-              title: "AI Normalizes",
-              description:
-                "GPT-4o tags, categorizes, and summarizes every event.",
+              step: "02",
+              title: "Normalize",
+              description: "AI pipelines clean, tag, and categorize events for maximum searchability.",
             },
             {
-              step: "3",
-              title: "You Discover",
-              description: "Search, filter, save, and register in one place.",
+              step: "03",
+              title: "Discover",
+              description: "Search, filter, and save events in one high-performance interface.",
             },
           ].map((item) => (
-            <div
-              key={item.step}
-              className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center"
-            >
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)] text-lg font-semibold text-white">
-                {item.step}
-              </div>
-              <div className="text-sm font-semibold">{item.title}</div>
-              <div className="mt-2 text-sm text-[var(--muted)]">
+            <div key={item.step} className="relative group">
+              <div className="text-6xl font-black text-white/5 mb-4 group-hover:text-orange-500/10 transition-colors duration-500">{item.step}</div>
+              <div className="text-lg font-black tracking-tight text-white mb-3 uppercase tracking-wider text-xs">{item.title}</div>
+              <div className="text-sm text-gray-500 leading-relaxed font-medium">
                 {item.description}
               </div>
             </div>
@@ -390,50 +350,54 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section
-        id="about"
-        className="bg-[#FFF5F2] px-4 py-16 text-center sm:px-6"
-      >
-        <h2 className="serif mb-3 text-3xl sm:text-4xl">
-          Ready to stop missing events?
-        </h2>
-        <p className="mb-8 text-sm text-[var(--muted)]">
-          No signup required to browse. Free forever.
-        </p>
-        <a
-          href="/events"
-          className="inline-flex rounded-full bg-[var(--accent)] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[var(--accent-h)]"
-        >
-          Get Started Free →
-        </a>
+      <section id="about" className="mx-auto max-w-6xl px-6 mb-32">
+        <div className="bg-orange-500 rounded-[60px] p-20 text-center relative overflow-hidden shadow-2xl accent-glow">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_70%)]" />
+          <div className="relative z-10">
+            <h2 className="text-5xl font-black tracking-tighter text-white mb-6 leading-none">
+              Stop missing out on <br/>the tech ecosystem.
+            </h2>
+            <p className="mb-10 text-orange-100 font-bold uppercase tracking-widest text-[10px]">
+              No signup required to browse. Open access for everyone.
+            </p>
+            <a
+              href="/events"
+              className="inline-flex rounded-full bg-white px-12 py-5 text-xs font-black uppercase tracking-[0.2em] text-orange-500 transition-all hover:bg-gray-100 hover:scale-105 active:scale-95 shadow-2xl"
+            >
+              Get Started Now →
+            </a>
+          </div>
+        </div>
       </section>
 
-      <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-4 py-8 sm:px-6">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 text-sm text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="serif text-lg text-[var(--text)]">TechPulse</div>
-            <div className="mt-1 text-xs">
-              The discovery layer for India&#39;s tech ecosystem
+      <footer className="border-t border-white/5 bg-[#030407] px-6 py-16">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-xs">
+            <div className="text-xl font-black tracking-tighter text-white mb-4">
+              EVENT<span className="text-orange-500">LAYER</span>
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-600 leading-relaxed">
+              The premium discovery layer for India's high-performance tech ecosystem.
             </div>
           </div>
-          <div className="flex flex-wrap gap-5">
-            <a href="/events" className="transition hover:text-[var(--text)]">
-              Events
-            </a>
-            <a href="/explore" className="transition hover:text-[var(--text)]">
-              Explore
-            </a>
-            <a href="/about" className="transition hover:text-[var(--text)]">
-              About
-            </a>
-            <a
-              href="https://github.com"
-              className="transition hover:text-[var(--text)]"
-            >
-              GitHub
-            </a>
+          <div className="flex flex-wrap gap-x-16 gap-y-8">
+            <div className="flex flex-col gap-4">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">Platform</span>
+              <a href="/events" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Events</a>
+              <a href="/explore" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Explore</a>
+              <a href="/saved" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Saved</a>
+            </div>
+            <div className="flex flex-col gap-4">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">Connect</span>
+              <a href="https://github.com" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">GitHub</a>
+              <a href="/about" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">About</a>
+              <a href="#" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Twitter</a>
+            </div>
           </div>
-          <div className="text-xs text-[var(--faint)]">© 2025 TechPulse</div>
+        </div>
+        <div className="max-w-6xl mx-auto mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="text-[9px] font-black text-gray-700 uppercase tracking-[0.4em]">© 2026 EVENTLAYER TECHNOLOGY</div>
+          <div className="text-[9px] font-black text-gray-700 uppercase tracking-[0.4em]">Built for the Mumbai Ecosystem</div>
         </div>
       </footer>
     </main>

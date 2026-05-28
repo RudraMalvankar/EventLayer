@@ -1,0 +1,257 @@
+{
+  "runAt": "2026-05-28T15:22:41.533Z",
+  "results": [
+    {
+      "id": "487cd957-a2b8-42f9-9447-74dcbf3528d0",
+      "url": "http://localhost:3000/events/487cd957-a2b8-42f9-9447-74dcbf3528d0",
+      "console": [
+        {
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+        },
+        {
+          "type": "debug",
+          "text": "Search endpoint requested!"
+        }
+      ],
+      "errors": [],
+      "responses": [
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1779981735569",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1779981735569",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/13971731025ec697-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1779981735569",
+          "status": 200
+        }
+      ],
+      "status": 200
+    },
+    {
+      "id": "8b480571-21eb-4a09-b0a1-153a26010416",
+      "url": "http://localhost:3000/events/8b480571-21eb-4a09-b0a1-153a26010416",
+      "console": [
+        {
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+        },
+        {
+          "type": "debug",
+          "text": "Search endpoint requested!"
+        }
+      ],
+      "errors": [],
+      "responses": [
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1779981741919",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1779981741919",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/13971731025ec697-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1779981741919",
+          "status": 200
+        }
+      ],
+      "status": 200
+    },
+    {
+      "id": "6a106e30-7d32-457b-a4a0-b3d9a59de395",
+      "url": "http://localhost:3000/events/6a106e30-7d32-457b-a4a0-b3d9a59de395",
+      "console": [
+        {
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+        },
+        {
+          "type": "debug",
+          "text": "Search endpoint requested!"
+        }
+      ],
+      "errors": [],
+      "responses": [
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1779981746432",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1779981746432",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/13971731025ec697-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1779981746432",
+          "status": 200
+        }
+      ],
+      "status": 200
+    },
+    {
+      "id": "e37322f1-9b3e-4b72-99b5-db010a143260",
+      "url": "http://localhost:3000/events/e37322f1-9b3e-4b72-99b5-db010a143260",
+      "console": [
+        {
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+        },
+        {
+          "type": "debug",
+          "text": "Search endpoint requested!"
+        }
+      ],
+      "errors": [],
+      "responses": [
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1779981749611",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1779981749611",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/13971731025ec697-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1779981749611",
+          "status": 200
+        }
+      ],
+      "status": 200
+    },
+    {
+      "id": "b0140da4-a777-4042-8ceb-8911850e52ed",
+      "url": "http://localhost:3000/events/b0140da4-a777-4042-8ceb-8911850e52ed",
+      "console": [
+        {
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+        },
+        {
+          "type": "debug",
+          "text": "Search endpoint requested!"
+        }
+      ],
+      "errors": [],
+      "responses": [
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1779981754573",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1779981754573",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/13971731025ec697-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1779981754573",
+          "status": 200
+        }
+      ],
+      "status": 200
+    },
+    {
+      "id": "810f59c6-cde9-4acf-82a5-6f06702041ea",
+      "url": "http://localhost:3000/events/810f59c6-cde9-4acf-82a5-6f06702041ea",
+      "console": [
+        {
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+        },
+        {
+          "type": "debug",
+          "text": "Search endpoint requested!"
+        }
+      ],
+      "errors": [],
+      "responses": [
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1779981757871",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1779981757871",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/13971731025ec697-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1779981757871",
+          "status": 200
+        }
+      ],
+      "status": 200
+    }
+  ]
+}

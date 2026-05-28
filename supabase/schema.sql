@@ -4,7 +4,7 @@ create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   description text,
-  platform text not null check (platform in ('luma','devfolio','unstop')),
+  platform text not null check (platform in ('luma','meetup','devfolio','unstop','devpost','eventbrite','eventtier','scraper')),
   city text,
   country text,
   mode text check (mode in ('online','offline','hybrid')),

@@ -4,6 +4,5 @@ export {
   upsertEventsService as upsertEvents,
   getSavedEventsService as getSavedEvents,
   toggleSaveEventService as toggleSaveEvent,
-  searchEventsService as searchEvents
-} from '../src/features/events/service'
-
+  searchEventsService as searchEvents,
+} from "../src/features/events/service";

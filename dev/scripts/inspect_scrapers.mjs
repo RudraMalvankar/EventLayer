@@ -1,6 +1,13 @@
 import { scrapeByPlatform } from "../src/features/scrapers/service.js";
 
-const platforms = ["luma", "devfolio", "unstop", "devpost", "eventbrite", "eventtier"];
+const platforms = [
+  "luma",
+  "devfolio",
+  "unstop",
+  "devpost",
+  "eventbrite",
+  "eventtier",
+];
 
 for (const platform of platforms) {
   const res = await scrapeByPlatform(platform);
