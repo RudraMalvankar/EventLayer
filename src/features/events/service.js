@@ -4,6 +4,7 @@ import {
   updateEventById,
   upsertEventsRepo,
   findSavedEvents,
+  findTrendingEvents,
   toggleSavedEventRepo,
 } from "./repository.js";
 import { fetchEventDetails } from "../scrapers/luma/details.js";
@@ -77,6 +78,10 @@ export async function upsertEventsService(eventsArray = []) {
 
 export async function getSavedEventsService(userId) {
   return findSavedEvents(userId);
+}
+
+export async function getTrendingEventsService(limit = 6) {
+  return findTrendingEvents(limit);
 }
 
 export async function toggleSaveEventService(userId, eventId) {

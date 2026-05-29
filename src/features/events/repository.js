@@ -34,6 +34,10 @@ function projectEventRow(row = {}) {
   };
 }
 
+function getEventId(row = {}) {
+  return row?.id || row?.event_id || row?.events?.id || null;
+}
+
 function ok(data) {
   return { data, error: null };
 }
@@ -144,6 +148,47 @@ export async function findSavedEvents(userId) {
     return ok((data || []).map((row) => row.events).filter(Boolean));
   } catch {
     return fail("Failed to fetch saved events");
+  }
+}
+
+export async function findTrendingEvents(limit = 6) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("saved_events")
+      .select("event_id, events(*)");
+    if (error) return fail(error.message);
+
+    const grouped = new Map();
+    for (const row of data || []) {
+      const event = row?.events;
+      const id = getEventId(row);
+      if (!event || !id) continue;
+
+      const current = grouped.get(String(id)) || {
+        event: projectEventRow(event),
+        saves: 0,
+      };
+      current.saves += 1;
+      grouped.set(String(id), current);
+    }
+
+    const events = Array.from(grouped.values())
+      .sort((a, b) => {
+        if (b.saves !== a.saves) return b.saves - a.saves;
+        const aTime = a.event?.start_date
+          ? new Date(a.event.start_date).getTime()
+          : Number.MAX_SAFE_INTEGER;
+        const bTime = b.event?.start_date
+          ? new Date(b.event.start_date).getTime()
+          : Number.MAX_SAFE_INTEGER;
+        return aTime - bTime;
+      })
+      .slice(0, limit)
+      .map(({ event, saves }) => ({ ...event, trending_saves: saves }));
+
+    return ok({ events, total: events.length });
+  } catch {
+    return fail("Failed to fetch trending events");
   }
 }
 

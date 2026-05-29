@@ -1,6 +1,9 @@
 import { Navbar } from "../components/Navbar";
 import { EventCard } from "../components/EventCard";
-import { getEventsService } from "../src/features/events/service";
+import {
+  getEventsService,
+  getTrendingEventsService,
+} from "../src/features/events/service";
 
 const MAP_PREVIEW_URL = process.env.NEXT_PUBLIC_MAPBOX_STATIC_PREVIEW_URL || "";
 
@@ -139,12 +142,24 @@ function FloatingCards() {
 
 export default async function LandingPage() {
   let events = [];
+  let trendingEvents = [];
   try {
-    const { data, error } = await getEventsService({ limit: 6 });
-    events = (data?.events || []).filter((e) => e.start_date);
+    const [feedResult, trendingResult] = await Promise.all([
+      getEventsService({ limit: 6 }),
+      getTrendingEventsService(3),
+    ]);
+    events = (feedResult?.data?.events || []).filter((e) => e.start_date);
+    trendingEvents = Array.isArray(trendingResult?.data?.events)
+      ? trendingResult.data.events
+      : [];
   } catch (err) {
     events = [];
+    trendingEvents = [];
   }
+
+  const featuredTrending = trendingEvents.length
+    ? trendingEvents
+    : events.slice(0, 3);
   return (
     <main className="min-h-screen text-white bg-[#030407]">
       <Navbar />
@@ -242,6 +257,46 @@ export default async function LandingPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-6 pb-32">
+        <div className="mb-4 text-[10px] font-black tracking-[0.3em] text-orange-500 uppercase">
+          MOST SAVED THIS WEEK
+        </div>
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-12">
+          <div>
+            <h2 className="text-4xl font-black tracking-tighter">
+              Trending now.
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-500 font-medium">
+              Events people are saving the most. If you want the safest bet for
+              what the community is paying attention to, start here.
+            </p>
+          </div>
+          <a
+            href="/events"
+            className="inline-flex w-fit rounded-full border border-white/10 bg-white/5 px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10"
+          >
+            View all events
+          </a>
+        </div>
+
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+          {featuredTrending.length ? (
+            featuredTrending.map((event) => (
+              <div key={event.id || event.event_url} className="relative">
+                <div className="absolute left-4 top-4 z-20 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-orange-300 backdrop-blur-sm">
+                  {event.trending_saves || 0} saves
+                </div>
+                <EventCard event={event} />
+              </div>
+            ))
+          ) : (
+            <div className="text-xs font-black uppercase tracking-[0.3em] text-gray-700 py-20 border border-dashed border-white/5 rounded-[40px] text-center w-full col-span-full">
+              Trending feed is warming up...
+            </div>
+          )}
         </div>
       </section>
 
