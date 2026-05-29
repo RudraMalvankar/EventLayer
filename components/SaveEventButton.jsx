@@ -17,7 +17,7 @@ export function SaveEventButton({ eventId, redirectPath = "/login" }) {
     const { data } = await supabase.auth.getSession();
     return data?.session?.access_token || null;
   }
-  
+
   async function isAuthenticated() {
     try {
       const { data } = await supabase.auth.getUser();

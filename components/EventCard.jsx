@@ -211,7 +211,7 @@ export function EventCard({ event, onSave, isSaved }) {
                 }
               }}
               className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 ${
-                (localSaved || isSaved)
+                localSaved || isSaved
                   ? "bg-orange-500 text-white"
                   : "bg-black/20 text-white/70 hover:bg-black/40 hover:text-white border border-white/10"
               }`}

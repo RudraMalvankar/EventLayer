@@ -58,6 +58,7 @@ export default function ExplorePage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savedIds, setSavedIds] = useState(new Set());
+  const [profile, setProfile] = useState(null);
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState({
     category: "All",
@@ -129,6 +130,29 @@ export default function ExplorePage() {
     }
   }
 
+  async function loadProfile() {
+    const token = await resolveToken();
+    if (!token) {
+      setProfile(null);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await response.json();
+      if (response.ok && !json?.error) {
+        setProfile(json?.data?.profile || null);
+      } else {
+        setProfile(null);
+      }
+    } catch (error) {
+      console.error("Failed to load profile:", error);
+      setProfile(null);
+    }
+  }
+
   async function handleToggleSave(event) {
     const token = await resolveToken();
     if (!token) {
@@ -176,6 +200,11 @@ export default function ExplorePage() {
     loadSavedIds().catch((error) => console.error(error));
   }, [initialized, authLoading, session?.access_token]);
 
+  useEffect(() => {
+    if (!initialized || authLoading) return;
+    loadProfile().catch((error) => console.error(error));
+  }, [initialized, authLoading, session?.access_token]);
+
   const filteredEvents = useMemo(() => {
     let result = events;
     result = result.filter((event) => isTodayOrFuture(event?.start_date));
@@ -199,6 +228,72 @@ export default function ExplorePage() {
     }
     return result;
   }, [events, filters.platform, query]);
+
+  const recommendedEvents = useMemo(() => {
+    const city = String(profile?.city || "").trim().toLowerCase();
+    const interests = Array.isArray(profile?.interests)
+      ? profile.interests.map((item) => String(item).toLowerCase())
+      : [];
+    const platformsFollowed = Array.isArray(profile?.platforms_followed)
+      ? profile.platforms_followed.map((item) => String(item).toLowerCase())
+      : [];
+
+    const base = [...filteredEvents];
+    const scored = base.map((event) => {
+      const eventCity = String(event?.city || "").toLowerCase();
+      const eventPlatform = getDisplayPlatform(event);
+      const tags = Array.isArray(event?.tags)
+        ? event.tags.map((tag) => String(tag).toLowerCase())
+        : [];
+      const description = String(
+        event?.ai_summary || event?.description || "",
+      ).toLowerCase();
+      let score = 0;
+
+      if (city && eventCity && eventCity.includes(city)) score += 4;
+      if (platformsFollowed.includes(eventPlatform)) score += 3;
+      if (
+        interests.some(
+          (interest) =>
+            tags.some((tag) => tag.includes(interest)) ||
+            description.includes(interest),
+        )
+      ) {
+        score += 3;
+      }
+
+      const startTime = event?.start_date
+        ? new Date(event.start_date).getTime()
+        : Number.MAX_SAFE_INTEGER;
+      const hoursUntil = (startTime - Date.now()) / (1000 * 60 * 60);
+      if (hoursUntil >= 0 && hoursUntil <= 72) score += 2;
+      if (event?.banner_url) score += 1;
+      if (event?.is_free) score += 1;
+
+      const savedBoost = savedIds.has(event?.id) ? 2 : 0;
+
+      return {
+        event,
+        score: score + savedBoost,
+      };
+    });
+
+    return scored
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        const aTime = a.event?.start_date
+          ? new Date(a.event.start_date).getTime()
+          : Number.MAX_SAFE_INTEGER;
+        const bTime = b.event?.start_date
+          ? new Date(b.event.start_date).getTime()
+          : Number.MAX_SAFE_INTEGER;
+        return aTime - bTime;
+      })
+      .slice(0, 6)
+      .map((item) => item.event);
+  }, [filteredEvents, profile, savedIds]);
+
+  const showRecommended = Boolean(profile) && recommendedEvents.length > 0;
 
   const groupedEvents = useMemo(() => {
     const groups = new Map();
@@ -334,6 +429,34 @@ export default function ExplorePage() {
           </div>
         ) : (
           <div className="space-y-20">
+            {showRecommended && (
+              <section>
+                <div className="mb-8 flex items-end justify-between gap-4 border-b border-white/5 pb-4">
+                  <div>
+                    <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">
+                      Recommended for you
+                    </h2>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Based on your city, interests, and saved events.
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-600">
+                    {recommendedEvents.length} Picks
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                  {recommendedEvents.map((event) => (
+                    <EventCard
+                      key={`recommended-${event.id || event.event_url}`}
+                      event={event}
+                      isSaved={savedIds.has(event.id)}
+                      onSave={handleToggleSave}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
             {groupedEvents.map((group) => (
               <section key={group.label}>
                 <div className="mb-8 flex items-center gap-4 border-b border-white/5 pb-4">

@@ -31,6 +31,8 @@ const cityOptions = [
   "Online",
 ];
 
+const platformOptions = ["luma", "meetup", "devfolio", "unstop", "eventbrite"];
+
 function initialsFrom(profile, user) {
   const source =
     profile?.first_name ||
@@ -54,6 +56,12 @@ function displayNameFrom(profile, user) {
 
 function firstNameFrom(displayName) {
   return displayName.trim().split(/\s+/)[0] || "";
+}
+
+function normalizeList(value) {
+  return Array.isArray(value)
+    ? value.map((item) => String(item).trim()).filter(Boolean)
+    : [];
 }
 
 function normalizeSavedEvents(json) {
@@ -84,8 +92,10 @@ export default function ProfilePage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [form, setForm] = useState({
     display_name: "",
+    first_name: "",
     city: "Mumbai",
     interests: [],
+    platforms_followed: [],
     profile_picture_url: "",
   });
 
@@ -169,10 +179,12 @@ export default function ProfilePage() {
         setProfile(nextProfile);
         setForm({
           display_name: nextName,
+          first_name: nextProfile.first_name || firstNameFrom(nextName),
           city: nextProfile.city || "Mumbai",
           interests: Array.isArray(nextProfile.interests)
             ? nextProfile.interests
             : [],
+          platforms_followed: normalizeList(nextProfile.platforms_followed),
           profile_picture_url: nextProfile.profile_picture_url || "",
         });
 
@@ -238,9 +250,10 @@ export default function ProfilePage() {
       const profilePictureUrl = await uploadProfilePicture();
       const payload = {
         display_name: form.display_name,
-        first_name: firstNameFrom(form.display_name),
+        first_name: form.first_name || firstNameFrom(form.display_name),
         city: form.city,
         interests: form.interests,
+        platforms_followed: form.platforms_followed,
         profile_picture_url: profilePictureUrl,
       };
 
@@ -264,6 +277,7 @@ export default function ProfilePage() {
         ...current,
         profile_picture_url:
           nextProfile.profile_picture_url || profilePictureUrl,
+        platforms_followed: normalizeList(nextProfile.platforms_followed),
       }));
       setSelectedFile(null);
       setSuccess("Profile updated.");
@@ -328,6 +342,18 @@ export default function ProfilePage() {
                       <span>{user.email}</span>
                     </>
                   )}
+                  {Array.isArray(profile?.interests) && profile.interests.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {profile.interests.slice(0, 5).map((interest) => (
+                        <span
+                          key={interest}
+                          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-300"
+                        >
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -343,20 +369,26 @@ export default function ProfilePage() {
         </section>
 
         <section className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-[#0a0c12]/80 p-6">
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#0f1724] to-[#0a0c12] p-6 shadow-[0_16px_60px_rgba(0,0,0,0.25)]">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-gray-500">
               Events Saved
             </p>
             <p className="mt-3 text-4xl font-black text-white">
               {savedEvents.length}
             </p>
+            <p className="mt-2 text-sm text-gray-500">
+              Events you bookmarked to revisit later.
+            </p>
           </div>
-          <div className="rounded-3xl border border-white/10 bg-[#0a0c12]/80 p-6">
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#0f1724] to-[#0a0c12] p-6 shadow-[0_16px_60px_rgba(0,0,0,0.25)]">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-gray-500">
               Platforms Followed
             </p>
             <p className="mt-3 text-4xl font-black text-white">
               {platformsFollowedCount}
+            </p>
+            <p className="mt-2 text-sm text-gray-500">
+              Powers better recommendations in Explore.
             </p>
           </div>
         </section>
@@ -455,6 +487,19 @@ export default function ProfilePage() {
 
                 <label className="block">
                   <span className="mb-2 block text-xs font-black uppercase tracking-[0.2em] text-gray-400">
+                    First name
+                  </span>
+                  <input
+                    value={form.first_name}
+                    onChange={(event) =>
+                      updateForm("first_name", event.target.value)
+                    }
+                    className="h-12 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-orange-500/70"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black uppercase tracking-[0.2em] text-gray-400">
                     City
                   </span>
                   <select
@@ -500,9 +545,53 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
+                <div>
+                  <span className="mb-3 block text-xs font-black uppercase tracking-[0.2em] text-gray-400">
+                    Platforms followed
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {platformOptions.map((platform) => {
+                      const selected = form.platforms_followed.includes(platform);
+                      return (
+                        <button
+                          key={platform}
+                          type="button"
+                          onClick={() =>
+                            updateForm(
+                              "platforms_followed",
+                              toggleValue(form.platforms_followed, platform),
+                            )
+                          }
+                          className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors ${
+                            selected
+                              ? "border-orange-500 bg-orange-500 text-white"
+                              : "border-white/10 bg-white/5 text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          {platform}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <label className="block">
                   <span className="mb-2 block text-xs font-black uppercase tracking-[0.2em] text-gray-400">
-                    Profile picture
+                    Profile picture URL
+                  </span>
+                  <input
+                    value={form.profile_picture_url}
+                    onChange={(event) =>
+                      updateForm("profile_picture_url", event.target.value)
+                    }
+                    placeholder="https://..."
+                    className="h-12 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-white outline-none placeholder:text-gray-600 focus:border-orange-500/70"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black uppercase tracking-[0.2em] text-gray-400">
+                    Upload profile picture
                   </span>
                   <input
                     type="file"
@@ -523,6 +612,22 @@ export default function ProfilePage() {
                     </p>
                   )}
                 </label>
+
+                <div className="rounded-[24px] border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600 text-lg font-black text-white">
+                      {initialsFrom(profile, user)}
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">
+                        Preview
+                      </p>
+                      <p className="mt-1 text-sm text-gray-300">
+                        {form.display_name || displayName}
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
                 <button
                   type="button"
