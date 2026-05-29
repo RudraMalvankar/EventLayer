@@ -6,6 +6,12 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../src/shared/clients/supabase";
 import { notifySavedEventsUpdated } from "../src/shared/events/refresh";
 import { LoggedOutSaveModal } from "./LoggedOutSaveModal";
+import {
+  getReminderOption,
+  getReminderValue,
+  loadReminderSet,
+  subscribeToReminderUpdates,
+} from "../src/shared/reminders/storage";
 
 function resolveStartDate(event) {
   const value = event?.starts_at || event?.start_date || null;
@@ -61,11 +67,31 @@ export function EventCard({ event, onSave, isSaved }) {
   const [shareMessage, setShareMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [localSaved, setLocalSaved] = useState(isSaved || false);
+  const [reminderLabel, setReminderLabel] = useState("");
+
+  useEffect(() => {
+    setLocalSaved(Boolean(isSaved));
+  }, [isSaved]);
 
   useEffect(() => {
     const id = setInterval(() => setNowMs(Date.now()), 60000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (!event?.id && !event?.event_url) return undefined;
+
+    const reminderId = String(event?.id || event?.event_url || "");
+    const syncReminderState = () => {
+      const reminder = getReminderValue(loadReminderSet(), reminderId);
+      setReminderLabel(
+        reminder ? getReminderOption(reminder.reminderKey).shortLabel : "",
+      );
+    };
+
+    syncReminderState();
+    return subscribeToReminderUpdates(syncReminderState);
+  }, [event?.id, event?.event_url]);
 
   const countdownLabel = useMemo(
     () => getCountdownLabel(start, end, nowMs),
@@ -222,7 +248,7 @@ export function EventCard({ event, onSave, isSaved }) {
                 width="18"
                 height="18"
                 viewBox="0 0 24 24"
-                fill={isSaved ? "currentColor" : "none"}
+                fill={localSaved || isSaved ? "currentColor" : "none"}
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
@@ -291,6 +317,11 @@ export function EventCard({ event, onSave, isSaved }) {
           >
             {countdownLabel}
           </span>
+          {reminderLabel && (
+            <span className="ml-2 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">
+              Reminder: {reminderLabel}
+            </span>
+          )}
           {shareMessage && (
             <span className="ml-2 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300">
               {shareMessage}

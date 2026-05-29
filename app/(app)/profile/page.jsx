@@ -288,7 +288,13 @@ export default function ProfilePage() {
     }
   }
 
-  if (!initialized || authLoading || !sessionResolved || loading || !activeSession) {
+  if (
+    !initialized ||
+    authLoading ||
+    !sessionResolved ||
+    loading ||
+    !activeSession
+  ) {
     return (
       <main className="min-h-screen text-white">
         <Navbar />
@@ -342,18 +348,19 @@ export default function ProfilePage() {
                       <span>{user.email}</span>
                     </>
                   )}
-                  {Array.isArray(profile?.interests) && profile.interests.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {profile.interests.slice(0, 5).map((interest) => (
-                        <span
-                          key={interest}
-                          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-300"
-                        >
-                          {interest}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {Array.isArray(profile?.interests) &&
+                    profile.interests.length > 0 && (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {profile.interests.slice(0, 5).map((interest) => (
+                          <span
+                            key={interest}
+                            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-300"
+                          >
+                            {interest}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
@@ -551,7 +558,8 @@ export default function ProfilePage() {
                   </span>
                   <div className="flex flex-wrap gap-2">
                     {platformOptions.map((platform) => {
-                      const selected = form.platforms_followed.includes(platform);
+                      const selected =
+                        form.platforms_followed.includes(platform);
                       return (
                         <button
                           key={platform}

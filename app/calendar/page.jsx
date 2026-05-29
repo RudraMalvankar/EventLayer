@@ -7,9 +7,17 @@ import { Navbar } from "../../components/Navbar";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
 import { subscribeToSavedEventsUpdated } from "../../src/shared/events/refresh";
-
-const REMINDERS_STORAGE_KEY = "eventlayer.calendar.reminders.v1";
-const REMINDED_STORAGE_KEY = "eventlayer.calendar.reminded.v1";
+import {
+  REMINDER_OPTIONS,
+  clearReminderValue,
+  getReminderOption,
+  getReminderValue,
+  loadReminderMap,
+  loadRemindedSet,
+  persistReminderMap,
+  persistRemindedSet,
+  setReminderValue,
+} from "../../src/shared/reminders/storage";
 
 function normalizeSavedEvents(json) {
   if (Array.isArray(json?.data)) return json.data;
@@ -62,22 +70,6 @@ function formatTime(value) {
   });
 }
 
-function loadStoredSet(key) {
-  if (typeof window === "undefined") return new Set();
-  try {
-    const raw = window.localStorage.getItem(key);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function persistStoredSet(key, values) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(key, JSON.stringify(Array.from(values)));
-}
-
 function buildMonthCells(referenceDate) {
   const first = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
   const start = new Date(first);
@@ -103,7 +95,7 @@ export default function CalendarPage() {
   const [events, setEvents] = useState([]);
   const [selectedDateKey, setSelectedDateKey] = useState(null);
   const [activeMonth, setActiveMonth] = useState(() => new Date());
-  const [reminders, setReminders] = useState(() => new Set());
+  const [reminders, setReminders] = useState(() => ({}));
   const [reminded, setReminded] = useState(() => new Set());
   const [refreshTick, setRefreshTick] = useState(0);
   const [reminderStatus, setReminderStatus] = useState("");
@@ -143,8 +135,8 @@ export default function CalendarPage() {
   }, []);
 
   useEffect(() => {
-    setReminders(loadStoredSet(REMINDERS_STORAGE_KEY));
-    setReminded(loadStoredSet(REMINDED_STORAGE_KEY));
+    setReminders(loadReminderMap());
+    setReminded(loadRemindedSet());
   }, []);
 
   useEffect(() => {
@@ -193,11 +185,11 @@ export default function CalendarPage() {
   }, [activeSession?.access_token, session?.access_token, refreshTick]);
 
   useEffect(() => {
-    persistStoredSet(REMINDERS_STORAGE_KEY, reminders);
+    persistReminderMap(reminders);
   }, [reminders]);
 
   useEffect(() => {
-    persistStoredSet(REMINDED_STORAGE_KEY, reminded);
+    persistRemindedSet(reminded);
   }, [reminded]);
 
   const upcomingSaved = useMemo(
@@ -256,7 +248,7 @@ export default function CalendarPage() {
   }, [monthEvents, selectedDateKey]);
 
   useEffect(() => {
-    if (!reminders.size || !monthEvents.length) return undefined;
+    if (!Object.keys(reminders).length || !monthEvents.length) return undefined;
 
     const tick = setInterval(() => {
       if (typeof Notification === "undefined" || Notification.permission !== "granted") {
@@ -269,16 +261,19 @@ export default function CalendarPage() {
 
       monthEvents.forEach((event) => {
         const id = String(event?.id || event?.event_url || "");
-        if (!id || !reminders.has(id) || nextReminded.has(id) || !event?.start_date) {
+        const reminder = getReminderValue(reminders, id);
+        if (!id || !reminder || nextReminded.has(id) || !event?.start_date) {
           return;
         }
 
         const startTime = new Date(event.start_date).getTime();
-        const minutesUntil = (startTime - now) / 60000;
-        if (minutesUntil < 0 || minutesUntil > 60) return;
+        const reminderOffset =
+          getReminderOption(reminder.reminderKey).offsetMinutes * 60000;
+        const remindAt = startTime - reminderOffset;
+        if (now < remindAt || now > startTime) return;
 
         new Notification(`Reminder: ${event.title}`, {
-          body: `${formatDayLabel(event.start_date)} at ${formatTime(event.start_date)}`,
+          body: `${getReminderOption(reminder.reminderKey).label} • ${formatDayLabel(event.start_date)} at ${formatTime(event.start_date)}`,
         });
         nextReminded.add(id);
         changed = true;
@@ -292,7 +287,7 @@ export default function CalendarPage() {
     return () => clearInterval(tick);
   }, [monthEvents, reminders, reminded]);
 
-  function toggleReminder(event) {
+  function handleReminderChoice(event, reminderKey) {
     const id = String(event?.id || event?.event_url || "");
     if (!id) return;
 
@@ -300,23 +295,26 @@ export default function CalendarPage() {
       Notification.requestPermission().catch(() => {});
     }
 
-    setReminders((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      persistStoredSet(REMINDERS_STORAGE_KEY, next);
-      return next;
-    });
+    const currentReminder = getReminderValue(reminders, id);
+    const isSameChoice = currentReminder?.reminderKey === reminderKey;
+
+    setReminders((current) =>
+      isSameChoice
+        ? clearReminderValue(current, id)
+        : setReminderValue(current, id, reminderKey),
+    );
 
     setReminded((current) => {
       const next = new Set(current);
       next.delete(id);
-      persistStoredSet(REMINDED_STORAGE_KEY, next);
       return next;
     });
 
-    const isActive = reminders.has(id);
-    setReminderStatus(isActive ? "Reminder removed" : "Reminder set");
+    setReminderStatus(
+      isSameChoice
+        ? "Reminder removed"
+        : `${getReminderOption(reminderKey).label} set`,
+    );
     window.setTimeout(() => setReminderStatus(""), 1800);
   }
 
@@ -470,7 +468,7 @@ export default function CalendarPage() {
             <div className="mt-5 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
               <span>{monthEvents.length} saved events this month</span>
               <span className="h-1 w-1 rounded-full bg-white/20" />
-              <span>{reminders.size} reminders set</span>
+              <span>{Object.keys(reminders).length} reminders set</span>
             </div>
           </section>
 
@@ -495,7 +493,10 @@ export default function CalendarPage() {
               <div className="space-y-4">
                 {selectedDayEvents.map((event) => {
                   const id = String(event?.id || event?.event_url || "");
-                  const isReminderOn = reminders.has(id);
+                  const reminder = getReminderValue(reminders, id);
+                  const reminderLabel = reminder
+                    ? getReminderOption(reminder.reminderKey).shortLabel
+                    : "Remind me";
                   return (
                     <div
                       key={event.id || event.event_url}
@@ -516,18 +517,40 @@ export default function CalendarPage() {
                             {event?.ai_summary || event?.description || "No summary available."}
                           </p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => toggleReminder(event)}
-                          disabled={!id || !event?.start_date}
-                          className={`shrink-0 rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition ${
-                            isReminderOn
-                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                              : "border-white/10 bg-white/5 text-gray-300 hover:text-white"
-                          } ${!id || !event?.start_date ? "opacity-40" : ""}`}
-                        >
-                          {isReminderOn ? "Reminder on" : "Remind me"}
-                        </button>
+                        <div className="shrink-0 space-y-2 text-right">
+                          <div className="inline-flex rounded-full border border-white/10 bg-black/20 p-1">
+                            {REMINDER_OPTIONS.map((option) => {
+                              const selected = reminder?.reminderKey === option.key;
+                              return (
+                                <button
+                                  key={option.key}
+                                  type="button"
+                                  onClick={() => handleReminderChoice(event, option.key)}
+                                  disabled={!id || !event?.start_date}
+                                  className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.18em] transition ${
+                                    selected
+                                      ? "bg-orange-500 text-white"
+                                      : "text-gray-400 hover:text-white"
+                                  } ${!id || !event?.start_date ? "opacity-40" : ""}`}
+                                >
+                                  {option.shortLabel}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleReminderChoice(event, reminder?.reminderKey || "1d")}
+                            disabled={!reminder || !id || !event?.start_date}
+                            className={`block w-full rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition ${
+                              reminder
+                                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                                : "border-white/10 bg-white/5 text-gray-300"
+                            } ${!reminder || !id || !event?.start_date ? "opacity-40" : ""}`}
+                          >
+                            {reminder ? `Clear • ${reminderLabel}` : "No reminder"}
+                          </button>
+                        </div>
                       </div>
                       <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
                         <span>{event?.raw_data?.sourcePlatform || event?.platform}</span>

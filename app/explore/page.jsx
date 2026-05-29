@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Navbar } from "../../components/Navbar";
 import { EventCard } from "../../components/EventCard";
 import { LoggedOutSaveModal } from "../../components/LoggedOutSaveModal";
@@ -53,7 +52,6 @@ function formatDayLabel(value) {
 }
 
 export default function ExplorePage() {
-  const router = useRouter();
   const { session, loading: authLoading, initialized } = useUser();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -230,7 +228,9 @@ export default function ExplorePage() {
   }, [events, filters.platform, query]);
 
   const recommendedEvents = useMemo(() => {
-    const city = String(profile?.city || "").trim().toLowerCase();
+    const city = String(profile?.city || "")
+      .trim()
+      .toLowerCase();
     const interests = Array.isArray(profile?.interests)
       ? profile.interests.map((item) => String(item).toLowerCase())
       : [];
