@@ -13,7 +13,9 @@ function loadEvents() {
       if (Array.isArray(events) && events.length) {
         return events;
       }
-    } catch {}
+    } catch (e) {
+      // ignore
+    }
   }
 
   return [];

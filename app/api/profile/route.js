@@ -49,7 +49,9 @@ async function resolveUser(request) {
   try {
     const auth = await requireAuth(request);
     if (auth?.user) return auth.user;
-  } catch {}
+  } catch (e) {
+    // ignore - fall through to session check
+  }
 
   const supabase = createRouteHandlerClient({ cookies });
   const {

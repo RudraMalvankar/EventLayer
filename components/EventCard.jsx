@@ -202,6 +202,7 @@ export function EventCard({ event, onSave, isSaved }) {
             <button
               onClick={async (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 // If parent passed an onSave handler, defer to it.
                 if (typeof onSave === "function") {
                   onSave?.(event);
@@ -260,6 +261,7 @@ export function EventCard({ event, onSave, isSaved }) {
             <button
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 handleShare(event);
               }}
               className="w-10 h-10 rounded-full flex items-center justify-center bg-black/20 text-white/70 hover:bg-black/40 hover:text-white border border-white/10 backdrop-blur-xl transition-all duration-300"

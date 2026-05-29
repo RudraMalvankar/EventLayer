@@ -43,7 +43,9 @@ export function AuthProvider({ children }) {
             "AuthProvider: session loaded",
             window.__EVENTLAYER_AUTH,
           );
-        } catch (e) {}
+        } catch (e) {
+          // ignore benign window access errors in non-browser environments
+        }
       } catch (err) {
         console.debug("AuthProvider: loadSession error", err && err.message);
         if (!mounted) return;
@@ -69,7 +71,9 @@ export function AuthProvider({ children }) {
           window.__EVENTLAYER_AUTH.lastEvent = event;
           window.__EVENTLAYER_AUTH.hasSession = !!nextSession;
         }
-      } catch (e) {}
+      } catch (e) {
+        // ignore benign window access errors in non-browser environments
+      }
     });
 
     return () => {
