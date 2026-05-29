@@ -38,7 +38,11 @@ export function SaveEventButton({ eventId, redirectPath = "/login" }) {
               ? json.data
               : [];
         if (!active) return;
-        setSaved(events.some((item) => String(item?.id || item?.event_id) === String(eventId)));
+        setSaved(
+          events.some(
+            (item) => String(item?.id || item?.event_id) === String(eventId),
+          ),
+        );
       } catch {
         if (active) setSaved(false);
       } finally {

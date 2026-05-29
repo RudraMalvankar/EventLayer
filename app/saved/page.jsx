@@ -115,7 +115,13 @@ export default function SavedPage() {
     };
   }, [activeSession?.access_token, session?.access_token]);
 
-  if (!initialized || authLoading || !sessionResolved || loading || !activeSession) {
+  if (
+    !initialized ||
+    authLoading ||
+    !sessionResolved ||
+    loading ||
+    !activeSession
+  ) {
     return (
       <main className="min-h-screen text-white">
         <Navbar />

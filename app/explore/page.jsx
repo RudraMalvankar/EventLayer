@@ -116,7 +116,9 @@ export default function ExplorePage() {
           : Array.isArray(json?.data)
             ? json.data
             : [];
-      setSavedIds(new Set(items.map((item) => item.id || item.event_id).filter(Boolean)));
+      setSavedIds(
+        new Set(items.map((item) => item.id || item.event_id).filter(Boolean)),
+      );
     } catch (error) {
       console.error("Failed to load saved events:", error);
     } finally {
@@ -142,7 +144,10 @@ export default function ExplorePage() {
 
     const json = await response.json();
     if (!response.ok || json?.error) {
-      console.error("Failed to toggle save", json?.error || response.statusText);
+      console.error(
+        "Failed to toggle save",
+        json?.error || response.statusText,
+      );
       return;
     }
 
@@ -172,7 +177,12 @@ export default function ExplorePage() {
     if (query) {
       const lower = query.toLowerCase();
       result = result.filter((event) => {
-        const haystack = [event?.title, event?.description, event?.city, event?.platform]
+        const haystack = [
+          event?.title,
+          event?.description,
+          event?.city,
+          event?.platform,
+        ]
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
@@ -240,7 +250,12 @@ export default function ExplorePage() {
             <select
               className="md:col-span-2 w-full rounded-2xl border border-white/5 bg-[#0a0c12] px-5 py-4 text-xs font-bold uppercase tracking-widest text-gray-400 outline-none"
               value={filters.platform}
-              onChange={(e) => setFilters((current) => ({ ...current, platform: e.target.value }))}
+              onChange={(e) =>
+                setFilters((current) => ({
+                  ...current,
+                  platform: e.target.value,
+                }))
+              }
             >
               <option value="All">All Platforms</option>
               <option value="luma">Luma</option>
@@ -252,7 +267,12 @@ export default function ExplorePage() {
             <select
               className="md:col-span-2 w-full rounded-2xl border border-white/5 bg-[#0a0c12] px-5 py-4 text-xs font-bold uppercase tracking-widest text-gray-400 outline-none"
               value={filters.category}
-              onChange={(e) => setFilters((current) => ({ ...current, category: e.target.value }))}
+              onChange={(e) =>
+                setFilters((current) => ({
+                  ...current,
+                  category: e.target.value,
+                }))
+              }
             >
               <option>All</option>
               <option>Hackathon</option>
@@ -262,7 +282,9 @@ export default function ExplorePage() {
             <input
               placeholder="City"
               value={filters.city}
-              onChange={(e) => setFilters((current) => ({ ...current, city: e.target.value }))}
+              onChange={(e) =>
+                setFilters((current) => ({ ...current, city: e.target.value }))
+              }
               className="md:col-span-2 w-full rounded-2xl border border-white/5 bg-[#0a0c12] px-5 py-4 text-sm text-white outline-none placeholder:text-gray-600 focus:border-orange-500/60"
             />
             <button
@@ -280,7 +302,10 @@ export default function ExplorePage() {
               style={
                 MAP_PREVIEW_URL
                   ? { backgroundImage: `url(${MAP_PREVIEW_URL})` }
-                  : { background: "linear-gradient(135deg, #111827 0%, #020617 100%)" }
+                  : {
+                      background:
+                        "linear-gradient(135deg, #111827 0%, #020617 100%)",
+                    }
               }
             />
           </div>

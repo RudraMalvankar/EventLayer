@@ -138,7 +138,9 @@ export default function EventsPage() {
         : Array.isArray(json?.data)
           ? json.data
           : [];
-    setSavedIds(new Set(items.map((item) => item.id || item.event_id).filter(Boolean)));
+    setSavedIds(
+      new Set(items.map((item) => item.id || item.event_id).filter(Boolean)),
+    );
   }
 
   async function handleToggleSave(event) {
@@ -159,7 +161,10 @@ export default function EventsPage() {
 
     const json = await response.json();
     if (!response.ok || json?.error) {
-      console.error("Failed to toggle save", json?.error || response.statusText);
+      console.error(
+        "Failed to toggle save",
+        json?.error || response.statusText,
+      );
       return;
     }
 
@@ -217,7 +222,9 @@ export default function EventsPage() {
 
   useEffect(() => {
     if (!initialized || authLoading) return;
-    loadSavedIds().catch((error) => console.error("Failed to load saved ids", error));
+    loadSavedIds().catch((error) =>
+      console.error("Failed to load saved ids", error),
+    );
   }, [initialized, authLoading, session?.access_token]);
 
   const filteredEvents = useMemo(() => {
