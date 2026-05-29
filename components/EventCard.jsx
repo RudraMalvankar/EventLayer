@@ -2,16 +2,76 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+
+function resolveStartDate(event) {
+  const value = event?.starts_at || event?.start_date || null;
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+}
+
+function resolveEndDate(event) {
+  const value = event?.ends_at || event?.end_date || null;
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+}
+
+function getCountdownLabel(startDate, endDate, nowMs) {
+  if (!startDate) return "TBA";
+
+  const startMs = startDate.getTime();
+  const endMs = endDate?.getTime() || startMs + 2 * 60 * 60 * 1000;
+
+  if (nowMs >= endMs) return "Ended";
+  if (nowMs >= startMs && nowMs < endMs) return "Live now";
+
+  const diff = startMs - nowMs;
+  const totalMinutes = Math.floor(diff / (60 * 1000));
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+
+  if (days > 0) {
+    return `Starts in ${days} day${days > 1 ? "s" : ""} ${hours} hour${hours !== 1 ? "s" : ""}`;
+  }
+  if (hours > 0) {
+    return `Starts in ${hours} hour${hours > 1 ? "s" : ""}`;
+  }
+  return `Starts in ${Math.max(minutes, 0)} minute${minutes === 1 ? "" : "s"}`;
+}
 
 export function EventCard({ event, onSave, isSaved }) {
   const detailsHref = event?.id ? `/events/${event.id}` : null;
-  const start = event?.start_date ? new Date(event.start_date) : null;
+  const start = resolveStartDate(event);
+  const end = resolveEndDate(event);
   const displayPlatform = String(
     event?.raw_data?.sourcePlatform ||
       event?.raw_data?.originalPlatform ||
       event?.platform ||
       "scraper",
   ).toLowerCase();
+  const [nowMs, setNowMs] = useState(Date.now());
+  const [shareMessage, setShareMessage] = useState("");
+
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  const countdownLabel = useMemo(
+    () => getCountdownLabel(start, end, nowMs),
+    [start, end, nowMs],
+  );
+
+  const summary =
+    event?.ai_summary ||
+    // TODO: Populate ai_summary during ingestion/scraping using server-side AI.
+    event?.description ||
+    "Join this curated tech event on EventLayer.";
 
   const formatDate = (date) => {
     if (!date) return "TBA";
@@ -22,6 +82,34 @@ export function EventCard({ event, onSave, isSaved }) {
       minute: "2-digit",
     });
   };
+
+  async function handleShare(eventData) {
+    const shareUrl =
+      (eventData?.id && typeof window !== "undefined"
+        ? `${window.location.origin}/events/${eventData.id}`
+        : eventData?.event_url) || "";
+
+    const title = eventData?.title || "Event";
+    const city = eventData?.city || "your city";
+    const text =
+      city && city.toLowerCase() !== "online"
+        ? `Found this on EventLayer.dev - ${title} in ${city} this weekend` 
+        : `Found this on EventLayer.dev - ${title}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text, url: shareUrl });
+        setShareMessage("Shared");
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareMessage("Link copied");
+      }
+    } catch {
+      setShareMessage("Could not share");
+    } finally {
+      setTimeout(() => setShareMessage(""), 1500);
+    }
+  }
 
   const platformEmoji =
     displayPlatform === "luma"
@@ -78,31 +166,60 @@ export function EventCard({ event, onSave, isSaved }) {
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0c12] via-transparent to-transparent opacity-60" />
 
         <div className="absolute top-5 right-5 z-20">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              onSave?.(event);
-            }}
-            className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 ${
-              isSaved
-                ? "bg-orange-500 text-white"
-                : "bg-black/20 text-white/70 hover:bg-black/40 hover:text-white border border-white/10"
-            }`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill={isSaved ? "currentColor" : "none"}
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                onSave?.(event);
+              }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 ${
+                isSaved
+                  ? "bg-orange-500 text-white"
+                  : "bg-black/20 text-white/70 hover:bg-black/40 hover:text-white border border-white/10"
+              }`}
+              aria-label="Save event"
             >
-              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill={isSaved ? "currentColor" : "none"}
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+              </svg>
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleShare(event);
+              }}
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-black/20 text-white/70 hover:bg-black/40 hover:text-white border border-white/10 backdrop-blur-xl transition-all duration-300"
+              aria-label="Share event"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className="absolute bottom-5 left-5 z-20 flex items-center gap-2">
@@ -124,6 +241,24 @@ export function EventCard({ event, onSave, isSaved }) {
             {event?.city || "Online"}
           </span>
         </div>
+        <div className="mb-4">
+          <span
+            className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full ${
+              countdownLabel === "Live now"
+                ? "text-emerald-300 bg-emerald-500/15"
+                : countdownLabel === "Ended"
+                  ? "text-gray-400 bg-white/5"
+                  : "text-orange-300 bg-orange-500/10"
+            }`}
+          >
+            {countdownLabel}
+          </span>
+          {shareMessage && (
+            <span className="ml-2 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300">
+              {shareMessage}
+            </span>
+          )}
+        </div>
 
         <h3 className="text-xl font-bold text-white mb-3 leading-tight group-hover:text-orange-400 transition-colors duration-300 line-clamp-2">
           {detailsHref ? (
@@ -136,7 +271,7 @@ export function EventCard({ event, onSave, isSaved }) {
         </h3>
 
         <p className="text-sm text-gray-400 line-clamp-2 mb-8 flex-1 leading-relaxed">
-          {event?.description || "Join us for this exclusive event."}
+          {summary}
         </p>
 
         <div className="flex items-center justify-between pt-6 border-t border-white/5">
