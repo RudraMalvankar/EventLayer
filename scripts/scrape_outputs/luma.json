@@ -1,5 +1,86 @@
 {
   "platform": "luma",
-  "count": 0,
-  "events": []
+  "count": 5,
+  "events": [
+    {
+      "title": "Connect with the Google DeepMind Developer Experience Team",
+      "description": "",
+      "platform": "luma",
+      "city": "Global",
+      "country": "India",
+      "mode": "offline",
+      "category": "meetup",
+      "tags": [],
+      "banner_url": null,
+      "event_url": "https://lu.ma/deepmind?k=c",
+      "start_date": null,
+      "end_date": null,
+      "organizer": "Luma",
+      "is_free": true
+    },
+    {
+      "title": "Auckland1 Event",
+      "description": "",
+      "platform": "luma",
+      "city": "Global",
+      "country": "India",
+      "mode": "offline",
+      "category": "meetup",
+      "tags": [],
+      "banner_url": null,
+      "event_url": "https://lu.ma/auckland?k=p",
+      "start_date": null,
+      "end_date": null,
+      "organizer": "Luma",
+      "is_free": true
+    },
+    {
+      "title": "Brisbane7 Events",
+      "description": "",
+      "platform": "luma",
+      "city": "Global",
+      "country": "India",
+      "mode": "offline",
+      "category": "meetup",
+      "tags": [],
+      "banner_url": null,
+      "event_url": "https://lu.ma/brisbane?k=p",
+      "start_date": null,
+      "end_date": null,
+      "organizer": "Luma",
+      "is_free": true
+    },
+    {
+      "title": "Hong Kong14 Events",
+      "description": "",
+      "platform": "luma",
+      "city": "Global",
+      "country": "India",
+      "mode": "offline",
+      "category": "meetup",
+      "tags": [],
+      "banner_url": null,
+      "event_url": "https://lu.ma/hongkong?k=p",
+      "start_date": null,
+      "end_date": null,
+      "organizer": "Luma",
+      "is_free": true
+    },
+    {
+      "title": "Honolulu3 Events",
+      "description": "",
+      "platform": "luma",
+      "city": "Global",
+      "country": "India",
+      "mode": "offline",
+      "category": "meetup",
+      "tags": [],
+      "banner_url": null,
+      "event_url": "https://lu.ma/honolulu?k=p",
+      "start_date": null,
+      "end_date": null,
+      "organizer": "Luma",
+      "is_free": true
+    }
+  ]
 }

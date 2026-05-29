@@ -26,11 +26,17 @@ export async function POST(request, { params }) {
   // Optionally enrich events with Gemini before upsert
   let enrichedEvents = events;
   try {
-    if (env.geminiApiKey && env.enrichWithGemini && Array.isArray(events) && events.length) {
+    if (
+      env.geminiApiKey &&
+      env.enrichWithGemini &&
+      Array.isArray(events) &&
+      events.length
+    ) {
       enrichedEvents = [];
       for (const ev of events) {
         try {
-          const rawText = ev.description || `${ev.title || ""} ${ev.description || ""}`;
+          const rawText =
+            ev.description || `${ev.title || ""} ${ev.description || ""}`;
           const merged = await enrichWithGemini(ev, rawText, { upsert: false });
           enrichedEvents.push(merged || ev);
         } catch (e) {

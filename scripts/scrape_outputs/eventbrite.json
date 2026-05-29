@@ -6,6 +6,9 @@
       "title": "UX Design Hackathon with UX Woman",
       "description": "Sunday at 1:00 PM EDT",
       "type": "hackathon",
+      "mode": "online",
+      "city": "Online",
+      "country": "Online",
       "startDate": null,
       "endDate": null,
       "deadline": null,
@@ -18,9 +21,12 @@
       "redirectURL": "https://www.eventbrite.com/e/ux-design-hackathon-with-ux-woman-tickets-1980891134708?aff=ebdssbdestsearch"
     },
     {
-      "title": "UX Design Hackathon with UX Woman",
-      "description": "Sunday at 1:00 PM EDT",
+      "title": "DevOps for GenAI Hackathon - Ottawa 2026",
+      "description": "Mon, Jun 8, 9:00 AM EDT",
       "type": "hackathon",
+      "mode": "online",
+      "city": "Online",
+      "country": "Online",
       "startDate": null,
       "endDate": null,
       "deadline": null,
@@ -30,12 +36,15 @@
       ],
       "hostedBy": "Eventbrite",
       "verified": true,
-      "redirectURL": "https://www.eventbrite.com/e/ux-design-hackathon-with-ux-woman-tickets-1980891134708?aff=ebdssbdestsearch"
+      "redirectURL": "https://www.eventbrite.ca/e/devops-for-genai-hackathon-ottawa-2026-tickets-1966971784557?aff=ebdssbdestsearch"
     },
     {
-      "title": "UX Design Hackathon with UX Woman",
-      "description": "Sunday at 1:00 PM EDT",
+      "title": "Global Energy Hackathon Submission",
+      "description": "Sat, Jul 25, 12:00 PM PDT",
       "type": "hackathon",
+      "mode": "online",
+      "city": "Online",
+      "country": "Online",
       "startDate": null,
       "endDate": null,
       "deadline": null,
@@ -45,7 +54,7 @@
       ],
       "hostedBy": "Eventbrite",
       "verified": true,
-      "redirectURL": "https://www.eventbrite.com/e/ux-design-hackathon-with-ux-woman-tickets-1980891134708?aff=ebdssbdestsearch"
+      "redirectURL": "https://www.eventbrite.com/e/global-energy-hackathon-submission-tickets-1983128202839?aff=ebdssbdestsearch"
     }
   ]
 }

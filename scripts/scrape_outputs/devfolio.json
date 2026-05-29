@@ -1,5 +1,54 @@
 {
   "platform": "devfolio",
-  "count": 0,
-  "events": []
+  "count": 3,
+  "events": [
+    {
+      "title": "Documentation",
+      "description": "Start here! This section of the guide helps you understand what Devfolio is all about and how you can make the most of it—whether you're a hacker or an organizer.",
+      "platform": "devfolio",
+      "city": null,
+      "country": "India",
+      "mode": "hybrid",
+      "category": "meetup",
+      "tags": [],
+      "banner_url": null,
+      "event_url": "https://guide.devfolio.co",
+      "start_date": null,
+      "end_date": null,
+      "organizer": "Devfolio",
+      "is_free": true
+    },
+    {
+      "title": "Guide",
+      "description": "Start here! This section of the guide helps you understand what Devfolio is all about and how you can make the most of it—whether you're a hacker or an organizer.",
+      "platform": "devfolio",
+      "city": null,
+      "country": "India",
+      "mode": "hybrid",
+      "category": "meetup",
+      "tags": [],
+      "banner_url": null,
+      "event_url": "https://guide.devfolio.co",
+      "start_date": null,
+      "end_date": null,
+      "organizer": "Devfolio",
+      "is_free": true
+    },
+    {
+      "title": "Status",
+      "description": "Real-time status and uptime monitoring for Devfolio services.",
+      "platform": "devfolio",
+      "city": null,
+      "country": "India",
+      "mode": "hybrid",
+      "category": "meetup",
+      "tags": [],
+      "banner_url": "https://raw.githubusercontent.com/devfolioco/brand-assets/refs/heads/main/Devfolio%20Square/Square.png",
+      "event_url": "https://status.devfolio.co",
+      "start_date": null,
+      "end_date": null,
+      "organizer": "Devfolio",
+      "is_free": true
+    }
+  ]
 }
