@@ -28,6 +28,26 @@ function missingClient() {
           error: { message: "Supabase env vars are missing" },
         };
       },
+      async signInWithOAuth() {
+        return {
+          data: null,
+          error: { message: "Supabase env vars are missing" },
+        };
+      },
+      async signOut() {
+        return {
+          error: { message: "Supabase env vars are missing" },
+        };
+      },
+      onAuthStateChange() {
+        return {
+          data: {
+            subscription: {
+              unsubscribe() {},
+            },
+          },
+        };
+      },
     },
     from() {
       throw new Error("Supabase env vars are missing");

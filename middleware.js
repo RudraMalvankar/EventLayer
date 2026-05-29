@@ -1,25 +1,31 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+import { NextResponse } from "next/server";
 
-// Protect these routes — redirect to /login if no session
-const PROTECTED = ['/saved']
+const PROTECTED = ["/saved", "/profile"];
 
 export async function middleware(req) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
-  const { data: { session } } = await supabase.auth.getSession()
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req, res });
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  const isProtected = PROTECTED.some(path => req.nextUrl.pathname.startsWith(path))
+  const isProtected = PROTECTED.some((path) =>
+    req.nextUrl.pathname.startsWith(path),
+  );
 
   if (isProtected && !session) {
-    const loginUrl = new URL('/login', req.url)
-    loginUrl.searchParams.set('redirect', req.nextUrl.pathname)
-    return NextResponse.redirect(loginUrl)
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set(
+      "redirect",
+      `${req.nextUrl.pathname}${req.nextUrl.search}`,
+    );
+    return NextResponse.redirect(loginUrl);
   }
 
-  return res
+  return res;
 }
 
 export const config = {
-  matcher: ['/saved/:path*']
-}
+  matcher: ["/saved/:path*", "/profile/:path*"],
+};
