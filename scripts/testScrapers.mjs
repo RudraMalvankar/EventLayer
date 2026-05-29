@@ -1,6 +1,17 @@
 import fs from "fs/promises";
 import path from "path";
-import { scrapeByPlatform } from "../src/features/scrapers/service.js";
+// Import the scraper service dynamically and resolve named export whether
+// the target file is ESM or CommonJS (GitHub runners may treat .js as CJS).
+let scrapeByPlatform;
+{
+  const mod = await import("../src/features/scrapers/service.js");
+  // ESM export: mod.scrapeByPlatform
+  // CJS transpiled -> default: mod.default.scrapeByPlatform
+  scrapeByPlatform = mod.scrapeByPlatform ?? mod.default?.scrapeByPlatform ?? mod.default;
+  if (typeof scrapeByPlatform !== "function") {
+    throw new Error("Could not resolve scrapeByPlatform from ../src/features/scrapers/service.js");
+  }
+}
 
 const outDir = path.resolve("scripts", "scrape_outputs");
 const platforms = [
