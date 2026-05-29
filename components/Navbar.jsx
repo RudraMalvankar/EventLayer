@@ -198,7 +198,11 @@ export function Navbar() {
                 type="button"
                 onClick={async () => {
                   // Protect certain routes by redirecting to login if no user
-                  const needsAuth = ["/profile", "/saved", "/calendar"].includes(item.href);
+                  const needsAuth = [
+                    "/profile",
+                    "/saved",
+                    "/calendar",
+                  ].includes(item.href);
                   if (!initialized || loading) return;
                   if (needsAuth) {
                     const {
@@ -257,7 +261,11 @@ export function Navbar() {
                 type="button"
                 onClick={async () => {
                   setMobileOpen(false);
-                  const needsAuth = ["/profile", "/saved", "/calendar"].includes(item.href);
+                  const needsAuth = [
+                    "/profile",
+                    "/saved",
+                    "/calendar",
+                  ].includes(item.href);
                   if (!initialized || loading) return;
                   if (needsAuth) {
                     const {

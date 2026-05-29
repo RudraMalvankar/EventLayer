@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "../../components/Navbar";
 import { EventCard } from "../../components/EventCard";
+import { LoggedOutSaveModal } from "../../components/LoggedOutSaveModal";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
 import { notifySavedEventsUpdated } from "../../src/shared/events/refresh";
@@ -65,6 +66,7 @@ export default function ExplorePage() {
     platform: "All",
   });
   const [loadingSaved, setLoadingSaved] = useState(false);
+  const [showModalEventId, setShowModalEventId] = useState(null);
 
   async function resolveToken() {
     const token = session?.access_token;
@@ -130,7 +132,7 @@ export default function ExplorePage() {
   async function handleToggleSave(event) {
     const token = await resolveToken();
     if (!token) {
-      router.push("/login?redirect=/explore");
+      setShowModalEventId(event?.id || null);
       return;
     }
 
@@ -159,6 +161,10 @@ export default function ExplorePage() {
       return next;
     });
     notifySavedEventsUpdated();
+  }
+
+  function closeModal() {
+    setShowModalEventId(null);
   }
 
   useEffect(() => {
@@ -224,6 +230,11 @@ export default function ExplorePage() {
       <Navbar />
 
       <div className="mx-auto max-w-6xl px-6 py-16">
+        <LoggedOutSaveModal
+          isOpen={Boolean(showModalEventId)}
+          eventId={showModalEventId}
+          onClose={closeModal}
+        />
         <header className="mb-16 animate-fade-in-up">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1">
             <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse" />

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { EventCard } from "../../components/EventCard";
+import { LoggedOutSaveModal } from "../../components/LoggedOutSaveModal";
 import { SearchBar } from "../../components/SearchBar";
 import { Navbar } from "../../components/Navbar";
 import { useRouter } from "next/navigation";
@@ -114,6 +115,7 @@ export default function EventsPage() {
   const [selectedDateKey, setSelectedDateKey] = useState(null);
   const [showMap, setShowMap] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [showModalEventId, setShowModalEventId] = useState(null);
 
   async function resolveToken() {
     const token = session?.access_token;
@@ -147,7 +149,7 @@ export default function EventsPage() {
   async function handleToggleSave(event) {
     const token = await resolveToken();
     if (!token) {
-      router.push("/login?redirect=/events");
+      setShowModalEventId(event?.id || null);
       return;
     }
 
@@ -176,6 +178,10 @@ export default function EventsPage() {
       return next;
     });
     notifySavedEventsUpdated();
+  }
+
+  function closeModal() {
+    setShowModalEventId(null);
   }
 
   async function loadEvents(query = "") {
@@ -271,6 +277,11 @@ export default function EventsPage() {
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-6 py-16">
+        <LoggedOutSaveModal
+          isOpen={Boolean(showModalEventId)}
+          eventId={showModalEventId}
+          onClose={closeModal}
+        />
         <header className="mb-20 animate-fade-in-up">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
             <div>

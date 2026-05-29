@@ -3,6 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from "../src/shared/clients/supabase";
+import { notifySavedEventsUpdated } from "../src/shared/events/refresh";
+import { LoggedOutSaveModal } from "./LoggedOutSaveModal";
 
 function resolveStartDate(event) {
   const value = event?.starts_at || event?.start_date || null;
@@ -56,6 +59,8 @@ export function EventCard({ event, onSave, isSaved }) {
   ).toLowerCase();
   const [nowMs, setNowMs] = useState(Date.now());
   const [shareMessage, setShareMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [localSaved, setLocalSaved] = useState(isSaved || false);
 
   useEffect(() => {
     const id = setInterval(() => setNowMs(Date.now()), 60000);
@@ -169,12 +174,44 @@ export function EventCard({ event, onSave, isSaved }) {
         <div className="absolute top-5 right-5 z-20">
           <div className="flex flex-col gap-2">
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.preventDefault();
-                onSave?.(event);
+                // If parent passed an onSave handler, defer to it.
+                if (typeof onSave === "function") {
+                  onSave?.(event);
+                  return;
+                }
+
+                // Otherwise handle save here: open modal for logged-out users,
+                // or call the saved API for authenticated users.
+                try {
+                  const { data } = await supabase.auth.getUser();
+                  if (!data?.user) {
+                    setShowModal(true);
+                    return;
+                  }
+
+                  const session = await supabase.auth.getSession();
+                  const token = session?.data?.session?.access_token;
+                  const res = await fetch("/api/saved", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: token ? `Bearer ${token}` : undefined,
+                    },
+                    body: JSON.stringify({ event_id: event.id }),
+                  });
+                  const json = await res.json();
+                  if (res.ok && !json?.error) {
+                    setLocalSaved((s) => !s);
+                    notifySavedEventsUpdated();
+                  }
+                } catch (err) {
+                  // ignore
+                }
               }}
               className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 ${
-                isSaved
+                (localSaved || isSaved)
                   ? "bg-orange-500 text-white"
                   : "bg-black/20 text-white/70 hover:bg-black/40 hover:text-white border border-white/10"
               }`}
@@ -305,6 +342,13 @@ export function EventCard({ event, onSave, isSaved }) {
           </span>
         </div>
       </div>
+      {showModal && (
+        <LoggedOutSaveModal
+          isOpen={showModal}
+          eventId={event?.id}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </article>
   );
 }
