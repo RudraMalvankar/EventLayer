@@ -1,0 +1,39 @@
+name: Scheduled Scrape
+
+on:
+  schedule:
+    - cron: "0 */3 * * *" # every 3 hours at minute 0 (UTC)
+  workflow_dispatch: {} # manual trigger
+
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      SCRAPE_SECRET: ${{ secrets.SCRAPE_SECRET }}
+      DEVFOLIO_SEARCH_URL: ${{ secrets.DEVFOLIO_SEARCH_URL }}
+      SCRAPER_DEVFOLIO_ENABLED: ${{ secrets.SCRAPER_DEVFOLIO_ENABLED }}
+      SCRAPER_DEVFOLIO_PLAYWRIGHT: ${{ secrets.SCRAPER_DEVFOLIO_PLAYWRIGHT }}
+      SCRAPER_UNSTOP_ENABLED: ${{ secrets.SCRAPER_UNSTOP_ENABLED }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run scraper
+        run: node scripts/call-scrape.mjs
