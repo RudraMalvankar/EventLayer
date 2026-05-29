@@ -3,24 +3,6 @@
   "count": 3,
   "events": [
     {
-      "title": "UX Design Hackathon with UX Woman",
-      "description": "Sunday at 1:00 PM EDT",
-      "type": "hackathon",
-      "mode": "online",
-      "city": "Online",
-      "country": "Online",
-      "startDate": null,
-      "endDate": null,
-      "deadline": null,
-      "tags": [
-        "hackathon",
-        "eventbrite"
-      ],
-      "hostedBy": "Eventbrite",
-      "verified": true,
-      "redirectURL": "https://www.eventbrite.com/e/ux-design-hackathon-with-ux-woman-tickets-1980891134708?aff=ebdssbdestsearch"
-    },
-    {
       "title": "DevOps for GenAI Hackathon - Ottawa 2026",
       "description": "Mon, Jun 8, 9:00 AM EDT",
       "type": "hackathon",
@@ -55,6 +37,24 @@
       "hostedBy": "Eventbrite",
       "verified": true,
       "redirectURL": "https://www.eventbrite.com/e/global-energy-hackathon-submission-tickets-1983128202839?aff=ebdssbdestsearch"
+    },
+    {
+      "title": "SyntaxReady Bootcamp & Hackathon 2026",
+      "description": "Mon, Jul 6, 12:00 PM EDT + 17 more",
+      "type": "hackathon",
+      "mode": "online",
+      "city": "Online",
+      "country": "Online",
+      "startDate": null,
+      "endDate": null,
+      "deadline": null,
+      "tags": [
+        "hackathon",
+        "eventbrite"
+      ],
+      "hostedBy": "Eventbrite",
+      "verified": true,
+      "redirectURL": "https://www.eventbrite.ca/e/syntaxready-bootcamp-hackathon-2026-tickets-1983774152893?aff=ebdssbdestsearch"
     }
   ]
 }
