@@ -1,5 +1,8 @@
 import { getEventByIdService } from "../../../../src/features/events/service";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(_request, { params }) {
   const id = params?.id;
   if (!id) {

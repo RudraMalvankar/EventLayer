@@ -24,6 +24,31 @@ export default function SavedPage() {
   const [error, setError] = useState("");
   const [events, setEvents] = useState([]);
 
+  async function toggleSave(event) {
+    const token = activeSession?.access_token || session?.access_token;
+    if (!token) {
+      router.push("/login?redirect=/saved");
+      return;
+    }
+
+    const response = await fetch("/api/saved", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ event_id: event.id }),
+    });
+
+    const json = await response.json();
+    if (!response.ok || json?.error) {
+      setError(json?.error || "Could not update saved event.");
+      return;
+    }
+
+    setEvents((current) => current.filter((item) => item.id !== event.id));
+  }
+
   useEffect(() => {
     let cancelled = false;
 
@@ -139,7 +164,12 @@ export default function SavedPage() {
         ) : (
           <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {events.map((event) => (
-              <EventCard key={event.id || event.event_url} event={event} isSaved />
+              <EventCard
+                key={event.id || event.event_url}
+                event={event}
+                isSaved
+                onSave={toggleSave}
+              />
             ))}
           </div>
         )}

@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { EventCard } from "../../components/EventCard";
 import { SearchBar } from "../../components/SearchBar";
 import { Navbar } from "../../components/Navbar";
+import { useRouter } from "next/navigation";
+import { useUser } from "../../components/AuthProvider";
+import { supabase } from "../../supabase/client";
 
 const MAP_PREVIEW_URL = process.env.NEXT_PUBLIC_MAPBOX_STATIC_PREVIEW_URL || "";
 
@@ -96,8 +99,11 @@ function formatDayLabel(value) {
 }
 
 export default function EventsPage() {
+  const router = useRouter();
+  const { session, loading: authLoading, initialized } = useUser();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [savedIds, setSavedIds] = useState(new Set());
   const [filters, setFilters] = useState({
     category: "All",
     mode: "All",
@@ -107,6 +113,63 @@ export default function EventsPage() {
   const [selectedDateKey, setSelectedDateKey] = useState(null);
   const [showMap, setShowMap] = useState(false);
   const [syncing, setSyncing] = useState(false);
+
+  async function resolveToken() {
+    const token = session?.access_token;
+    if (token) return token;
+    const { data } = await supabase.auth.getSession();
+    return data?.session?.access_token || null;
+  }
+
+  async function loadSavedIds() {
+    const token = await resolveToken();
+    if (!token) {
+      setSavedIds(new Set());
+      return;
+    }
+    const response = await fetch("/api/saved", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const json = await response.json();
+    const items = Array.isArray(json?.data?.events)
+      ? json.data.events
+      : Array.isArray(json?.data?.saved_events)
+        ? json.data.saved_events
+        : Array.isArray(json?.data)
+          ? json.data
+          : [];
+    setSavedIds(new Set(items.map((item) => item.id || item.event_id).filter(Boolean)));
+  }
+
+  async function handleToggleSave(event) {
+    const token = await resolveToken();
+    if (!token) {
+      router.push("/login?redirect=/events");
+      return;
+    }
+
+    const response = await fetch("/api/saved", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ event_id: event.id }),
+    });
+
+    const json = await response.json();
+    if (!response.ok || json?.error) {
+      console.error("Failed to toggle save", json?.error || response.statusText);
+      return;
+    }
+
+    setSavedIds((current) => {
+      const next = new Set(current);
+      if (next.has(event.id)) next.delete(event.id);
+      else next.add(event.id);
+      return next;
+    });
+  }
 
   async function loadEvents(query = "") {
     setLoading(true);
@@ -151,6 +214,11 @@ export default function EventsPage() {
   useEffect(() => {
     loadEvents();
   }, [filters.city, filters.category, filters.mode]);
+
+  useEffect(() => {
+    if (!initialized || authLoading) return;
+    loadSavedIds().catch((error) => console.error("Failed to load saved ids", error));
+  }, [initialized, authLoading, session?.access_token]);
 
   const filteredEvents = useMemo(() => {
     let result = events;
@@ -348,6 +416,8 @@ export default function EventsPage() {
                     <EventCard
                       key={event.id || event.event_url}
                       event={event}
+                      isSaved={savedIds.has(event.id)}
+                      onSave={handleToggleSave}
                     />
                   ))}
                 </div>

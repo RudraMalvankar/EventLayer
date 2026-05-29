@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabase/client";
 
 const AuthContext = createContext({
@@ -45,7 +39,10 @@ export function AuthProvider({ children }) {
             userId: currentSession?.user?.id || null,
             email: currentSession?.user?.email || null,
           };
-          console.debug("AuthProvider: session loaded", window.__EVENTLAYER_AUTH);
+          console.debug(
+            "AuthProvider: session loaded",
+            window.__EVENTLAYER_AUTH,
+          );
         } catch (e) {}
       } catch (err) {
         console.debug("AuthProvider: loadSession error", err && err.message);

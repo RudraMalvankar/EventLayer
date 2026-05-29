@@ -1,14 +1,16 @@
-import dotenv from 'dotenv';
-import fetch from 'node-fetch';
-import { createClient } from '@supabase/supabase-js';
+import dotenv from "dotenv";
+import fetch from "node-fetch";
+import { createClient } from "@supabase/supabase-js";
 
-dotenv.config({ path: '.env.local' });
+dotenv.config({ path: ".env.local" });
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_ANON) {
-  console.error('Supabase env vars missing. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local');
+  console.error(
+    "Supabase env vars missing. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local",
+  );
   process.exit(2);
 }
 
@@ -45,7 +47,9 @@ async function run() {
     );
 
     if (signError) {
-      if (String(signError.message || "").includes("over_email_send_rate_limit")) {
+      if (
+        String(signError.message || "").includes("over_email_send_rate_limit")
+      ) {
         console.warn(
           "Rate-limited by Supabase email send. Set E2E_SIGNIN_EMAIL and E2E_SIGNIN_PASSWORD to use an existing account.",
         );

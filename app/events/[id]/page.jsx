@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Navbar } from "../../../components/Navbar";
+import { SaveEventButton } from "../../../components/SaveEventButton";
 import { getEventDetailsLiveService } from "../../../src/features/events/service";
 
 export const dynamic = "force-dynamic";
@@ -258,6 +259,12 @@ export default async function EventDetailPage({ params }) {
                   <p className="text-sm font-semibold mb-6 text-[var(--muted)]">
                     {registrationStatus || "Open for registration"}
                   </p>
+                  <div className="mb-3">
+                    <SaveEventButton
+                      eventId={event?.id}
+                      redirectPath="/login"
+                    />
+                  </div>
                   <a
                     href={ticketUrl}
                     target="_blank"

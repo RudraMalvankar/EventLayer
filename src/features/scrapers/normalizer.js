@@ -143,7 +143,6 @@ export function normalizeEvent(rawEvent, platform) {
         rawEvent?.banner_url || rawEvent?.cover_url || rawEvent?.image || null,
       event_url: eventUrl,
       start_date: parseDate(rawStart),
-      raw_date: typeof rawStart === "string" ? rawStart : null,
       end_date: parseDate(
         rawEvent?.end_date ||
           rawEvent?.end_at ||
