@@ -28,9 +28,10 @@ export async function autoTagEvent(title, description) {
 }
 
 export async function generateSummary(title, description) {
-  const system = 'Write one sentence summary, max 100 characters.'
-  const text = await generateText(system, `${title}\n\n${description}`)
-  return (text || '').slice(0, 100)
+  const system =
+    'Write a concise 2-3 line AI summary for a tech event card. Rewrite the event into fresh language instead of copying the source description. Keep it specific, readable, and under 240 characters. Mention the event vibe, audience, and purpose if available. Avoid repeating the exact sentence structure or key phrases from the source. Do not use bullets, markdown, quotes, or the exact wording of the source text.'
+  const text = await generateText(system, `${title}\n\n${description || ''}`)
+  return (text || '').replace(/\s+/g, ' ').trim().slice(0, 240)
 }
 
 export function dateRangeToFilter(date_range) {

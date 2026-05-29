@@ -33,6 +33,13 @@ export default async function EventDetailPage({ params }) {
   if (error || !data?.event) return notFound();
 
   const { event, details } = data;
+  const displayPlatform =
+    String(
+      event?.raw_data?.sourcePlatform ||
+        event?.raw_data?.originalPlatform ||
+        event?.platform ||
+        "scraper",
+    ).toLowerCase();
 
   const dateRange = event?.start_date
     ? event?.end_date &&
@@ -43,6 +50,8 @@ export default async function EventDetailPage({ params }) {
     : "TBA";
 
   const tags = Array.isArray(event?.tags) ? event.tags : [];
+  const aiSummary =
+    event?.ai_summary || details?.ai_summary || event?.description || "";
   const aboutText =
     details?.about || event?.description || "No description available yet.";
   const hosts = Array.isArray(details?.hosts) ? details.hosts : [];
@@ -84,7 +93,7 @@ export default async function EventDetailPage({ params }) {
           </Link>
           <div className="flex gap-2">
             <span className="rounded-full bg-[var(--surface-2)] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)] border border-[var(--border)]">
-              {event?.platform}
+              {displayPlatform}
             </span>
           </div>
         </div>
@@ -161,6 +170,15 @@ export default async function EventDetailPage({ params }) {
               </div>
 
               <div className="space-y-6">
+                <div className="rounded-[24px] border border-[var(--border)] bg-[var(--accent-soft)] p-5">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--accent)]">
+                    AI summary
+                  </p>
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--text)]">
+                    {aiSummary || "No AI summary available yet."}
+                  </p>
+                </div>
+
                 <h2 className="text-2xl font-bold text-[var(--text)]">
                   About this event
                 </h2>

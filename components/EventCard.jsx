@@ -93,15 +93,16 @@ export function EventCard({ event, onSave, isSaved }) {
     const city = eventData?.city || "your city";
     const text =
       city && city.toLowerCase() !== "online"
-        ? `Found this on EventLayer.dev - ${title} in ${city} this weekend` 
-        : `Found this on EventLayer.dev - ${title}`;
+        ? `Found this on EventLayer.dev - ${title} in ${city} this weekend 🚀`
+        : `Found this on EventLayer.dev - ${title} 🚀`;
+    const shareCopy = shareUrl ? `${text}\n${shareUrl}` : text;
 
     try {
       if (navigator.share) {
         await navigator.share({ title, text, url: shareUrl });
         setShareMessage("Shared");
       } else {
-        await navigator.clipboard.writeText(shareUrl);
+        await navigator.clipboard.writeText(shareCopy);
         setShareMessage("Link copied");
       }
     } catch {
@@ -270,9 +271,14 @@ export function EventCard({ event, onSave, isSaved }) {
           )}
         </h3>
 
-        <p className="text-sm text-gray-400 line-clamp-2 mb-8 flex-1 leading-relaxed">
-          {summary}
-        </p>
+        <div className="mb-8 rounded-[24px] border border-orange-500/10 bg-orange-500/5 px-4 py-3">
+          <div className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-orange-400">
+            AI summary
+          </div>
+          <p className="line-clamp-3 text-sm leading-relaxed text-gray-200">
+            {summary}
+          </p>
+        </div>
 
         <div className="flex items-center justify-between pt-6 border-t border-white/5">
           <div className="flex -space-x-2">

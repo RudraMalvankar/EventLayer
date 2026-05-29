@@ -1,4 +1,5 @@
 import { upsertEventsService } from "../../../../src/features/events/service.js";
+import { generateSummary } from "../../../../src/features/ai/service.js";
 import { fetchDevfolioEventDetails } from "../../../../src/features/scrapers/devfolio/details.js";
 import { fetchEventDetails } from "../../../../src/features/scrapers/luma/details.js";
 import { scrapeByPlatform } from "../../../../src/features/scrapers/service.js";
@@ -49,13 +50,26 @@ async function enrichEvent(event) {
   };
 }
 
+async function attachAiSummary(event) {
+  if (!event) return event;
+  const summary = await generateSummary(
+    event.title || "",
+    event.description || "",
+  );
+  if (!summary) return event;
+
+  return {
+    ...event,
+    ai_summary: summary,
+  };
+}
+
 function normalizeForDb(event) {
   const platform = String(
     event.platform || event.sourcePlatform || "scraper",
   ).toLowerCase();
   const finalPlatform = platform === "devfolio" ? "devfolio" : "luma";
-  const sourcePlatform =
-    platform === "scraper" ? event.sourcePlatform || null : platform;
+  const sourcePlatform = event.sourcePlatform || event.platform || finalPlatform;
   return {
     title: event.title || "",
     description: event.description || null,
@@ -73,9 +87,10 @@ function normalizeForDb(event) {
     is_free:
       Array.isArray(event.tags) && event.tags.includes("free") ? true : null,
     raw_data: {
-      sourcePlatform: sourcePlatform || event.sourcePlatform || finalPlatform,
+      sourcePlatform: sourcePlatform,
       originalPlatform: event.platform || event.sourcePlatform || null,
       sourceUrl: event.url || event.redirectURL || event.event_url || null,
+      ai_summary: event.ai_summary || null,
     },
     created_at: new Date().toISOString(),
   };
@@ -125,7 +140,8 @@ export async function POST() {
   // Enrich in parallel with individual error handling to prevent blocking
   const enrichmentPromises = uniqueEvents.map(async (event) => {
     try {
-      return await enrichEvent(event);
+      const enriched = await enrichEvent(event);
+      return await attachAiSummary(enriched);
     } catch (err) {
       console.error(`Enrichment failed for ${event.event_url}:`, err.message);
       return event; // Fallback to raw event if enrichment fails

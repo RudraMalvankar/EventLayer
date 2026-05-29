@@ -27,6 +27,13 @@ function sanitizeEventRow(event = {}) {
   };
 }
 
+function projectEventRow(row = {}) {
+  return {
+    ...row,
+    ai_summary: row.ai_summary || row.raw_data?.ai_summary || null,
+  };
+}
+
 function ok(data) {
   return { data, error: null };
 }
@@ -71,7 +78,7 @@ export async function findEvents({
     const to = from + Number(limit) - 1;
     const { data, error, count } = await query.range(from, to);
     if (error) return fail(error.message);
-    return ok({ events: data || [], total: count || 0 });
+    return ok({ events: (data || []).map(projectEventRow), total: count || 0 });
   } catch {
     return fail("Failed to fetch events");
   }
@@ -85,7 +92,7 @@ export async function findEventById(id) {
       .eq("id", id)
       .maybeSingle();
     if (error) return fail(error.message);
-    return ok(data);
+    return ok(projectEventRow(data || {}));
   } catch {
     return fail("Failed to fetch event");
   }
