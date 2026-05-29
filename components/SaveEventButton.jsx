@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../src/shared/clients/supabase";
+import { notifySavedEventsUpdated } from "../src/shared/events/refresh";
 
 export function SaveEventButton({ eventId, redirectPath = "/login" }) {
   const router = useRouter();
@@ -77,6 +78,7 @@ export function SaveEventButton({ eventId, redirectPath = "/login" }) {
       const json = await response.json();
       if (!response.ok || json?.error) return;
       setSaved((current) => !current);
+      notifySavedEventsUpdated();
     } finally {
       setSubmitting(false);
     }

@@ -7,6 +7,7 @@ import { Navbar } from "../../components/Navbar";
 import { useRouter } from "next/navigation";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
+import { notifySavedEventsUpdated } from "../../src/shared/events/refresh";
 
 const MAP_PREVIEW_URL = process.env.NEXT_PUBLIC_MAPBOX_STATIC_PREVIEW_URL || "";
 
@@ -174,6 +175,7 @@ export default function EventsPage() {
       else next.add(event.id);
       return next;
     });
+    notifySavedEventsUpdated();
   }
 
   async function loadEvents(query = "") {

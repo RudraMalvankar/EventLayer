@@ -7,6 +7,7 @@ import { Navbar } from "../../components/Navbar";
 import { EventCard } from "../../components/EventCard";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
+import { notifySavedEventsUpdated } from "../../src/shared/events/refresh";
 
 function normalizeSavedEvents(json) {
   if (Array.isArray(json?.data)) return json.data;
@@ -47,6 +48,7 @@ export default function SavedPage() {
     }
 
     setEvents((current) => current.filter((item) => item.id !== event.id));
+    notifySavedEventsUpdated();
   }
 
   useEffect(() => {
