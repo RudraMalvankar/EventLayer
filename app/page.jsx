@@ -263,7 +263,7 @@ export default async function LandingPage() {
               <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/5 text-2xl group-hover:bg-orange-500 group-hover:text-white transition-all duration-500">
                 {feature.icon}
               </div>
-              <div className="text-lg font-black tracking-tight text-white mb-3 uppercase tracking-wider text-xs">
+              <div className="text-lg font-black tracking-tight text-white mb-3 uppercase">
                 {feature.title}
               </div>
               <div className="text-sm text-gray-500 leading-relaxed font-medium">
@@ -372,7 +372,7 @@ export default async function LandingPage() {
               <div className="text-6xl font-black text-white/5 mb-4 group-hover:text-orange-500/10 transition-colors duration-500">
                 {item.step}
               </div>
-              <div className="text-lg font-black tracking-tight text-white mb-3 uppercase tracking-wider text-xs">
+              <div className="text-lg font-black tracking-tight text-white mb-3 uppercase">
                 {item.title}
               </div>
               <div className="text-sm text-gray-500 leading-relaxed font-medium">
