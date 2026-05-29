@@ -27,17 +27,47 @@ function LoginContent() {
     event.preventDefault();
     setError("");
     setLoading(true);
-
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error: signInError } = await supabase.auth.signInWithPassword(
+      {
+        email,
+        password,
+      },
+    );
 
     setLoading(false);
 
     if (signInError) {
       setError(signInError.message);
       return;
+    }
+
+    // If a session exists, check profile completeness and route to onboarding if needed
+    const session =
+      data?.session || (await supabase.auth.getSession()).data?.session;
+
+    if (session?.access_token) {
+      try {
+        const resp = await fetch("/api/profile", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const json = await resp.json();
+
+        const profile = json?.data?.profile || null;
+        const needsOnboarding =
+          !profile ||
+          !profile.city ||
+          !Array.isArray(profile.interests) ||
+          profile.interests.length === 0;
+
+        if (needsOnboarding) {
+          const target = `/onboarding?redirect=${encodeURIComponent(redirectTo)}`;
+          router.push(target);
+          router.refresh();
+          return;
+        }
+      } catch (err) {
+        // If profile fetch fails, fall back to redirect
+      }
     }
 
     router.push(redirectTo);

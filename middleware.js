@@ -1,7 +1,7 @@
 import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 import { NextResponse } from "next/server";
 
-const PROTECTED = ["/saved", "/profile"];
+const PROTECTED = [];
 
 export async function middleware(req) {
   const res = NextResponse.next();
@@ -27,5 +27,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ["/saved/:path*", "/profile/:path*"],
+  matcher: ["/saved/:path*"],
 };

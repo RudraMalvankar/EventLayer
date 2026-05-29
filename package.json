@@ -5,8 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\"",
     "start:cron": "node ./src/cron/scraperCron.js",
     "playwright:install": "npx playwright install",
+    "smoke": "node scripts/playwright_smoke.js",
+    "e2e:signup": "node scripts/e2e_signup.mjs",
     "start": "next start",
     "lint": "next lint"
   },

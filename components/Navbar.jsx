@@ -73,6 +73,9 @@ function AuthMenu({ mobile = false, onNavigate }) {
     );
   }
 
+  const displayName =
+    user?.user_metadata?.name || user?.user_metadata?.full_name || "Account";
+
   if (mobile) {
     return (
       <div className="space-y-2 border-t border-white/10 pt-4">
@@ -113,15 +116,25 @@ function AuthMenu({ mobile = false, onNavigate }) {
   }
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative flex items-center gap-3" ref={menuRef}>
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-xs font-black text-white transition-transform hover:scale-105"
+        className="group flex items-center gap-3 rounded-full border border-orange-500/40 bg-orange-500/10 px-2.5 py-1.5 transition-colors hover:bg-orange-500/20"
         aria-expanded={open}
         aria-label="Open user menu"
       >
-        {getInitials(user)}
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-xs font-black text-white">
+          {getInitials(user)}
+        </div>
+        <div className="max-w-[140px] text-left">
+          <p className="truncate text-xs font-black uppercase tracking-wider text-white">
+            {displayName}
+          </p>
+          <p className="truncate text-[10px] font-bold uppercase tracking-wider text-orange-300">
+            Member
+          </p>
+        </div>
       </button>
 
       {open && (
@@ -157,6 +170,8 @@ function AuthMenu({ mobile = false, onNavigate }) {
 export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, loading, initialized } = useUser();
+  const router = useRouter();
 
   const navItems = [
     { label: "Events", href: "/events" },
@@ -177,9 +192,32 @@ export function Navbar() {
 
           <div className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
-              <Link
+              <button
                 key={item.href}
-                href={item.href}
+                type="button"
+                onClick={async () => {
+                  // Protect certain routes by redirecting to login if no user
+                  const needsAuth = ["/profile", "/saved"].includes(item.href);
+                  if (!initialized || loading) return;
+                  if (needsAuth) {
+                    const {
+                      data: { session },
+                    } = await supabase.auth.getSession();
+                    if (!session) {
+                      router.push(
+                        `/login?redirect=${encodeURIComponent(item.href)}`,
+                      );
+                      return;
+                    }
+                  }
+                  if (needsAuth && !user) {
+                    router.push(
+                      `/login?redirect=${encodeURIComponent(item.href)}`,
+                    );
+                    return;
+                  }
+                  router.push(item.href);
+                }}
                 className={`text-xs font-bold uppercase tracking-widest transition-all duration-200 ${
                   pathname === item.href
                     ? "text-orange-500"
@@ -187,7 +225,7 @@ export function Navbar() {
                 }`}
               >
                 {item.label}
-              </Link>
+              </button>
             ))}
           </div>
         </div>
@@ -213,10 +251,32 @@ export function Navbar() {
         <div className="md:hidden border-t border-white/5 px-6 py-5">
           <div className="mx-auto max-w-6xl space-y-2">
             {navItems.map((item) => (
-              <Link
+              <button
                 key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
+                type="button"
+                onClick={async () => {
+                  setMobileOpen(false);
+                  const needsAuth = ["/profile", "/saved"].includes(item.href);
+                  if (!initialized || loading) return;
+                  if (needsAuth) {
+                    const {
+                      data: { session },
+                    } = await supabase.auth.getSession();
+                    if (!session) {
+                      router.push(
+                        `/login?redirect=${encodeURIComponent(item.href)}`,
+                      );
+                      return;
+                    }
+                  }
+                  if (needsAuth && !user) {
+                    router.push(
+                      `/login?redirect=${encodeURIComponent(item.href)}`,
+                    );
+                    return;
+                  }
+                  router.push(item.href);
+                }}
                 className={`block rounded-xl px-4 py-3 text-sm font-bold uppercase tracking-widest transition-colors ${
                   pathname === item.href
                     ? "bg-orange-500/10 text-orange-500"
@@ -224,7 +284,7 @@ export function Navbar() {
                 }`}
               >
                 {item.label}
-              </Link>
+              </button>
             ))}
             <AuthMenu mobile onNavigate={() => setMobileOpen(false)} />
           </div>

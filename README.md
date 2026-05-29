@@ -53,8 +53,11 @@ Scripts
 
 - `npm run dev` - Start the development server
 - `npm run build` - Build for production
+- `npm run clean` - Remove `.next` cache/output
 - `npm run start` - Start the production server
 - `npm run lint` - Run linting
+- `npm run smoke` - Run Playwright smoke checks against local app
+- `npm run e2e:signup` - Validate signup + profile API flow
 
 Environment variables
 
@@ -91,3 +94,5 @@ Troubleshooting
 
 - If scraping fails, verify `SCRAPE_SECRET` and platform endpoints
 - If search fails, confirm `OPENAI_API_KEY` and API quota
+- If auth/profile pages loop to login, clear stale local build output with `npm run clean` and restart `npm run dev`
+- If signup E2E shows `over_email_send_rate_limit`, use `E2E_SIGNIN_EMAIL` and `E2E_SIGNIN_PASSWORD` for an existing test account

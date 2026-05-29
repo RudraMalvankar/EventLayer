@@ -7,9 +7,6 @@ import { useState } from "react";
 import { Input } from "../../../components/ui/input";
 import { supabase } from "../../../supabase/client";
 
-const cities = ["Mumbai", "Bangalore", "Pune", "Delhi", "Other"];
-const interestOptions = ["AI", "Web3", "Mobile", "Cloud", "Startup", "Design"];
-
 function getRedirectPath(value) {
   if (!value || !value.startsWith("/")) return "/events";
   if (value.startsWith("//")) return "/events";
@@ -24,31 +21,19 @@ function SignupContent() {
     name: "",
     email: "",
     password: "",
-    city: "Mumbai",
-    interests: [],
   });
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  function toggleInterest(interest) {
-    setForm((current) => {
-      const hasInterest = current.interests.includes(interest);
-      return {
-        ...current,
-        interests: hasInterest
-          ? current.interests.filter((item) => item !== interest)
-          : [...current.interests, interest],
-      };
-    });
-  }
-
   async function handleSignup(event) {
     event.preventDefault();
     setError("");
+    setNotice("");
     setLoading(true);
 
     const { data, error: signupError } = await supabase.auth.signUp({
@@ -57,8 +42,6 @@ function SignupContent() {
       options: {
         data: {
           name: form.name,
-          city: form.city,
-          interests: form.interests,
         },
       },
     });
@@ -69,29 +52,19 @@ function SignupContent() {
       return;
     }
 
-    const userId = data?.user?.id;
-    if (!userId) {
-      setError("Account created, but the user profile could not be resolved.");
+    const accessToken = data?.session?.access_token;
+    if (accessToken) {
       setLoading(false);
+      const target = `/onboarding?redirect=${encodeURIComponent(redirectTo)}`;
+      router.push(target);
+      router.refresh();
       return;
     }
-
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: userId,
-      name: form.name,
-      city: form.city,
-      interests: form.interests,
-    });
 
     setLoading(false);
-
-    if (profileError) {
-      setError(profileError.message);
-      return;
-    }
-
-    router.push(redirectTo);
-    router.refresh();
+    setNotice(
+      "Account created. Please verify your email and sign in to finish your profile.",
+    );
   }
 
   return (
@@ -107,7 +80,8 @@ function SignupContent() {
         <div className="mb-8">
           <h1 className="text-3xl font-black tracking-tight">Create account</h1>
           <p className="mt-2 text-sm text-gray-500">
-            Tell EventLayer what you want to discover.
+            Create your account now and finish setup on the next screen (city
+            and interests).
           </p>
         </div>
 
@@ -151,51 +125,14 @@ function SignupContent() {
             />
           </label>
 
-          <label className="block">
-            <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-400">
-              City
-            </span>
-            <select
-              value={form.city}
-              onChange={(event) => updateField("city", event.target.value)}
-              className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/10"
-            >
-              {cities.map((city) => (
-                <option key={city} value={city} className="bg-[#0a0c12]">
-                  {city}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <fieldset>
-            <legend className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-400">
-              Interests
-            </legend>
-            <div className="grid grid-cols-2 gap-2">
-              {interestOptions.map((interest) => {
-                const selected = form.interests.includes(interest);
-                return (
-                  <button
-                    key={interest}
-                    type="button"
-                    onClick={() => toggleInterest(interest)}
-                    className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors ${
-                      selected
-                        ? "border-orange-500 bg-orange-500 text-white"
-                        : "border-white/10 bg-white/5 text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    {interest}
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
-
           {error && (
             <p className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
               {error}
+            </p>
+          )}
+          {notice && (
+            <p className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+              {notice}
             </p>
           )}
 

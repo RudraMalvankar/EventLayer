@@ -23,10 +23,21 @@ create table if not exists public.events (
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   name text,
+  display_name text,
+  first_name text,
   interests text[] default '{}',
+  event_types text[] default '{}',
   city text,
+  profile_picture_url text,
+  platforms_followed text[] default '{}',
   created_at timestamptz default now()
 );
+
+alter table public.profiles add column if not exists display_name text;
+alter table public.profiles add column if not exists first_name text;
+alter table public.profiles add column if not exists event_types text[] default '{}';
+alter table public.profiles add column if not exists profile_picture_url text;
+alter table public.profiles add column if not exists platforms_followed text[] default '{}';
 
 create table if not exists public.saved_events (
   id uuid primary key default gen_random_uuid(),
