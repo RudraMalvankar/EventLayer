@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Navbar } from "../../components/Navbar";
 import { useUser } from "../../components/AuthProvider";
 
 const ACCEPTED_PLATFORMS = [
