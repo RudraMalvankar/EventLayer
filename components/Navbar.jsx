@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "./AuthProvider";
 import { supabase } from "../supabase/client";
+import { LockedRouteModal } from "./LockedRouteModal";
 
 function getInitials(user) {
   const name =
@@ -170,8 +171,9 @@ function AuthMenu({ mobile = false, onNavigate }) {
 export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { loading, initialized } = useUser();
+  const { user, loading, initialized } = useUser();
   const router = useRouter();
+  const [lockedRoute, setLockedRoute] = useState(null);
 
   const navItems = [
     { label: "Events", href: "/events" },
@@ -179,6 +181,32 @@ export function Navbar() {
     { label: "Calendar", href: "/calendar" },
     { label: "Saved", href: "/saved" },
   ];
+
+  function handleNavClick(item) {
+    if (!initialized || loading) return;
+
+    const locked = ["/calendar", "/saved"].includes(item.href);
+    if (locked && !user) {
+      setLockedRoute({
+        href: item.href,
+        title:
+          item.href === "/calendar"
+            ? "Sign in to create your event calendar"
+            : "Sign in to access your saved events",
+        body:
+          item.href === "/calendar"
+            ? "Track events you’re interested in, plan your week, and never miss an important tech event."
+            : "Save events you like, build your personal event list, and come back anytime.",
+        buttonLabel:
+          item.href === "/calendar"
+            ? "Sign in to create calendar"
+            : "Sign in to continue",
+      });
+      return;
+    }
+
+    router.push(item.href);
+  }
 
   return (
     <nav className="sticky top-0 z-50 glass border-b border-white/5">
@@ -196,10 +224,7 @@ export function Navbar() {
               <button
                 key={item.href}
                 type="button"
-                onClick={async () => {
-                  if (!initialized || loading) return;
-                  router.push(item.href);
-                }}
+                onClick={() => handleNavClick(item)}
                 className={`text-xs font-bold uppercase tracking-widest transition-all duration-200 ${
                   pathname === item.href
                     ? "text-orange-500"
@@ -236,10 +261,9 @@ export function Navbar() {
               <button
                 key={item.href}
                 type="button"
-                onClick={async () => {
+                onClick={() => {
                   setMobileOpen(false);
-                  if (!initialized || loading) return;
-                  router.push(item.href);
+                  handleNavClick(item);
                 }}
                 className={`block rounded-xl px-4 py-3 text-sm font-bold uppercase tracking-widest transition-colors ${
                   pathname === item.href
@@ -254,6 +278,15 @@ export function Navbar() {
           </div>
         </div>
       )}
+
+      <LockedRouteModal
+        isOpen={Boolean(lockedRoute)}
+        onClose={() => setLockedRoute(null)}
+        title={lockedRoute?.title}
+        body={lockedRoute?.body}
+        buttonLabel={lockedRoute?.buttonLabel}
+        redirectPath={lockedRoute?.href}
+      />
     </nav>
   );
 }
