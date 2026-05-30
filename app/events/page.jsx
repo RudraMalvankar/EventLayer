@@ -9,6 +9,11 @@ import { useRouter } from "next/navigation";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
 import { notifySavedEventsUpdated } from "../../src/shared/events/refresh";
+import {
+  dayKey,
+  isUpcoming,
+  localDayKeyFromDate,
+} from "../../src/shared/events/dates";
 
 const MAP_PREVIEW_URL = process.env.NEXT_PUBLIC_MAPBOX_STATIC_PREVIEW_URL || "";
 
@@ -27,10 +32,10 @@ function CalendarWidget({ selectedDate, events, onDateSelect }) {
   return (
     <div className="flex gap-4 overflow-x-auto pb-8 scrollbar-hide px-2">
       {days.map((date) => {
-        const dateKey = date.toISOString().slice(0, 10);
+        const dateKey = localDayKeyFromDate(date);
         const isSelected = selectedDate === dateKey;
         const hasEvents = events.some(
-          (e) => e.start_date && e.start_date.startsWith(dateKey),
+          (e) => dayKey(e.start_date) === dateKey,
         );
 
         return (
@@ -57,22 +62,6 @@ function CalendarWidget({ selectedDate, events, onDateSelect }) {
       })}
     </div>
   );
-}
-
-function dayKey(value) {
-  if (!value) return "tba";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "tba";
-  return date.toISOString().slice(0, 10);
-}
-
-function isTodayOrFuture(value) {
-  if (!value) return false;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date.getTime() >= today.getTime();
 }
 
 function getDisplayPlatform(event) {
@@ -188,7 +177,8 @@ export default function EventsPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      params.set("limit", "100");
+      params.set("limit", "1000");
+      params.set("upcomingOnly", "true");
       if (filters.city) params.set("city", filters.city);
       if (filters.category !== "All")
         params.set("category", filters.category.toLowerCase());
@@ -225,6 +215,7 @@ export default function EventsPage() {
   }
 
   useEffect(() => {
+    setSelectedDateKey(null);
     loadEvents();
   }, [filters.city, filters.category, filters.mode]);
 
@@ -237,15 +228,13 @@ export default function EventsPage() {
 
   const filteredEvents = useMemo(() => {
     let result = events;
-    result = result.filter((event) => isTodayOrFuture(event?.start_date));
-    result = result.filter((event) =>
-      matchesPlatformFilter(event, filters.platform),
-    );
-    if (selectedDateKey) {
-      result = result.filter((e) => dayKey(e.start_date) === selectedDateKey);
+    if (filters.platform !== "All") {
+      result = result.filter((event) =>
+        matchesPlatformFilter(event, filters.platform),
+      );
     }
     return result;
-  }, [events, selectedDateKey, filters.platform]);
+  }, [events, filters.platform]);
 
   const groupedEvents = useMemo(() => {
     const groups = new Map();
@@ -263,6 +252,7 @@ export default function EventsPage() {
       const key = dayKey(event?.start_date);
       if (!groups.has(key)) {
         groups.set(key, {
+          dateKey: key,
           label: formatDayLabel(event?.start_date),
           items: [],
         });
@@ -271,6 +261,12 @@ export default function EventsPage() {
     });
     return Array.from(groups.values());
   }, [filteredEvents]);
+
+  useEffect(() => {
+    if (!selectedDateKey || loading) return;
+    const el = document.getElementById(`event-day-${selectedDateKey}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [selectedDateKey, loading, groupedEvents]);
 
   return (
     <main className="min-h-screen text-white pb-24">
@@ -363,9 +359,12 @@ export default function EventsPage() {
           </div>
 
           <div className="mt-16">
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-600">
+              Tap a date to jump — all upcoming events are listed below
+            </p>
             <CalendarWidget
               selectedDate={selectedDateKey}
-              events={events}
+              events={filteredEvents}
               onDateSelect={setSelectedDateKey}
             />
           </div>
@@ -418,10 +417,35 @@ export default function EventsPage() {
               {syncing ? "Syncing Data..." : "Force Sync Scrapers"}
             </button>
           </div>
+        ) : filteredEvents.length === 0 ? (
+          <div className="text-center py-40 glass rounded-[48px] border border-white/5">
+            <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mb-4">
+              No upcoming events match your filters.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedDateKey(null);
+                setFilters({
+                  category: "All",
+                  mode: "All",
+                  city: "",
+                  platform: "All",
+                });
+              }}
+              className="text-orange-500 text-xs font-black uppercase tracking-[0.2em] hover:text-orange-400"
+            >
+              Clear filters
+            </button>
+          </div>
         ) : (
           <div className="space-y-32">
             {groupedEvents.map((group) => (
-              <section key={group.label} className="animate-fade-in-up">
+              <section
+                key={group.dateKey || group.label}
+                id={`event-day-${group.dateKey}`}
+                className="animate-fade-in-up scroll-mt-28"
+              >
                 <div className="sticky top-20 z-10 py-6 mb-12 border-b border-white/5 flex items-center gap-4 bg-black/10 backdrop-blur-md">
                   <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">
                     {group.label}

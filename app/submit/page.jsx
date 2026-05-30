@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Navbar } from "../../components/Navbar";
+import { useUser } from "../../components/AuthProvider";
 
 const ACCEPTED_PLATFORMS = [
   "Luma",
@@ -48,12 +50,16 @@ function storeSubmission(submission) {
 }
 
 export default function SubmitPage() {
+  const router = useRouter();
+  const { user, session } = useUser();
   const [eventUrl, setEventUrl] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [status, setStatus] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [recentCount, setRecentCount] = useState(0);
+  const isLoggedIn = Boolean(user || session?.user);
 
   useEffect(() => {
     setRecentCount(loadStoredSubmissions().length);
@@ -66,6 +72,7 @@ export default function SubmitPage() {
     if (!trimmedUrl || !isValidUrl(trimmedUrl)) {
       setError("Please enter a valid event link.");
       setSuccess("");
+      setStatus("");
       return;
     }
 
@@ -76,13 +83,23 @@ export default function SubmitPage() {
       submitted_at: new Date().toISOString(),
     };
 
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=${encodeURIComponent("/submit")}`);
+      return;
+    }
+
     setSubmitting(true);
     setError("");
 
     try {
+      const token = session?.access_token || null;
+
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
       const response = await fetch("/api/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(submission),
       });
 
@@ -94,19 +111,25 @@ export default function SubmitPage() {
       const savedSubmission = json?.data?.submission || submission;
       storeSubmission(savedSubmission);
       setRecentCount((count) => count + 1);
+      const submitStatus = String(json?.data?.status || "received");
+      setStatus(submitStatus);
       setSuccess(
-        "Thanks! We received your event link. If it matches EventLayer’s tech ecosystem, it will be added within 10 minutes.",
+        submitStatus === "added"
+          ? "This event was added to EventLayer. Open /events to see it."
+          : "We saved your link. It may take a moment to appear on /events.",
       );
       setEventUrl("");
       setNote("");
+      if (submitStatus === "added") {
+        setTimeout(() => router.push("/events"), 1200);
+      }
     } catch (submitError) {
-      storeSubmission(submission);
-      setRecentCount((count) => count + 1);
-      setSuccess(
-        "Thanks! We received your event link. If it matches EventLayer’s tech ecosystem, it will be added within 10 minutes.",
+      setError(
+        submitError?.message ||
+          "Could not submit event link. Check you are logged in and try again.",
       );
-      setEventUrl("");
-      setNote("");
+      setSuccess("");
+      setStatus("");
     } finally {
       setSubmitting(false);
     }
@@ -181,13 +204,42 @@ export default function SubmitPage() {
               </p>
             ) : null}
 
+            {status ? (
+              <p className="mt-3 text-[11px] font-black uppercase tracking-[0.22em] text-gray-500">
+                Status:{" "}
+                {status === "added"
+                  ? "Added to feed"
+                  : status === "queued"
+                    ? "Queued for review"
+                    : "Received"}
+              </p>
+            ) : null}
+
             <button
-              type="submit"
+              type={isLoggedIn ? "submit" : "button"}
               disabled={submitting}
+              onClick={
+                !isLoggedIn
+                  ? () =>
+                      router.push(
+                        `/login?redirect=${encodeURIComponent("/submit")}`,
+                      )
+                  : undefined
+              }
               className="mt-6 inline-flex h-12 items-center justify-center rounded-full bg-orange-500 px-7 text-xs font-black uppercase tracking-[0.22em] text-white transition-all hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {submitting ? "Submitting..." : "Submit event"}
+              {isLoggedIn
+                ? submitting
+                  ? "Submitting..."
+                  : "Submit event"
+                : "Login to submit"}
             </button>
+
+            <p className="mt-3 text-[11px] font-medium leading-relaxed text-gray-500">
+              {isLoggedIn
+                ? `Signed in as ${user?.email || "your account"}. This helps us track submissions and reduce abuse.`
+                : "Sign in to submit so we can track who sent each link and reduce abuse."}
+            </p>
 
             <div className="mt-6 flex flex-wrap gap-2">
               {ACCEPTED_PLATFORMS.map((platform) => (

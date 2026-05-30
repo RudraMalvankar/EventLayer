@@ -1,5 +1,5 @@
 import { generateText } from "../../shared/clients/gemini.js";
-import { supabaseAdmin } from "../../shared/clients/supabase.js";
+import { upsertEventsService } from "../events/service.js";
 
 /**
  * Call Gemini to extract structured fields from raw event text and
@@ -60,17 +60,10 @@ export async function enrichWithGemini(
       description: parsed.short_description || normalizedEvent.description,
     };
 
-    if (
-      options.upsert &&
-      supabaseAdmin &&
-      typeof supabaseAdmin.from === "function"
-    ) {
-      try {
-        await supabaseAdmin
-          .from("events")
-          .upsert(merged, { onConflict: "event_url" });
-      } catch (e) {
-        console.error("Enrichment upsert failed:", e.message || e);
+    if (options.upsert && merged?.event_url) {
+      const res = await upsertEventsService([merged]);
+      if (res.error) {
+        console.error("Enrichment upsert failed:", res.error);
       }
     }
 

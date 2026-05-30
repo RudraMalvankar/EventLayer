@@ -17,19 +17,13 @@ import {
   persistRemindedSet,
   setReminderValue,
 } from "../../src/shared/reminders/storage";
+import { dayKey, isUpcoming } from "../../src/shared/events/dates";
 
 function normalizeSavedEvents(json) {
   if (Array.isArray(json?.data)) return json.data;
   if (Array.isArray(json?.data?.events)) return json.data.events;
   if (Array.isArray(json?.data?.saved_events)) return json.data.saved_events;
   return [];
-}
-
-function dayKey(value) {
-  if (!value) return "tba";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "tba";
-  return date.toISOString().slice(0, 10);
 }
 
 function formatDayLabel(value) {
@@ -41,15 +35,6 @@ function formatDayLabel(value) {
     month: "long",
     day: "numeric",
   });
-}
-
-function isTodayOrFuture(value) {
-  if (!value) return false;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date.getTime() >= today.getTime();
 }
 
 function formatMonthLabel(date) {
@@ -181,7 +166,7 @@ export default function CalendarPage() {
   }, [reminded]);
 
   const upcomingSaved = useMemo(
-    () => events.filter((event) => isTodayOrFuture(event?.start_date)),
+    () => events.filter((event) => isUpcoming(event?.start_date)),
     [events],
   );
 

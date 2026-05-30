@@ -65,11 +65,26 @@ async function attachAiSummary(event) {
 }
 
 function normalizeForDb(event) {
-  const platform = String(
-    event.platform || event.sourcePlatform || "scraper",
+  const url = event.url || event.redirectURL || event.event_url || null;
+  const detected = url ? detectPlatform(url) : "scraper";
+  const sourcePlatform = String(
+    event.sourcePlatform || event.platform || detected,
   ).toLowerCase();
-  const finalPlatform = platform === "devfolio" ? "devfolio" : "luma";
-  const sourcePlatform = event.sourcePlatform || event.platform || finalPlatform;
+  const allowed = new Set([
+    "luma",
+    "meetup",
+    "devfolio",
+    "unstop",
+    "devpost",
+    "eventbrite",
+    "eventtier",
+    "scraper",
+  ]);
+  const finalPlatform = allowed.has(sourcePlatform)
+    ? sourcePlatform
+    : allowed.has(detected)
+      ? detected
+      : "scraper";
   return {
     title: event.title || "",
     description: event.description || null,
@@ -87,7 +102,7 @@ function normalizeForDb(event) {
     is_free:
       Array.isArray(event.tags) && event.tags.includes("free") ? true : null,
     raw_data: {
-      sourcePlatform: sourcePlatform,
+      sourcePlatform: finalPlatform,
       originalPlatform: event.platform || event.sourcePlatform || null,
       sourceUrl: event.url || event.redirectURL || event.event_url || null,
       ai_summary: event.ai_summary || null,

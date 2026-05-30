@@ -7,24 +7,7 @@ import { LoggedOutSaveModal } from "../../components/LoggedOutSaveModal";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
 import { notifySavedEventsUpdated } from "../../src/shared/events/refresh";
-
 const MAP_PREVIEW_URL = process.env.NEXT_PUBLIC_MAPBOX_STATIC_PREVIEW_URL || "";
-
-function dayKey(value) {
-  if (!value) return "tba";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "tba";
-  return date.toISOString().slice(0, 10);
-}
-
-function isTodayOrFuture(value) {
-  if (!value) return false;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date.getTime() >= today.getTime();
-}
 
 function getDisplayPlatform(event) {
   return String(
@@ -78,7 +61,8 @@ export default function ExplorePage() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      params.set("limit", "100");
+      params.set("limit", "1000");
+      params.set("upcomingOnly", "true");
       if (filters.city) params.set("city", filters.city);
       if (filters.category !== "All") {
         params.set("category", filters.category.toLowerCase());
@@ -205,10 +189,11 @@ export default function ExplorePage() {
 
   const filteredEvents = useMemo(() => {
     let result = events;
-    result = result.filter((event) => isTodayOrFuture(event?.start_date));
-    result = result.filter((event) =>
-      matchesPlatformFilter(event, filters.platform),
-    );
+    if (filters.platform !== "All") {
+      result = result.filter((event) =>
+        matchesPlatformFilter(event, filters.platform),
+      );
+    }
     if (query) {
       const lower = query.toLowerCase();
       result = result.filter((event) => {

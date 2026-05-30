@@ -17,8 +17,12 @@ create table if not exists public.events (
   organizer text,
   is_free boolean default true,
   raw_data jsonb,
+  ai_summary text,
   created_at timestamptz default now()
 );
+
+-- Optional: run in Supabase SQL editor if you want a dedicated column
+-- alter table public.events add column if not exists ai_summary text;
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -47,9 +51,25 @@ create table if not exists public.saved_events (
   unique (user_id, event_id)
 );
 
+create table if not exists public.event_submissions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  user_email text,
+  event_url text not null,
+  title text,
+  note text,
+  status text not null default 'received' check (status in ('added', 'received', 'queued', 'rejected')),
+  event_id uuid references public.events(id) on delete set null,
+  submitted_at timestamptz default now(),
+  reviewed_at timestamptz,
+  raw_data jsonb,
+  unique (user_id, event_url)
+);
+
 alter table public.events enable row level security;
 alter table public.profiles enable row level security;
 alter table public.saved_events enable row level security;
+alter table public.event_submissions enable row level security;
 
 drop policy if exists events_read_all on public.events;
 create policy events_read_all on public.events for select using (true);
@@ -59,6 +79,12 @@ create policy saved_owner_read on public.saved_events for select using (auth.uid
 
 drop policy if exists saved_owner_write on public.saved_events;
 create policy saved_owner_write on public.saved_events for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists submissions_owner_read on public.event_submissions;
+create policy submissions_owner_read on public.event_submissions for select using (auth.uid() = user_id);
+
+drop policy if exists submissions_owner_write on public.event_submissions;
+create policy submissions_owner_write on public.event_submissions for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create index if not exists events_tags_gin on public.events using gin (tags);
 create index if not exists events_city_idx on public.events (city);

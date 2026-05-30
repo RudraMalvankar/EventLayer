@@ -4,7 +4,8 @@ export const env = {
   supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY || "",
   geminiApiKey: process.env.GEMINI_API_KEY || "",
   enrichWithGemini:
-    (process.env.ENRICH_WITH_GEMINI || "false").toLowerCase() === "true",
+    (process.env.ENRICH_WITH_GEMINI || "").toLowerCase() === "true" ||
+    Boolean(process.env.GEMINI_API_KEY),
   scrapeSecret: process.env.SCRAPE_SECRET || "",
   devfolioApi: process.env.DEVFOLIO_API || "",
   devfolioSearchUrl: process.env.DEVFOLIO_SEARCH_URL || "",

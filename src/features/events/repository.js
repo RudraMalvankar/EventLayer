@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "../../shared/clients/supabase.js";
+import { detectPlatform } from "../scrapers/normalizer.js";
 
 const ALLOWED_PLATFORMS = new Set([
   "luma",
@@ -11,25 +12,107 @@ const ALLOWED_PLATFORMS = new Set([
   "scraper",
 ]);
 
+const ALLOWED_MODES = new Set(["online", "offline", "hybrid"]);
+const ALLOWED_CATEGORIES = new Set([
+  "hackathon",
+  "meetup",
+  "workshop",
+  "conference",
+  "webinar",
+  "competition",
+]);
+
 function normalizePlatform(value) {
-  const platform = String(value || "scraper")
+  const platform = String(value || "luma")
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "")
     .trim();
+  if (platform === "scraper" || !platform) return "luma";
   if (ALLOWED_PLATFORMS.has(platform)) return platform;
-  return "scraper";
+  return "luma";
+}
+
+function sanitizeMode(value) {
+  const mode = String(value || "")
+    .toLowerCase()
+    .trim();
+  return ALLOWED_MODES.has(mode) ? mode : null;
+}
+
+function sanitizeCategory(value) {
+  const category = String(value || "")
+    .toLowerCase()
+    .trim();
+  return ALLOWED_CATEGORIES.has(category) ? category : null;
+}
+
+function resolveEventPlatform(row = {}) {
+  const fromRaw =
+    row.raw_data?.sourcePlatform || row.raw_data?.originalPlatform;
+  const fromUrl = detectPlatform(row.event_url || row.url);
+  return normalizePlatform(
+    fromRaw || row.platform || row.sourcePlatform || fromUrl,
+  );
 }
 
 function sanitizeEventRow(event = {}) {
+  function canonicalUrl(raw) {
+    try {
+      const u = new URL(String(raw));
+      let host = u.hostname.replace(/^www\./, "");
+      // normalize luma hosts to lu.ma
+      if (host.endsWith("luma.com")) host = "lu.ma";
+      u.hostname = host;
+      u.search = ""; // drop query params
+      // remove trailing slashes
+      u.pathname = u.pathname.replace(/\/+$|^\/$/, (m) =>
+        m === "/" ? "" : "",
+      );
+      const out = u.toString().replace(/\/$/, "");
+      return out;
+    } catch {
+      return raw;
+    }
+  }
+
+  const row = { ...event };
+  if (row.event_url || row.url) {
+    const raw = row.event_url || row.url;
+    row.event_url = canonicalUrl(raw);
+  }
+
+  const aiSummary = row.ai_summary || row.raw_data?.ai_summary || null;
+  const raw_data = {
+    ...(typeof row.raw_data === "object" && row.raw_data ? row.raw_data : {}),
+  };
+  if (aiSummary) {
+    raw_data.ai_summary = String(aiSummary).slice(0, 500);
+  }
+
   return {
-    ...event,
-    platform: normalizePlatform(event.platform || event.sourcePlatform),
+    title: row.title || "",
+    description: row.description ?? null,
+    platform: resolveEventPlatform(row),
+    city: row.city ?? null,
+    country: row.country ?? null,
+    mode: sanitizeMode(row.mode),
+    category: sanitizeCategory(row.category),
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    banner_url: row.banner_url ?? null,
+    event_url: row.event_url,
+    start_date: row.start_date ?? null,
+    end_date: row.end_date ?? null,
+    organizer: row.organizer ?? null,
+    is_free: typeof row.is_free === "boolean" ? row.is_free : true,
+    raw_data,
+    ...(row.created_at ? { created_at: row.created_at } : {}),
   };
 }
 
 function projectEventRow(row = {}) {
   return {
     ...row,
+    platform: resolveEventPlatform(row),
     ai_summary: row.ai_summary || row.raw_data?.ai_summary || null,
   };
 }
@@ -58,8 +141,6 @@ export async function findEvents({
   upcomingOnly = true,
 } = {}) {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     let query = supabaseAdmin
       .from("events")
       .select("*", { count: "exact" })
@@ -67,12 +148,14 @@ export async function findEvents({
     if (city) query = query.ilike("city", `%${city}%`);
     if (category) query = query.eq("category", category);
     if (mode) query = query.eq("mode", mode);
-    if (platform) query = query.eq("platform", platform);
+    if (platform) {
+      const p = normalizePlatform(platform);
+      query = query.or(`platform.eq.${p},raw_data->>sourcePlatform.eq.${p}`);
+    }
     if (typeof is_free === "boolean") query = query.eq("is_free", is_free);
     if (upcomingOnly) {
-      query = query
-        .not("start_date", "is", null)
-        .gte("start_date", today.toISOString());
+      const now = new Date().toISOString();
+      query = query.or(`start_date.gte.${now},start_date.is.null`);
     }
     if (keyword)
       query = query.or(

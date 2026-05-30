@@ -89,15 +89,15 @@ function isFree(rawPrice) {
 }
 
 export function detectPlatform(url) {
-  if (!url) return "scraper";
+  if (!url) return "luma";
   const lower = url.toLowerCase();
-  if (lower.includes("lu.ma")) return "luma";
+  if (lower.includes("lu.ma") || lower.includes("luma.com")) return "luma";
   if (lower.includes("meetup.com")) return "meetup";
   if (lower.includes("devfolio.co")) return "devfolio";
   if (lower.includes("unstop.com")) return "unstop";
   if (lower.includes("devpost.com")) return "devpost";
   if (lower.includes("eventbrite.com")) return "eventbrite";
-  return "scraper";
+  return "luma";
 }
 
 export function normalizeEvent(rawEvent, platform) {

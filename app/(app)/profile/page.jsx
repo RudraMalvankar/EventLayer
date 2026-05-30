@@ -32,6 +32,7 @@ const cityOptions = [
 ];
 
 const platformOptions = ["luma", "meetup", "devfolio", "unstop", "eventbrite"];
+const SUBMISSION_STORAGE_KEY = "eventlayer.submit-links";
 
 function initialsFrom(profile, user) {
   const source =
@@ -71,6 +72,78 @@ function normalizeSavedEvents(json) {
   return [];
 }
 
+function normalizeSubmissions(json) {
+  if (Array.isArray(json?.data)) return json.data;
+  if (Array.isArray(json?.data?.submissions)) return json.data.submissions;
+  return [];
+}
+
+function loadLocalSubmissions() {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(SUBMISSION_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizeLocalSubmission(item = {}) {
+  return {
+    id: item.id || item.event_url,
+    event_url: item.event_url || item.url || "",
+    title: item.title || item.event_title || item.event_url || "Submitted link",
+    note: item.note || null,
+    status: item.status || "received",
+    submitted_at: item.submitted_at || item.created_at || null,
+    reviewed_at: item.reviewed_at || null,
+    event_id: item.event_id || null,
+    event: item.event || null,
+    source: "local",
+  };
+}
+
+function mergeSubmissions(primary = [], secondary = []) {
+  const map = new Map();
+
+  for (const item of [...secondary, ...primary]) {
+    const key = String(item?.event_url || item?.id || "").trim();
+    if (!key) continue;
+    const previous = map.get(key);
+    const current = {
+      ...previous,
+      ...item,
+      event_url: item?.event_url || previous?.event_url || "",
+      title:
+        item?.title || previous?.title || item?.event_url || "Submitted link",
+      status: item?.status || previous?.status || "received",
+    };
+    map.set(key, current);
+  }
+
+  return Array.from(map.values());
+}
+
+function submissionStatusLabel(status) {
+  const value = String(status || "received");
+  if (value === "added") return "Added to feed";
+  if (value === "queued") return "Queued for review";
+  if (value === "rejected") return "Rejected";
+  return "Received";
+}
+
+function submissionStatusTone(status) {
+  const value = String(status || "received");
+  if (value === "added")
+    return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
+  if (value === "queued")
+    return "border-amber-500/20 bg-amber-500/10 text-amber-200";
+  if (value === "rejected")
+    return "border-red-500/20 bg-red-500/10 text-red-200";
+  return "border-white/10 bg-white/5 text-gray-300";
+}
+
 function toggleValue(list, value) {
   return list.includes(value)
     ? list.filter((item) => item !== value)
@@ -85,6 +158,8 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("saved");
   const [profile, setProfile] = useState(null);
   const [savedEvents, setSavedEvents] = useState([]);
+  const [submittedEvents, setSubmittedEvents] = useState([]);
+  const [localSubmittedEvents, setLocalSubmittedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -110,6 +185,11 @@ export default function ProfilePage() {
     if (typeof value === "number") return value;
     return 0;
   }, [profile]);
+
+  const displayedSubmittedEvents = useMemo(
+    () => mergeSubmissions(submittedEvents, localSubmittedEvents),
+    [submittedEvents, localSubmittedEvents],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -159,13 +239,16 @@ export default function ProfilePage() {
         const headers = {
           Authorization: `Bearer ${token}`,
         };
-        const [profileResponse, savedResponse] = await Promise.all([
-          fetch("/api/profile", { headers }),
-          fetch("/api/saved", { headers }),
-        ]);
-        const [profileJson, savedJson] = await Promise.all([
+        const [profileResponse, savedResponse, submissionsResponse] =
+          await Promise.all([
+            fetch("/api/profile", { headers }),
+            fetch("/api/saved", { headers }),
+            fetch("/api/submissions", { headers }),
+          ]);
+        const [profileJson, savedJson, submissionJson] = await Promise.all([
           profileResponse.json(),
           savedResponse.json(),
+          submissionsResponse.json(),
         ]);
 
         if (cancelled) return;
@@ -193,6 +276,12 @@ export default function ProfilePage() {
         } else {
           setSavedEvents([]);
         }
+
+        if (submissionsResponse.ok && !submissionJson?.error) {
+          setSubmittedEvents(normalizeSubmissions(submissionJson));
+        } else {
+          setSubmittedEvents([]);
+        }
       } catch (loadError) {
         if (!cancelled) setError(loadError.message);
       } finally {
@@ -206,6 +295,65 @@ export default function ProfilePage() {
       cancelled = true;
     };
   }, [activeSession?.access_token, session?.access_token, user]);
+
+  useEffect(() => {
+    const localSubmissions = loadLocalSubmissions().map(
+      normalizeLocalSubmission,
+    );
+    if (!localSubmissions.length) return;
+
+    let cancelled = false;
+
+    async function reconcileLocalSubmissions() {
+      try {
+        const urls = localSubmissions
+          .map((item) => item.event_url)
+          .filter(Boolean);
+        let matchedEvents = [];
+
+        if (urls.length) {
+          const { data } = await supabase
+            .from("events")
+            .select("id, event_url, title")
+            .in("event_url", urls);
+
+          matchedEvents = Array.isArray(data) ? data : [];
+        }
+
+        const matchedMap = new Map(
+          matchedEvents.map((event) => [String(event.event_url), event]),
+        );
+
+        const reconciled = localSubmissions.map((item) => {
+          const matched = matchedMap.get(String(item.event_url));
+          if (matched) {
+            return {
+              ...item,
+              title: item.title || matched.title || item.event_url,
+              status: "added",
+              event_id: matched.id,
+              event: matched,
+            };
+          }
+          return item;
+        });
+
+        if (!cancelled) {
+          setLocalSubmittedEvents(reconciled);
+        }
+      } catch {
+        if (!cancelled) {
+          setLocalSubmittedEvents(localSubmissions);
+        }
+      }
+    }
+
+    reconcileLocalSubmissions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function updateForm(field, value) {
     setSuccess("");
@@ -398,12 +546,24 @@ export default function ProfilePage() {
               Powers better recommendations in Explore.
             </p>
           </div>
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#0f1724] to-[#0a0c12] p-6 shadow-[0_16px_60px_rgba(0,0,0,0.25)]">
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-gray-500">
+              Event Submissions
+            </p>
+            <p className="mt-3 text-4xl font-black text-white">
+              {displayedSubmittedEvents.length}
+            </p>
+            <p className="mt-2 text-sm text-gray-500">
+              Links you sent and their review state.
+            </p>
+          </div>
         </section>
 
         <section className="mt-8">
           <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1">
             {[
               ["saved", "Saved Events"],
+              ["submissions", "My Submissions"],
               ["preferences", "Preferences"],
             ].map(([key, label]) => (
               <button
@@ -459,6 +619,82 @@ export default function ProfilePage() {
                   className="mt-8 inline-flex rounded-full bg-orange-500 px-7 py-3 text-xs font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-orange-600"
                 >
                   Explore events
+                </Link>
+              </div>
+            )}
+          </section>
+        )}
+
+        {activeTab === "submissions" && (
+          <section className="mt-8">
+            {displayedSubmittedEvents.length ? (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {displayedSubmittedEvents.map((submission) => (
+                  <article
+                    key={submission.id || submission.event_url}
+                    className="rounded-[28px] border border-white/10 bg-[#0a0c12]/90 p-5 shadow-[0_16px_60px_rgba(0,0,0,0.2)]"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-500">
+                          Submitted link
+                        </p>
+                        <h3 className="mt-2 text-lg font-black tracking-tight text-white">
+                          {submission.title || submission.event_url}
+                        </h3>
+                      </div>
+                      <span
+                        className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${submissionStatusTone(submission.status)}`}
+                      >
+                        {submissionStatusLabel(submission.status)}
+                      </span>
+                    </div>
+
+                    <a
+                      href={submission.event_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-4 block break-all text-sm text-orange-300 transition-colors hover:text-orange-200"
+                    >
+                      {submission.event_url}
+                    </a>
+
+                    {submission.note ? (
+                      <p className="mt-4 text-sm leading-relaxed text-gray-400">
+                        {submission.note}
+                      </p>
+                    ) : null}
+
+                    <div className="mt-5 flex flex-wrap items-center gap-2 text-[11px] font-medium text-gray-500">
+                      <span>
+                        Sent{" "}
+                        {submission.submitted_at
+                          ? new Date(submission.submitted_at).toLocaleString()
+                          : "recently"}
+                      </span>
+                      {submission.event_id ? (
+                        <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-emerald-200">
+                          Added to website
+                        </span>
+                      ) : null}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-[32px] border border-white/10 bg-[#0a0c12]/80 p-10 text-center">
+                <h2 className="text-2xl font-black tracking-tight">
+                  No submissions yet
+                </h2>
+                <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-gray-500">
+                  When you submit a link, it will appear here with its review
+                  status.
+                </p>
+                <Link
+                  href="/submit"
+                  className="mt-8 inline-flex rounded-full bg-orange-500 px-7 py-3 text-xs font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-orange-600"
+                >
+                  Submit a link
                 </Link>
               </div>
             )}

@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { normalizeEvent } from "../normalizer.js";
+import { fetchEventDetails } from "./details.js";
 
 const STATIC_PATHS = new Set([
   "discover",
@@ -31,8 +32,17 @@ function absoluteUrl(href, baseUrl) {
 function isEventUrl(url) {
   try {
     const pathname = new URL(url).pathname.replace(/\/+$/, "");
-    const slug = pathname.replace(/^\//, "").toLowerCase();
-    return /^\/[a-z0-9]{8}$/i.test(pathname) && !STATIC_PATHS.has(slug);
+    const segments = pathname
+      .split("/")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    if (segments.length !== 1) return false;
+
+    const slug = segments[0].toLowerCase();
+    if (STATIC_PATHS.has(slug)) return false;
+    if (!/^[a-z0-9][a-z0-9-]{3,}$/i.test(slug)) return false;
+
+    return true;
   } catch {
     return false;
   }
@@ -56,18 +66,32 @@ async function fetchJson(url) {
 }
 
 async function scrapeFromApi() {
-  const [listRes, searchRes] = await Promise.all([
+  const queries = [
+    "mumbai",
+    "build",
+    "community",
+    "ai",
+    "developer",
+    "hackathon",
+  ];
+  const results = await Promise.allSettled([
     fetchJson(
-      "https://api.lu.ma/public/v1/calendar/list-events?pagination_limit=50",
+      "https://api.lu.ma/public/v1/calendar/list-events?pagination_limit=100",
     ),
-    fetchJson(
-      "https://api.lu.ma/public/v1/event/search?query=hackathon+mumbai",
+    ...queries.map((query) =>
+      fetchJson(
+        `https://api.lu.ma/public/v1/event/search?query=${encodeURIComponent(query)}`,
+      ),
     ),
   ]);
-  const rawEvents = [
-    ...(listRes?.entries || []),
-    ...(searchRes?.entries || []),
-  ];
+
+  const rawEvents = [];
+  for (const result of results) {
+    if (result.status === "fulfilled" && Array.isArray(result.value?.entries)) {
+      rawEvents.push(...result.value.entries);
+    }
+  }
+
   return rawEvents
     .map((event) =>
       normalizeEvent(
@@ -98,37 +122,56 @@ async function scrapeFromApi() {
 async function scrapeFromHtml(url = "https://lu.ma/discover") {
   const response = await fetch(url, {
     headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      Accept:
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     },
   });
   if (!response.ok) return [];
   const html = await response.text();
   const $ = cheerio.load(html);
-  const events = [];
-  
-  // Luma discover page often has event cards with specific classes or just links
-  $("a").each((_, element) => {
-    const href = absoluteUrl($(element).attr("href"), "https://lu.ma");
-    if (!href || !isEventUrl(href)) return;
-    
-    const card = $(element).closest("div");
-    const title = normalizeText($(element).find("h1,h2,h3,span").first().text()) || 
-                  normalizeText($(element).text());
-    
-    if (!title || title.length < 3) return;
 
-    const normalized = normalizeEvent(
-      {
-        title,
-        url: href,
-        location: "Global",
-        organizer: "Luma",
-      },
-      "luma",
-    );
-    if (normalized) events.push(normalized);
+  // Collect candidate event URLs from the page
+  const hrefs = new Set();
+  $("a[href]").each((_, el) => {
+    try {
+      const href = absoluteUrl($(el).attr("href"), "https://lu.ma");
+      if (href && isEventUrl(href)) hrefs.add(href);
+    } catch (e) {
+      // ignore
+    }
   });
+
+  const candidates = Array.from(hrefs).slice(0, 200);
+  const events = [];
+
+  for (const candidate of candidates) {
+    try {
+      const meta = await fetchEventDetails(candidate);
+      if (!meta?.start_date) continue;
+
+      const normalized = normalizeEvent(
+        {
+          title: meta.title || "",
+          description: meta.about || meta.description || "",
+          url: candidate,
+          cover_url: meta.banner_url || null,
+          location: meta.city || null,
+          country: meta.country || null,
+          host: meta.organizer || null,
+          start_at: meta.start_date || null,
+          end_at: meta.end_date || null,
+          tags: [],
+        },
+        "luma",
+      );
+      if (normalized) events.push(normalized);
+    } catch (e) {
+      // ignore individual fetch errors
+    }
+  }
+
   return events;
 }
 
@@ -141,8 +184,21 @@ export async function scrapeLuma() {
   }
 
   try {
-    const htmlEvents = await scrapeFromHtml();
-    return uniqueByUrl(htmlEvents);
+    const pages = [
+      "https://lu.ma/discover",
+      "https://lu.ma/home",
+      "https://lu.ma/mumbai",
+      "https://lu.ma/india",
+    ];
+    const results = await Promise.allSettled(
+      pages.map((p) => scrapeFromHtml(p)),
+    );
+    const all = [];
+    for (const r of results) {
+      if (r.status === "fulfilled" && Array.isArray(r.value))
+        all.push(...r.value);
+    }
+    return uniqueByUrl(all);
   } catch {
     return [];
   }

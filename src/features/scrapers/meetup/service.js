@@ -68,7 +68,7 @@ export async function scrapeMeetup() {
     });
 
     const events = [];
-    const uniqueLinks = Array.from(links).slice(0, 12);
+    const uniqueLinks = Array.from(links).slice(0, 40);
     
     // Process details in parallel but limit concurrency to avoid being blocked
     const detailPromises = uniqueLinks.map(async (url) => {
