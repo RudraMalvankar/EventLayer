@@ -7,9 +7,12 @@ let scrapeByPlatform;
   const mod = await import("../src/features/scrapers/service.js");
   // ESM export: mod.scrapeByPlatform
   // CJS transpiled -> default: mod.default.scrapeByPlatform
-  scrapeByPlatform = mod.scrapeByPlatform ?? mod.default?.scrapeByPlatform ?? mod.default;
+  scrapeByPlatform =
+    mod.scrapeByPlatform ?? mod.default?.scrapeByPlatform ?? mod.default;
   if (typeof scrapeByPlatform !== "function") {
-    throw new Error("Could not resolve scrapeByPlatform from ../src/features/scrapers/service.js");
+    throw new Error(
+      "Could not resolve scrapeByPlatform from ../src/features/scrapers/service.js",
+    );
   }
 }
 

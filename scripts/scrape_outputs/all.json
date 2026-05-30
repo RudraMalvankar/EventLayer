@@ -1,6 +1,6 @@
 {
   "platform": "all",
-  "count": 20,
+  "count": 18,
   "events": [
     {
       "title": "Connect with the Google DeepMind Developer Experience Team",
@@ -51,7 +51,7 @@
       "is_free": true
     },
     {
-      "title": "Hong Kong14 Events",
+      "title": "Hong Kong15 Events",
       "description": "",
       "platform": "luma",
       "city": "Global",
@@ -83,29 +83,6 @@
       "is_free": true
     },
     {
-      "title": "Hack The Box Meetup: #16, Sat, May 30, 2026, 10:00 AM   | Meetup",
-      "description": "**Join us at Hack The Box's Mumbai Meetup!**\nSuitable for any background or skill level, come and join us for hands-on cybersecurity challenges, talks, networking and fun.",
-      "banner_url": "https://secure.meetupstatic.com/photos/event/3/1/2/c/600_534432588.jpeg",
-      "start_date": "2026-05-30T04:30:00.000Z",
-      "end_date": "2026-05-30T06:30:00.000Z",
-      "organizer": "Hack The Box Meetup: Mumbai, IN",
-      "city": "Mumbai",
-      "country": "in",
-      "location_detail": "10th floor, Suvidha Square, Swami Vivekanand Rd, Amboli, Andheri West, Mumbai, Maharashtra 400058, Mumbai",
-      "about": "Hosted by Rhitik W. and 2 others Saturday, May 30 · 10:00 AM to 12:00 PM IST TalaKunchi Networks Pvt Ltd 10th floor, Suvidha Square, Swami Vivekanand Rd, Amboli, Andheri West, Mumbai, Maharashtra 400058 · Mumbai Hosted by Rhitik W. and 2 others Agenda: \"From SSRF to RCE: Discovering CVE in Digital Ocean Droplet Agent\" by Anmol Singh Rajput \"Authentication for Dummies\" by Adhokshaj Mishra 🎯 CTF Competition We’re also hosting a CTF competition during the meetup. The top 3 winners will receive 1-month Hack The Box VIP+ vouchers. Please bring your laptop to participate in the CTF competition. Note: This is an onsite meetup in Mumbai The people platform Create your own Meetup group. Your account Sign up Log in Help Discover Groups Events Topics Cities Online events Local guides Make friends Sitemap Meetup Blog Meetup Pro Careers Apps Podcast Follow us Get the app Download on Google Play Download on App Store Made with by",
-      "hosts": [
-        "Hack The Box Meetup: Mumbai, IN"
-      ],
-      "speakers": [],
-      "registration_status": "Waitlist",
-      "ticket_url": "https://www.meetup.com/register/?returnUri=https%3A%2F%2Fwww.meetup.com%2Fhack-the-box-meetup-mumbai-in%2Fevents%2F314974475%2F",
-      "ticket_label": "Sign up",
-      "platform": "meetup",
-      "event_url": "https://www.meetup.com/hack-the-box-meetup-mumbai-in/events/314974475",
-      "location": "Mumbai",
-      "mode": "offline"
-    },
-    {
       "title": "GrafanaCON Local meetup: Mumbai, Sat, Jun 13, 2026, 3:00 PM   | Meetup",
       "description": "Hello folks! 👋\n\nFor the first time ever, we’re planning a mega Grafana & Friends Mumbai Meetup 🎉 — and there’s a special reason behind it.\nGrafanaCON is coming to Mumbai",
       "banner_url": "https://secure.meetupstatic.com/photos/event/6/c/3/8/600_534447704.jpeg",
@@ -125,29 +102,6 @@
       "ticket_label": "Sign up",
       "platform": "meetup",
       "event_url": "https://www.meetup.com/grafana-and-friends-mumbai/events/313668351",
-      "location": "Mumbai",
-      "mode": "offline"
-    },
-    {
-      "title": "When AI Stops Waiting: Building for Agentic Workloads, Sat, May 30, 2026, 10:00 AM   | Meetup",
-      "description": "Join us in Mumbai for an exciting ClickHouse meetup bringing together engineers, architects, and data leaders to explore how modern teams are tackling the next frontier of",
-      "banner_url": "https://secure.meetupstatic.com/photos/event/6/7/4/1/600_534326433.jpeg",
-      "start_date": "2026-05-30T04:30:00.000Z",
-      "end_date": "2026-05-30T07:30:00.000Z",
-      "organizer": "ClickHouse Mumbai User Group",
-      "city": "Mumbai",
-      "country": "in",
-      "location_detail": "7th Floor, Skyline Icon, Andheri - Kurla Rd, Chimatpada, Marol, Andheri East, Mumbai, Maharashtra - 400059, Mumbai",
-      "about": "Hosted by ClickHouse and Siddhant A. ClickHouse is a Super Organizer Saturday, May 30 · 10:00 AM to 1:00 PM IST Awfis Skyline Icon 1 7th Floor, Skyline Icon, Andheri - Kurla Rd, Chimatpada, Marol, Andheri East, Mumbai, Maharashtra - 400059 · Mumbai Hosted by ClickHouse and Siddhant A. ClickHouse is a Super Organizer Join us in Mumbai for an exciting ClickHouse meetup bringing together engineers, architects, and data leaders to explore how modern teams are tackling the next frontier of AI-powered analytics. From agentic workloads and semantic data interfaces to real-time pipelines and production migrations, speakers will share hands-on lessons from building high-performance systems with ClickHouse and in the world of Agentic AI. Connect with the local data community and discover what it really takes to make AI and analytics work together at scale. Don't miss out! RSVP and secure your spot! 🗓️ Agenda: 10:00 AM: Registration & networking 11:00 AM: Welcome & opening 11:10 AM: Talk 1 - Pushdown or pay up: predicate pushdown in pg_clickhouse by Indranil Chandra, Architect - ML & Data Engineer, Upstox 11:40 PM: Talk 2 - From Prompt to PASS/FAIL: Production LLM Certification on Langfuse +",
-      "hosts": [
-        "ClickHouse Mumbai User Group"
-      ],
-      "speakers": [],
-      "registration_status": "Waitlist",
-      "ticket_url": "https://www.meetup.com/register/?returnUri=https%3A%2F%2Fwww.meetup.com%2Fclickhouse-mumbai-user-group%2Fevents%2F314710804%2F",
-      "ticket_label": "Sign up",
-      "platform": "meetup",
-      "event_url": "https://www.meetup.com/clickhouse-mumbai-user-group/events/314710804",
       "location": "Mumbai",
       "mode": "offline"
     },
@@ -338,6 +292,24 @@
       "is_free": true
     },
     {
+      "title": "UX Design Hackathon with UX Woman",
+      "description": "Tomorrow at 1:00 PM EDT",
+      "type": "hackathon",
+      "mode": "online",
+      "city": "Online",
+      "country": "Online",
+      "startDate": null,
+      "endDate": null,
+      "deadline": null,
+      "tags": [
+        "hackathon",
+        "eventbrite"
+      ],
+      "hostedBy": "Eventbrite",
+      "verified": true,
+      "redirectURL": "https://www.eventbrite.com/e/ux-design-hackathon-with-ux-woman-tickets-1980891134708?aff=ebdssbdestsearch"
+    },
+    {
       "title": "DevOps for GenAI Hackathon - Ottawa 2026",
       "description": "Mon, Jun 8, 9:00 AM EDT",
       "type": "hackathon",
@@ -372,24 +344,6 @@
       "hostedBy": "Eventbrite",
       "verified": true,
       "redirectURL": "https://www.eventbrite.com/e/global-energy-hackathon-submission-tickets-1983128202839?aff=ebdssbdestsearch"
-    },
-    {
-      "title": "SyntaxReady Bootcamp & Hackathon 2026",
-      "description": "Mon, Jul 6, 12:00 PM EDT + 17 more",
-      "type": "hackathon",
-      "mode": "online",
-      "city": "Online",
-      "country": "Online",
-      "startDate": null,
-      "endDate": null,
-      "deadline": null,
-      "tags": [
-        "hackathon",
-        "eventbrite"
-      ],
-      "hostedBy": "Eventbrite",
-      "verified": true,
-      "redirectURL": "https://www.eventbrite.ca/e/syntaxready-bootcamp-hackathon-2026-tickets-1983774152893?aff=ebdssbdestsearch"
     }
   ]
 }
