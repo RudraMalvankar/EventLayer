@@ -155,7 +155,7 @@ export async function findEvents({
     if (typeof is_free === "boolean") query = query.eq("is_free", is_free);
     if (upcomingOnly) {
       const now = new Date().toISOString();
-      query = query.or(`start_date.gte.${now},start_date.is.null`);
+      query = query.gte("start_date", now);
     }
     if (keyword)
       query = query.or(

@@ -119,6 +119,75 @@ function findRegistrationStatus($) {
   return 'Open'
 }
 
+function parseRangeDate(value) {
+  const text = normalizeText(value).replace(/(\d{1,2})(st|nd|rd|th)/gi, "$1");
+  if (!text) return { start_date: null, end_date: null };
+
+  const explicitMonths = text.match(
+    /([A-Za-z]{3,9})\s+(\d{1,2})\s*-\s*([A-Za-z]{3,9})\s+(\d{1,2}),?\s*(\d{4})/,
+  );
+  if (explicitMonths) {
+    const start = parseDate(`${explicitMonths[1]} ${explicitMonths[2]}, ${explicitMonths[5]}`);
+    const end = parseDate(`${explicitMonths[3]} ${explicitMonths[4]}, ${explicitMonths[5]}`);
+    return { start_date: start, end_date: end };
+  }
+
+  const sharedMonth = text.match(/([A-Za-z]{3,9})\s+(\d{1,2})\s*-\s*(\d{1,2}),?\s*(\d{4})/);
+  if (sharedMonth) {
+    const start = parseDate(`${sharedMonth[1]} ${sharedMonth[2]}, ${sharedMonth[4]}`);
+    const end = parseDate(`${sharedMonth[1]} ${sharedMonth[3]}, ${sharedMonth[4]}`);
+    return { start_date: start, end_date: end };
+  }
+
+  const slashRange = text.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})\s*-\s*(\d{1,2}\/\d{1,2}\/\d{2,4})/);
+  if (slashRange) {
+    return { start_date: parseDate(slashRange[1]), end_date: parseDate(slashRange[2]) };
+  }
+
+  const single = parseDate(text);
+  if (single) return { start_date: single, end_date: single };
+
+  return { start_date: null, end_date: null };
+}
+
+function extractVisibleDateText(bodyText) {
+  const normalized = normalizeText(bodyText);
+  const labels = ["RUNS FROM", "STARTS", "STARTS ON", "BEGINS", "DATE", "WHEN"];
+
+  for (const label of labels) {
+    const index = normalized.toUpperCase().indexOf(label);
+    if (index < 0) continue;
+    let segment = normalized.slice(index + label.length).trim();
+    const stopWords = [
+      " HAPPENING ",
+      " APPLICATIONS ",
+      " APPLY NOW ",
+      " SEE PROJECTS ",
+      " BUILD ",
+      " RULES ",
+      " SPONSORS ",
+      " FAQS ",
+      " VENUE: ",
+    ];
+    for (const stopWord of stopWords) {
+      const stopIndex = segment.toUpperCase().indexOf(stopWord);
+      if (stopIndex > 0) {
+        segment = segment.slice(0, stopIndex).trim();
+      }
+    }
+    const parsed = parseRangeDate(segment) || {};
+    if (parsed.start_date || parsed.end_date) return parsed;
+
+    const singleMatch = segment.match(/(\d{1,2}\/\d{1,2}\/\d{2,4}|[A-Za-z]{3,9}\s+\d{1,2},?\s*\d{4})/);
+    if (singleMatch) {
+      const single = parseDate(singleMatch[1]);
+      if (single) return { start_date: single, end_date: single };
+    }
+  }
+
+  return { start_date: null, end_date: null };
+}
+
 export async function fetchEventDetails(url) {
   try {
     const res = await fetch(url, {
@@ -160,6 +229,7 @@ export async function fetchEventDetails(url) {
     const location = getLocation(eventLike)
     const organizer = getOrganizer(eventLike)
     const aboutText = collectSectionText($, /about event|about/i)
+    const visibleDates = extractVisibleDateText($('body').text())
     const hosts = collectNamesFromJsonLd(eventLike, 'organizer')
     const speakers = collectNamesFromJsonLd(eventLike, 'performer')
     const ticket = findTicketLink($)
@@ -169,8 +239,8 @@ export async function fetchEventDetails(url) {
       title: (ogTitle || h1 || '').trim(),
       description: (ogDesc || '').trim(),
       banner_url: ogImage ? absoluteUrl(ogImage, url) : null,
-      start_date: parseDate(eventLike.startDate || metaStart),
-      end_date: parseDate(eventLike.endDate || metaEnd),
+      start_date: parseDate(eventLike.startDate || metaStart) || visibleDates.start_date,
+      end_date: parseDate(eventLike.endDate || metaEnd) || visibleDates.end_date,
       organizer,
       city: location.city,
       country: location.country,

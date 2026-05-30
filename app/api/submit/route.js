@@ -158,6 +158,18 @@ export async function POST(request) {
       );
     }
 
+    // Prevent creating events without a determinable start date (TBA entries)
+    if (!eventPayload?.start_date) {
+      return Response.json(
+        {
+          data: null,
+          error:
+            "Could not determine the event date from that link. Please provide a direct event page with the date or try a different link.",
+        },
+        { status: 422 },
+      );
+    }
+
     const upsert = await upsertEventsService([eventPayload]);
     if (upsert.error) {
       return Response.json(

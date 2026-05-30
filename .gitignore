@@ -17,3 +17,8 @@ pnpm-debug.log*
 Thumbs.db
 .idea/
 .vscode/
+
+# Ignore ad-hoc debug scripts and scraper outputs
+/scripts/debug_*.mjs
+/scripts/scrape_outputs/
+/dev/scrape_outputs/
