@@ -110,11 +110,7 @@ export default function SavedPage() {
     };
   }, [activeSession?.access_token, session?.access_token]);
 
-  if (
-    !initialized ||
-    authLoading ||
-    !sessionResolved
-  ) {
+  if (!initialized || authLoading || !sessionResolved) {
     return (
       <main className="min-h-screen text-white">
         <Navbar />

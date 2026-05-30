@@ -70,7 +70,11 @@ function formatTime(value) {
 }
 
 function buildMonthCells(referenceDate) {
-  const first = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
+  const first = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    1,
+  );
   const start = new Date(first);
   start.setDate(first.getDate() - first.getDay());
   const cells = [];
@@ -223,7 +227,9 @@ export default function CalendarPage() {
     }
 
     const visible = selectedDateKey
-      ? monthEvents.some((event) => dayKey(event?.start_date) === selectedDateKey)
+      ? monthEvents.some(
+          (event) => dayKey(event?.start_date) === selectedDateKey,
+        )
       : false;
 
     if (!visible) {
@@ -235,7 +241,10 @@ export default function CalendarPage() {
     if (!Object.keys(reminders).length || !monthEvents.length) return undefined;
 
     const tick = setInterval(() => {
-      if (typeof Notification === "undefined" || Notification.permission !== "granted") {
+      if (
+        typeof Notification === "undefined" ||
+        Notification.permission !== "granted"
+      ) {
         return;
       }
 
@@ -275,7 +284,10 @@ export default function CalendarPage() {
     const id = String(event?.id || event?.event_url || "");
     if (!id) return;
 
-    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+    if (
+      typeof Notification !== "undefined" &&
+      Notification.permission === "default"
+    ) {
       Notification.requestPermission().catch(() => {});
     }
 
@@ -304,15 +316,12 @@ export default function CalendarPage() {
 
   function moveMonth(offset) {
     setActiveMonth(
-      (current) => new Date(current.getFullYear(), current.getMonth() + offset, 1),
+      (current) =>
+        new Date(current.getFullYear(), current.getMonth() + offset, 1),
     );
   }
 
-  if (
-    !initialized ||
-    authLoading ||
-    !sessionResolved
-  ) {
+  if (!initialized || authLoading || !sessionResolved) {
     return (
       <main className="min-h-screen text-white">
         <Navbar />
@@ -386,7 +395,8 @@ export default function CalendarPage() {
             </div>
             <h1 className="text-4xl font-black tracking-tight">Saved agenda</h1>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-500">
-              Your saved events grouped into a compact month grid with reminders.
+              Your saved events grouped into a compact month grid with
+              reminders.
             </p>
           </div>
           <Link
@@ -446,7 +456,7 @@ export default function CalendarPage() {
             </div>
 
             <div className="mb-3 grid grid-cols-7 gap-2 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                 <div key={day} className="py-2">
                   {day}
                 </div>
@@ -473,7 +483,9 @@ export default function CalendarPage() {
                     } ${isCurrentMonth ? "text-white" : "text-gray-600 opacity-60"}`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="text-lg font-black">{date.getDate()}</span>
+                      <span className="text-lg font-black">
+                        {date.getDate()}
+                      </span>
                       {hasEvents && (
                         <span className="rounded-full bg-orange-500 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.15em] text-white">
                           {monthGroups.get(key)?.items.length || 0}
@@ -534,24 +546,33 @@ export default function CalendarPage() {
                             {formatTime(event?.start_date)}
                           </p>
                           <Link
-                            href={event?.id ? `/events/${event.id}` : event?.event_url || "/events"}
+                            href={
+                              event?.id
+                                ? `/events/${event.id}`
+                                : event?.event_url || "/events"
+                            }
                             className="mt-2 block text-base font-black leading-tight text-white transition hover:text-orange-400"
                           >
                             {event?.title}
                           </Link>
                           <p className="mt-2 text-xs leading-relaxed text-gray-500 line-clamp-3">
-                            {event?.ai_summary || event?.description || "No summary available."}
+                            {event?.ai_summary ||
+                              event?.description ||
+                              "No summary available."}
                           </p>
                         </div>
                         <div className="shrink-0 space-y-2 text-right">
                           <div className="inline-flex rounded-full border border-white/10 bg-black/20 p-1">
                             {REMINDER_OPTIONS.map((option) => {
-                              const selected = reminder?.reminderKey === option.key;
+                              const selected =
+                                reminder?.reminderKey === option.key;
                               return (
                                 <button
                                   key={option.key}
                                   type="button"
-                                  onClick={() => handleReminderChoice(event, option.key)}
+                                  onClick={() =>
+                                    handleReminderChoice(event, option.key)
+                                  }
                                   disabled={!id || !event?.start_date}
                                   className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.18em] transition ${
                                     selected
@@ -566,7 +587,12 @@ export default function CalendarPage() {
                           </div>
                           <button
                             type="button"
-                            onClick={() => handleReminderChoice(event, reminder?.reminderKey || "1d")}
+                            onClick={() =>
+                              handleReminderChoice(
+                                event,
+                                reminder?.reminderKey || "1d",
+                              )
+                            }
                             disabled={!reminder || !id || !event?.start_date}
                             className={`block w-full rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition ${
                               reminder
@@ -574,12 +600,16 @@ export default function CalendarPage() {
                                 : "border-white/10 bg-white/5 text-gray-300"
                             } ${!reminder || !id || !event?.start_date ? "opacity-40" : ""}`}
                           >
-                            {reminder ? `Clear • ${reminderLabel}` : "No reminder"}
+                            {reminder
+                              ? `Clear • ${reminderLabel}`
+                              : "No reminder"}
                           </button>
                         </div>
                       </div>
                       <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
-                        <span>{event?.raw_data?.sourcePlatform || event?.platform}</span>
+                        <span>
+                          {event?.raw_data?.sourcePlatform || event?.platform}
+                        </span>
                         <span className="h-1 w-1 rounded-full bg-white/20" />
                         <span>{event?.city || "Online"}</span>
                       </div>
@@ -595,7 +625,9 @@ export default function CalendarPage() {
               </div>
             ) : (
               <div className="rounded-[24px] border border-dashed border-white/10 bg-white/5 p-8 text-center">
-                <h3 className="text-xl font-black tracking-tight">No saved events yet</h3>
+                <h3 className="text-xl font-black tracking-tight">
+                  No saved events yet
+                </h3>
                 <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-gray-500">
                   Save events from Explore to fill your calendar and reminders.
                 </p>

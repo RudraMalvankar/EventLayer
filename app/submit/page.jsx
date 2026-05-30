@@ -129,12 +129,13 @@ export default function SubmitPage() {
               Submit an event link
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-gray-400 sm:text-base">
-              Found a tech event we missed? Paste the link below and we’ll review it.
+              Found a tech event we missed? Paste the link below and we’ll
+              review it.
             </p>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-orange-200/90">
               If it’s relevant to builders, developers, startups, AI,
-              hackathons, or tech communities, we’ll add it to EventLayer
-              within 10 minutes.
+              hackathons, or tech communities, we’ll add it to EventLayer within
+              10 minutes.
             </p>
           </div>
 

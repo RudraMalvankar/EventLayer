@@ -170,14 +170,14 @@ function AuthMenu({ mobile = false, onNavigate }) {
 export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user, loading, initialized } = useUser();
+  const { loading, initialized } = useUser();
   const router = useRouter();
 
   const navItems = [
     { label: "Events", href: "/events" },
     { label: "Submit Link", href: "/submit" },
-    { label: "Calendar", href: "/calendar", requiresAuth: true },
-    { label: "Saved", href: "/saved", requiresAuth: true },
+    { label: "Calendar", href: "/calendar" },
+    { label: "Saved", href: "/saved" },
   ];
 
   return (
@@ -197,26 +197,7 @@ export function Navbar() {
                 key={item.href}
                 type="button"
                 onClick={async () => {
-                  // Protect certain routes by redirecting to login if no user
-                  const needsAuth = Boolean(item.requiresAuth);
                   if (!initialized || loading) return;
-                  if (needsAuth) {
-                    const {
-                      data: { session },
-                    } = await supabase.auth.getSession();
-                    if (!session) {
-                      router.push(
-                        `/login?redirect=${encodeURIComponent(item.href)}`,
-                      );
-                      return;
-                    }
-                  }
-                  if (needsAuth && !user) {
-                    router.push(
-                      `/login?redirect=${encodeURIComponent(item.href)}`,
-                    );
-                    return;
-                  }
                   router.push(item.href);
                 }}
                 className={`text-xs font-bold uppercase tracking-widest transition-all duration-200 ${
@@ -257,25 +238,7 @@ export function Navbar() {
                 type="button"
                 onClick={async () => {
                   setMobileOpen(false);
-                  const needsAuth = Boolean(item.requiresAuth);
                   if (!initialized || loading) return;
-                  if (needsAuth) {
-                    const {
-                      data: { session },
-                    } = await supabase.auth.getSession();
-                    if (!session) {
-                      router.push(
-                        `/login?redirect=${encodeURIComponent(item.href)}`,
-                      );
-                      return;
-                    }
-                  }
-                  if (needsAuth && !user) {
-                    router.push(
-                      `/login?redirect=${encodeURIComponent(item.href)}`,
-                    );
-                    return;
-                  }
                   router.push(item.href);
                 }}
                 className={`block rounded-xl px-4 py-3 text-sm font-bold uppercase tracking-widest transition-colors ${

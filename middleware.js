@@ -1,31 +1,7 @@
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
-import { NextResponse } from "next/server";
-
-const PROTECTED = [];
-
-export async function middleware(req) {
-  const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req, res });
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  const isProtected = PROTECTED.some((path) =>
-    req.nextUrl.pathname.startsWith(path),
-  );
-
-  if (isProtected && !session) {
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set(
-      "redirect",
-      `${req.nextUrl.pathname}${req.nextUrl.search}`,
-    );
-    return NextResponse.redirect(loginUrl);
-  }
-
-  return res;
+export function middleware() {
+  return undefined;
 }
 
 export const config = {
-  matcher: ["/saved/:path*"],
+  matcher: [],
 };
