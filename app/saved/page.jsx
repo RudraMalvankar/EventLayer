@@ -79,13 +79,6 @@ export default function SavedPage() {
   }, []);
 
   useEffect(() => {
-    if (!sessionResolved || authLoading) return;
-    if (!activeSession) {
-      router.replace("/login?redirect=/saved");
-    }
-  }, [sessionResolved, authLoading, activeSession, router]);
-
-  useEffect(() => {
     const token = activeSession?.access_token || session?.access_token;
     if (!token) return;
 
@@ -120,10 +113,52 @@ export default function SavedPage() {
   if (
     !initialized ||
     authLoading ||
-    !sessionResolved ||
-    loading ||
-    !activeSession
+    !sessionResolved
   ) {
+    return (
+      <main className="min-h-screen text-white">
+        <Navbar />
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="h-16 w-64 animate-pulse rounded-2xl bg-white/5" />
+          <div className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <div className="h-80 animate-pulse rounded-[32px] border border-white/10 bg-white/5" />
+            <div className="h-80 animate-pulse rounded-[32px] border border-white/10 bg-white/5" />
+            <div className="h-80 animate-pulse rounded-[32px] border border-white/10 bg-white/5" />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!activeSession) {
+    return (
+      <main className="min-h-screen pb-24 text-white">
+        <Navbar />
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="rounded-[32px] border border-white/10 bg-[#0a0c12]/90 p-10 text-center shadow-[0_20px_80px_rgba(0,0,0,0.28)]">
+            <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-orange-500">
+              Saved events
+            </div>
+            <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
+              Sign in to access your saved events
+            </h1>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-gray-400 sm:text-base">
+              Save events you like, build your personal event list, and come
+              back anytime.
+            </p>
+            <Link
+              href="/login?redirect=/saved"
+              className="mt-8 inline-flex rounded-full bg-orange-500 px-7 py-3 text-xs font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-orange-600"
+            >
+              Sign in to continue
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (loading) {
     return (
       <main className="min-h-screen text-white">
         <Navbar />
@@ -166,7 +201,7 @@ export default function SavedPage() {
               href="/events"
               className="mt-8 inline-flex rounded-full bg-orange-500 px-7 py-3 text-xs font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-orange-600"
             >
-              Explore events
+              Browse events
             </Link>
           </div>
         ) : (

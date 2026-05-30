@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Navbar } from "../../components/Navbar";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
@@ -86,7 +85,6 @@ function buildMonthCells(referenceDate) {
 }
 
 export default function CalendarPage() {
-  const router = useRouter();
   const { session, loading: authLoading, initialized } = useUser();
   const [activeSession, setActiveSession] = useState(null);
   const [sessionResolved, setSessionResolved] = useState(false);
@@ -99,13 +97,6 @@ export default function CalendarPage() {
   const [reminded, setReminded] = useState(() => new Set());
   const [refreshTick, setRefreshTick] = useState(0);
   const [reminderStatus, setReminderStatus] = useState("");
-
-  async function resolveToken() {
-    const token = activeSession?.access_token || session?.access_token;
-    if (token) return token;
-    const { data } = await supabase.auth.getSession();
-    return data?.session?.access_token || null;
-  }
 
   useEffect(() => {
     let cancelled = false;
@@ -144,13 +135,6 @@ export default function CalendarPage() {
       setRefreshTick((current) => current + 1);
     });
   }, []);
-
-  useEffect(() => {
-    if (!sessionResolved || authLoading) return;
-    if (!activeSession) {
-      router.replace("/login?redirect=/calendar");
-    }
-  }, [sessionResolved, authLoading, activeSession, router]);
 
   useEffect(() => {
     const token = activeSession?.access_token || session?.access_token;
@@ -327,10 +311,52 @@ export default function CalendarPage() {
   if (
     !initialized ||
     authLoading ||
-    !sessionResolved ||
-    loading ||
-    !activeSession
+    !sessionResolved
   ) {
+    return (
+      <main className="min-h-screen text-white">
+        <Navbar />
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="h-16 w-64 animate-pulse rounded-2xl bg-white/5" />
+          <div className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <div className="h-80 animate-pulse rounded-[32px] border border-white/10 bg-white/5" />
+            <div className="h-80 animate-pulse rounded-[32px] border border-white/10 bg-white/5" />
+            <div className="h-80 animate-pulse rounded-[32px] border border-white/10 bg-white/5" />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!activeSession) {
+    return (
+      <main className="min-h-screen pb-24 text-white">
+        <Navbar />
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="rounded-[32px] border border-white/10 bg-[#0a0c12]/90 p-10 text-center shadow-[0_20px_80px_rgba(0,0,0,0.28)]">
+            <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-orange-500">
+              Calendar
+            </div>
+            <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
+              Sign in to create your event calendar
+            </h1>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-gray-400 sm:text-base">
+              Track events you’re interested in, plan your week, and never miss
+              an important tech event.
+            </p>
+            <Link
+              href="/login?redirect=/calendar"
+              className="mt-8 inline-flex rounded-full bg-orange-500 px-7 py-3 text-xs font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-orange-600"
+            >
+              Sign in to create calendar
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (loading) {
     return (
       <main className="min-h-screen text-white">
         <Navbar />
@@ -364,7 +390,7 @@ export default function CalendarPage() {
             </p>
           </div>
           <Link
-            href="/explore"
+            href="/events"
             className="inline-flex rounded-full border border-white/10 bg-white/5 px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-white/10 w-fit"
           >
             Save more events
@@ -574,7 +600,7 @@ export default function CalendarPage() {
                   Save events from Explore to fill your calendar and reminders.
                 </p>
                 <Link
-                  href="/explore"
+                  href="/events"
                   className="mt-6 inline-flex rounded-full bg-orange-500 px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-orange-600"
                 >
                   Browse events

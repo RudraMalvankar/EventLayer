@@ -175,9 +175,9 @@ export function Navbar() {
 
   const navItems = [
     { label: "Events", href: "/events" },
-    { label: "Explore", href: "/explore" },
-    { label: "Calendar", href: "/calendar" },
-    { label: "Saved", href: "/saved" },
+    { label: "Submit Link", href: "/submit" },
+    { label: "Calendar", href: "/calendar", requiresAuth: true },
+    { label: "Saved", href: "/saved", requiresAuth: true },
   ];
 
   return (
@@ -198,11 +198,7 @@ export function Navbar() {
                 type="button"
                 onClick={async () => {
                   // Protect certain routes by redirecting to login if no user
-                  const needsAuth = [
-                    "/profile",
-                    "/saved",
-                    "/calendar",
-                  ].includes(item.href);
+                  const needsAuth = Boolean(item.requiresAuth);
                   if (!initialized || loading) return;
                   if (needsAuth) {
                     const {
@@ -261,11 +257,7 @@ export function Navbar() {
                 type="button"
                 onClick={async () => {
                   setMobileOpen(false);
-                  const needsAuth = [
-                    "/profile",
-                    "/saved",
-                    "/calendar",
-                  ].includes(item.href);
+                  const needsAuth = Boolean(item.requiresAuth);
                   if (!initialized || loading) return;
                   if (needsAuth) {
                     const {

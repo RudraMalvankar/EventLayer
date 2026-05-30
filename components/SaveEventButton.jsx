@@ -1,22 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "../src/shared/clients/supabase";
 import { notifySavedEventsUpdated } from "../src/shared/events/refresh";
 import { LoggedOutSaveModal } from "./LoggedOutSaveModal";
 
 export function SaveEventButton({ eventId, redirectPath = "/login" }) {
-  const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
-  async function resolveToken() {
-    const { data } = await supabase.auth.getSession();
-    return data?.session?.access_token || null;
-  }
 
   async function isAuthenticated() {
     try {
@@ -108,6 +101,7 @@ export function SaveEventButton({ eventId, redirectPath = "/login" }) {
     <>
       <LoggedOutSaveModal
         eventId={eventId}
+        redirectPath={redirectPath}
         isOpen={Boolean(showModal)}
         onClose={() => setShowModal(false)}
       />

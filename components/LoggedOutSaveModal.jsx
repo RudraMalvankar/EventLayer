@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export function LoggedOutSaveModal({ isOpen, onClose, eventId }) {
+export function LoggedOutSaveModal({ isOpen, onClose, eventId, redirectPath }) {
   const router = useRouter();
 
   useEffect(() => {
@@ -17,7 +17,8 @@ export function LoggedOutSaveModal({ isOpen, onClose, eventId }) {
   if (!isOpen) return null;
 
   function handleSignIn() {
-    const redirect = eventId ? `/events/${eventId}` : "/explore";
+    const redirect =
+      redirectPath || (eventId ? `/events/${eventId}` : "/events");
     router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
   }
 
