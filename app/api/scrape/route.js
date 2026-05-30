@@ -12,11 +12,26 @@ export async function POST(request) {
     );
   }
 
+  const body = await request.json().catch(() => ({}));
+  const url = new URL(request.url);
+  const requestedPlatform = String(
+    body?.platform || url.searchParams.get("platform") || "",
+  )
+    .trim()
+    .toLowerCase();
+
+  if (!requestedPlatform) {
+    return Response.json(
+      { data: null, error: "platform is required" },
+      { status: 400 },
+    );
+  }
+
   const {
     platform,
     events,
     error: scrapeError,
-  } = await scrapeByPlatform("luma");
+  } = await scrapeByPlatform(requestedPlatform);
   if (scrapeError)
     return Response.json({ data: null, error: scrapeError }, { status: 400 });
   // Optionally enrich events with Gemini before upsert
