@@ -5,15 +5,10 @@ import { EventCard } from "../../components/EventCard";
 import { LoggedOutSaveModal } from "../../components/LoggedOutSaveModal";
 import { SearchBar } from "../../components/SearchBar";
 import { Navbar } from "../../components/Navbar";
-import { useRouter } from "next/navigation";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
 import { notifySavedEventsUpdated } from "../../src/shared/events/refresh";
-import {
-  dayKey,
-  isUpcoming,
-  localDayKeyFromDate,
-} from "../../src/shared/events/dates";
+import { dayKey, localDayKeyFromDate } from "../../src/shared/events/dates";
 
 const MAP_PREVIEW_URL = process.env.NEXT_PUBLIC_MAPBOX_STATIC_PREVIEW_URL || "";
 
@@ -90,7 +85,6 @@ function formatDayLabel(value) {
 }
 
 export default function EventsPage() {
-  const router = useRouter();
   const { session, loading: authLoading, initialized } = useUser();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);

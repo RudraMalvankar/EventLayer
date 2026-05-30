@@ -7,6 +7,8 @@ import { LoggedOutSaveModal } from "../../components/LoggedOutSaveModal";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
 import { notifySavedEventsUpdated } from "../../src/shared/events/refresh";
+import { dayKey } from "../../src/shared/events/dates";
+
 const MAP_PREVIEW_URL = process.env.NEXT_PUBLIC_MAPBOX_STATIC_PREVIEW_URL || "";
 
 function getDisplayPlatform(event) {
