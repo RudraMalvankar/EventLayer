@@ -459,75 +459,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-white/5 bg-[#030407] px-6 py-16">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 sm:flex-row sm:items-start sm:justify-between">
-          <div className="max-w-xs">
-            <div className="text-xl font-black tracking-tighter text-white mb-4">
-              EVENT<span className="text-orange-500">LAYER</span>
-            </div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-600 leading-relaxed">
-              The premium discovery layer for India's high-performance tech
-              ecosystem.
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-x-16 gap-y-8">
-            <div className="flex flex-col gap-4">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">
-                Platform
-              </span>
-              <a
-                href="/events"
-                className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
-              >
-                Events
-              </a>
-              <a
-                href="/explore"
-                className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
-              >
-                Explore
-              </a>
-              <a
-                href="/saved"
-                className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
-              >
-                Saved
-              </a>
-            </div>
-            <div className="flex flex-col gap-4">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">
-                Connect
-              </span>
-              <a
-                href="https://github.com"
-                className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
-              >
-                GitHub
-              </a>
-              <a
-                href="/about"
-                className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
-              >
-                About
-              </a>
-              <a
-                href="#"
-                className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
-              >
-                Twitter
-              </a>
-            </div>
-          </div>
-        </div>
-        <div className="max-w-6xl mx-auto mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-[9px] font-black text-gray-700 uppercase tracking-[0.4em]">
-            © 2026 EVENTLAYER.DEV
-          </div>
-          <div className="text-[9px] font-black text-gray-700 uppercase tracking-[0.4em]">
-            Built for the Mumbai Ecosystem
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }
+
