@@ -54,7 +54,10 @@ function getCityMatch(text) {
 }
 
 function buildAppleMapsUrl(city, locationDetail = "") {
-  const query = [locationDetail, city].filter(Boolean).join(", ") || city || "Mumbai, India";
+  const query =
+    [locationDetail, city].filter(Boolean).join(", ") ||
+    city ||
+    "Mumbai, India";
   return `https://maps.apple.com/?q=${encodeURIComponent(query)}`;
 }
 
@@ -124,7 +127,9 @@ export function MapKitEventsMap({ events = [] }) {
       point.events.push(event);
     }
 
-    return Array.from(map.values()).sort((left, right) => right.count - left.count);
+    return Array.from(map.values()).sort(
+      (left, right) => right.count - left.count,
+    );
   }, [events]);
 
   useEffect(() => {
@@ -132,7 +137,9 @@ export function MapKitEventsMap({ events = [] }) {
 
     async function initializeMapKit() {
       const token =
-        process.env.NEXT_PUBLIC_MAPKIT_JS_TOKEN || process.env.MAPKIT_JS_TOKEN || "";
+        process.env.NEXT_PUBLIC_MAPKIT_JS_TOKEN ||
+        process.env.MAPKIT_JS_TOKEN ||
+        "";
       if (!token) {
         setMapkitError("MapKit token missing");
         return;
@@ -195,13 +202,20 @@ export function MapKitEventsMap({ events = [] }) {
 
     if (points.length) {
       const center = new mapkit.Coordinate(points[0].lat, points[0].lng);
-      map.region = new mapkit.CoordinateRegion(center, new mapkit.CoordinateSpan(8, 8));
+      map.region = new mapkit.CoordinateRegion(
+        center,
+        new mapkit.CoordinateSpan(8, 8),
+      );
     }
 
     const handleSingleTap = (event) => {
       const annotation = event?.annotation;
       if (!annotation?.data?.appleMapsUrl) return;
-      window.open(annotation.data.appleMapsUrl, "_blank", "noopener,noreferrer");
+      window.open(
+        annotation.data.appleMapsUrl,
+        "_blank",
+        "noopener,noreferrer",
+      );
     };
 
     map.addEventListener("select", handleSingleTap);

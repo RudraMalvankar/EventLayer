@@ -42,13 +42,12 @@ export default async function EventDetailPage({ params }) {
   if (error || !data?.event) return notFound();
 
   const { event, details } = data;
-  const displayPlatform =
-    String(
-      event?.raw_data?.sourcePlatform ||
-        event?.raw_data?.originalPlatform ||
-        event?.platform ||
-        "scraper",
-    ).toLowerCase();
+  const displayPlatform = String(
+    event?.raw_data?.sourcePlatform ||
+      event?.raw_data?.originalPlatform ||
+      event?.platform ||
+      "scraper",
+  ).toLowerCase();
 
   const dateRange = event?.start_date
     ? event?.end_date &&
