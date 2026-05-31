@@ -29,15 +29,13 @@ export function LockedRouteModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 sm:px-6 top-96 ">
-      <button
-        type="button"
-        aria-label="Close dialog"
-        className="absolute inset-0 bg-black/60"
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 sm:px-6 top-96">
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-xl"
         onClick={() => onClose?.()}
       />
 
-      <div className="relative z-10 w-full max-w-md translate-y-6 max-h-[calc(100vh-3rem)] overflow-y-auto rounded-[28px] border border-white/10 bg-[#0a0c12] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.45)] sm:translate-y-0 sm:max-h-[calc(100vh-4rem)] sm:p-7">
+      <div className="relative z-10 w-full max-w-md translate-y-6 max-h-[calc(100vh-3rem)] overflow-y-auto rounded-[28px] border border-white/10 bg-[#0a0c12]/95 p-6 shadow-[0_30px_100px_rgba(0,0,0,0.45)] sm:translate-y-0 sm:max-h-[calc(100vh-4rem)] sm:p-7">
         <div className="mb-4 inline-flex rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-orange-500">
           Locked feature
         </div>

@@ -178,6 +178,7 @@ export default function ProfilePage() {
     () => displayNameFrom(profile, user),
     [profile, user],
   );
+  const publicProfilePath = user?.id ? `/u/${user.id}` : null;
 
   const platformsFollowedCount = useMemo(() => {
     const value = profile?.platforms_followed;
@@ -520,6 +521,14 @@ export default function ProfilePage() {
             >
               Edit Profile
             </button>
+            {publicProfilePath ? (
+              <Link
+                href={publicProfilePath}
+                className="rounded-full border border-orange-500/20 bg-orange-500/10 px-6 py-3 text-xs font-black uppercase tracking-[0.2em] text-orange-300 transition-colors hover:bg-orange-500/20"
+              >
+                View Public Profile
+              </Link>
+            ) : null}
           </div>
         </section>
 

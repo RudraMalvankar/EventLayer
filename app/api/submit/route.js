@@ -43,7 +43,9 @@ function canonicalSubmitUrl(raw) {
 }
 
 function normalizeManualPlatform(value) {
-  const platform = String(value || "").trim().toLowerCase();
+  const platform = String(value || "")
+    .trim()
+    .toLowerCase();
   if (!platform) return "";
   if (platform.includes("luma")) return "luma";
   if (platform.includes("meetup")) return "meetup";
@@ -115,7 +117,9 @@ export async function POST(request) {
     const manualPlatform = normalizeManualPlatform(body?.platform);
     const manualTitle = String(body?.title || body?.event_title || "").trim();
     const manualCity = String(body?.city || "").trim();
-    const manualDate = normalizeManualDate(body?.start_date || body?.event_date);
+    const manualDate = normalizeManualDate(
+      body?.start_date || body?.event_date,
+    );
 
     if (!eventUrl || !isValidUrl(eventUrl)) {
       return Response.json(
@@ -147,7 +151,8 @@ export async function POST(request) {
     if (eventPayload) {
       eventPayload = {
         ...eventPayload,
-        platform: eventPayload.platform || manualPlatform || detectPlatform(eventUrl),
+        platform:
+          eventPayload.platform || manualPlatform || detectPlatform(eventUrl),
         title: eventPayload.title || manualTitle || undefined,
         city: eventPayload.city || manualCity || null,
         start_date: eventPayload.start_date || manualDate,
@@ -213,7 +218,9 @@ export async function POST(request) {
     }
 
     const canUpsertEvent = Boolean(
-      eventPayload?.title && eventPayload?.event_url && eventPayload?.start_date,
+      eventPayload?.title &&
+      eventPayload?.event_url &&
+      eventPayload?.start_date,
     );
 
     const upsert = canUpsertEvent

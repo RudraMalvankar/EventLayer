@@ -209,7 +209,9 @@ export default function SubmitPage() {
                   onClick={() => setShowManualDetails((value) => !value)}
                   className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-orange-300 transition hover:border-orange-500/40 hover:bg-orange-500/10"
                 >
-                  {showManualDetails ? "Hide details" : "Enter details manually"}
+                  {showManualDetails
+                    ? "Hide details"
+                    : "Enter details manually"}
                 </button>
               </div>
 
@@ -225,7 +227,11 @@ export default function SubmitPage() {
                       className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none transition focus:border-orange-500/70"
                     >
                       {ACCEPTED_PLATFORMS.map((item) => (
-                        <option key={item} value={item} className="bg-[#0a0c12] text-white">
+                        <option
+                          key={item}
+                          value={item}
+                          className="bg-[#0a0c12] text-white"
+                        >
                           {item}
                         </option>
                       ))}
@@ -353,7 +359,8 @@ export default function SubmitPage() {
             </p>
 
             <p className="mt-4 text-xs leading-relaxed text-gray-500">
-              If the link does not parse cleanly, tap “Enter details manually” and add the missing title, date, and city.
+              If the link does not parse cleanly, tap “Enter details manually”
+              and add the missing title, date, and city.
             </p>
           </form>
         </div>

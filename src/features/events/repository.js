@@ -238,7 +238,8 @@ export async function findTrendingEvents(limit = 6) {
   try {
     const { data, error } = await supabaseAdmin
       .from("saved_events")
-      .select("event_id, events(*)");
+      // include the save `created_at` so we can prefer recently-saved items
+      .select("event_id, created_at, events(*)");
     if (error) return fail(error.message);
 
     const grouped = new Map();
@@ -247,15 +248,40 @@ export async function findTrendingEvents(limit = 6) {
       const id = getEventId(row);
       if (!event || !id) continue;
 
-      const current = grouped.get(String(id)) || {
+      const key = String(id);
+      const current = grouped.get(key) || {
         event: projectEventRow(event),
         saves: 0,
+        // track the most recent save timestamp for this event
+        lastSaveAt: null,
       };
       current.saves += 1;
-      grouped.set(String(id), current);
+      const saveAt = row?.created_at ? new Date(row.created_at) : null;
+      if (saveAt && (!current.lastSaveAt || saveAt > current.lastSaveAt)) {
+        current.lastSaveAt = saveAt;
+      }
+      grouped.set(key, current);
     }
 
+    // drop ended events unless they have recent saves
+    const RECENT_SAVE_WINDOW_DAYS = 7;
+    const now = new Date();
+    const recentWindowMs = RECENT_SAVE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+
     const events = Array.from(grouped.values())
+      .filter(({ event, lastSaveAt }) => {
+        if (!event) return false;
+        const endDate = event?.end_date ? new Date(event.end_date) : null;
+        // if no end date or end date is in the future, keep it
+        if (!endDate || endDate.getTime() >= now.getTime()) return true;
+        // ended event: keep only if it has a recent save within the window
+        if (
+          lastSaveAt &&
+          now.getTime() - lastSaveAt.getTime() <= recentWindowMs
+        )
+          return true;
+        return false;
+      })
       .sort((a, b) => {
         if (b.saves !== a.saves) return b.saves - a.saves;
         const aTime = a.event?.start_date

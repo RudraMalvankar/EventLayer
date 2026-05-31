@@ -25,11 +25,11 @@ export function LoggedOutSaveModal({ isOpen, onClose, eventId, redirectPath }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-black/60"
+        className="absolute inset-0 bg-black/50 backdrop-blur-xl"
         onClick={() => onClose?.()}
       />
 
-      <div className="relative z-10 w-[90%] max-w-md rounded-2xl border border-white/10 bg-zinc-900 p-6 shadow-lg">
+      <div className="relative z-10 w-[90%] max-w-md rounded-2xl border border-white/10 bg-zinc-900/95 p-6 shadow-lg">
         <h3 className="mb-2 text-lg font-bold">Sign in to save this event</h3>
         <p className="mb-4 text-sm text-zinc-300">
           Keep track of events you like, get reminders, and build your personal
