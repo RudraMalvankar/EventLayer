@@ -1,4 +1,10 @@
-export function LegalPage({ eyebrow, title, description, lastUpdated, children }) {
+export function LegalPage({
+  eyebrow,
+  title,
+  description,
+  lastUpdated,
+  children,
+}) {
   return (
     <article className="rounded-[32px] border border-white/10 bg-[#0a0c12]/90 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.28)] sm:p-8 lg:p-10">
       <div className="space-y-5">
@@ -18,7 +24,8 @@ export function LegalPage({ eyebrow, title, description, lastUpdated, children }
 
           {lastUpdated ? (
             <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">
-              Last updated: <span className="text-orange-400">{lastUpdated}</span>
+              Last updated:{" "}
+              <span className="text-orange-400">{lastUpdated}</span>
             </p>
           ) : null}
         </div>

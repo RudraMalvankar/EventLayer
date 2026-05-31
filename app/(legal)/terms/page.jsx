@@ -46,9 +46,9 @@ export default function TermsPage() {
 
       <LegalSection title="Acceptable use">
         <p>
-          Do not scrape the site aggressively, attempt to bypass access controls,
-          submit malicious links, or interfere with the normal operation of the
-          product.
+          Do not scrape the site aggressively, attempt to bypass access
+          controls, submit malicious links, or interfere with the normal
+          operation of the product.
         </p>
       </LegalSection>
 
@@ -63,7 +63,8 @@ export default function TermsPage() {
         <p>
           The service is provided on an as-is basis without warranties of any
           kind. To the extent allowed by law, EventLayer is not responsible for
-          losses caused by third-party event platforms or inaccurate source data.
+          losses caused by third-party event platforms or inaccurate source
+          data.
         </p>
       </LegalSection>
     </LegalPage>

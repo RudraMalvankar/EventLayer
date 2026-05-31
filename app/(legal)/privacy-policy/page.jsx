@@ -15,8 +15,8 @@ export default function PrivacyPolicyPage() {
     >
       <LegalSection title="Information we collect">
         <p>
-          We collect information you provide directly, such as your name,
-          email, city, interests, saved events, and submissions.
+          We collect information you provide directly, such as your name, email,
+          city, interests, saved events, and submissions.
         </p>
         <p>
           We also process technical data needed to run the site, including

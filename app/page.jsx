@@ -197,7 +197,13 @@ export default async function LandingPage() {
 
           <div className="mt-12 flex items-center gap-6">
             <div className="flex -space-x-3">
-              {["R", "A", "S", "P", "K"].map((letter, index) => (
+              {[
+                "R",
+                "A",
+                "S",
+                "P",
+                "K",
+              ].map((letter, index) => (
                 <div
                   key={letter}
                   className="flex h-10 w-10 items-center justify-center rounded-full border-4 border-[#030407] text-[10px] font-black text-white"
@@ -361,7 +367,7 @@ export default async function LandingPage() {
           </div>
 
           <div className="absolute right-8 bottom-8 rounded-full border border-white/10 bg-black/60 backdrop-blur-xl px-6 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-            Visualizing Mumbai Ecosystem
+            Tech map of Mumbai ecosystem
           </div>
         </div>
       </section>
@@ -462,4 +468,3 @@ export default async function LandingPage() {
     </main>
   );
 }
-
