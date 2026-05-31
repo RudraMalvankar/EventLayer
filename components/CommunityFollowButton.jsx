@@ -2,6 +2,12 @@
 
 import { FollowButton } from "./FollowButton";
 
-export function CommunityFollowButton({ slug, name }) {
-  return <FollowButton communitySlug={slug} communityName={name} />;
+export function CommunityFollowButton({ slug, name, variant }) {
+  return (
+    <FollowButton
+      communitySlug={slug}
+      communityName={name}
+      variant={variant}
+    />
+  );
 }

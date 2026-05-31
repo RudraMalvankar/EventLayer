@@ -4,14 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { CommunityFollowButton } from "./CommunityFollowButton";
 
-const ACCENTS = {
-  echai: "from-violet-600 via-purple-600 to-fuchsia-700",
-  "gdg-cloud-mumbai": "from-sky-500 via-blue-600 to-indigo-700",
-  "gdg-mumbai": "from-blue-500 via-cyan-500 to-teal-600",
-  "mumbai-js": "from-yellow-400 via-amber-500 to-orange-600",
-  default: "from-orange-500 via-rose-500 to-purple-700",
-};
-
 function CommunityLogo({ community, className = "" }) {
   const [failed, setFailed] = useState(false);
   const logoUrl = community?.logo_url;
@@ -25,7 +17,7 @@ function CommunityLogo({ community, className = "" }) {
   if (!logoUrl || failed) {
     return (
       <div
-        className={`flex items-center justify-center rounded-2xl bg-white/15 text-lg font-black text-white backdrop-blur-md ${className}`}
+        className={`flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-sm font-black text-orange-400 ${className}`}
       >
         {initials}
       </div>
@@ -34,12 +26,14 @@ function CommunityLogo({ community, className = "" }) {
 
   return (
     <div
-      className={`flex items-center justify-center overflow-hidden rounded-2xl border border-white/25 bg-white p-2 shadow-lg ${className}`}
+      className={`flex items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white p-1.5 ${className}`}
     >
       <img
         src={logoUrl}
         alt=""
         className="h-full w-full object-contain"
+        loading="lazy"
+        decoding="async"
         onError={() => setFailed(true)}
       />
     </div>
@@ -48,29 +42,30 @@ function CommunityLogo({ community, className = "" }) {
 
 export function CommunityCard({ community, detail = false }) {
   const slug = community?.slug || "";
-  const accent = ACCENTS[slug] || ACCENTS.default;
   const count = community?.upcoming_count ?? 0;
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-[32px] border border-white/10 bg-[#141824] transition-all duration-500 hover:-translate-y-1 hover:border-orange-500/35 hover:shadow-[0_24px_80px_rgba(255,107,0,0.14)]">
-      <div className={`relative aspect-[16/9] bg-gradient-to-br ${accent}`}>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.22),transparent_55%)]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#141824] via-[#141824]/25 to-transparent" />
-
-        <CommunityLogo
-          community={community}
-          className="absolute left-5 top-5 h-16 w-16"
-        />
-
-        <div className="absolute right-5 top-5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-md">
-          {community?.city || "Mumbai"}
+    <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0c0e14] transition-all duration-300 hover:border-white/15 hover:shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
+      <div className="p-5 pb-0">
+        <div className="flex items-start justify-between gap-3">
+          <CommunityLogo community={community} className="h-12 w-12 shrink-0" />
+          <span className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-gray-500">
+            {community?.city || "Mumbai"}
+          </span>
         </div>
 
-        <div className="absolute bottom-4 left-5 flex flex-wrap gap-2">
+        <h3 className="mt-4 text-lg font-bold tracking-tight text-white">
+          {community?.name}
+        </h3>
+        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-gray-500">
+          {community?.description}
+        </p>
+
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {(community?.tags || []).slice(0, 3).map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-white/20 bg-black/20 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-white/90 backdrop-blur-md"
+              className="rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-gray-500"
             >
               {tag}
             </span>
@@ -78,39 +73,27 @@ export function CommunityCard({ community, detail = false }) {
         </div>
       </div>
 
-      <div className="relative flex flex-1 flex-col bg-gradient-to-b from-[#181c28] to-[#12151e] px-6 pb-6 pt-5">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-        <h3 className="text-xl font-black tracking-tight text-white transition-colors group-hover:text-orange-300">
-          {community?.name}
-        </h3>
-        <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-gray-400">
-          {community?.description}
-        </p>
-
-        <div className="mt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-          <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-emerald-400">
-            {count} upcoming
-          </span>
-          <span className="text-gray-600">·</span>
+      <div className="mt-4 flex flex-1 flex-col border-t border-white/[0.06] px-5 py-4">
+        <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-gray-600">
+          <span className="text-emerald-500/90">{count} upcoming</span>
+          <span>·</span>
           <span>Live from scrapers</span>
         </div>
 
         {!detail ? (
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="mt-4 flex items-center gap-2">
             <Link
               href={`/community/${slug}`}
-              className="flex-1 rounded-full bg-orange-500 py-3 text-center text-[10px] font-black uppercase tracking-[0.2em] text-white transition hover:bg-orange-600 active:scale-[0.98]"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-transparent px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-300 transition hover:border-orange-500/40 hover:text-white"
             >
-              Open community →
+              Open community
+              <span className="text-orange-500">→</span>
             </Link>
-            <div className="shrink-0">
-              <CommunityFollowButton slug={slug} name={community?.name} />
-            </div>
+            <CommunityFollowButton slug={slug} name={community?.name} variant="ghost" />
           </div>
         ) : (
-          <div className="mt-5">
-            <CommunityFollowButton slug={slug} name={community?.name} />
+          <div className="mt-4">
+            <CommunityFollowButton slug={slug} name={community?.name} variant="ghost" />
           </div>
         )}
       </div>

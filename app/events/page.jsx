@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { EventCard } from "../../components/EventCard";
 import { LoggedOutSaveModal } from "../../components/LoggedOutSaveModal";
@@ -13,7 +14,17 @@ import {
 } from "../../src/shared/events/refresh";
 import { dayKey, localDayKeyFromDate } from "../../src/shared/events/dates";
 
-const MAP_PREVIEW_URL = process.env.NEXT_PUBLIC_MAPBOX_STATIC_PREVIEW_URL || "";
+const RealEventsMap = dynamic(
+  () => import("../../components/RealEventsMap"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[480px] items-center justify-center rounded-[40px] border border-white/10 bg-[#0a0c12]">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+      </div>
+    ),
+  },
+);
 
 function CalendarWidget({ selectedDate, events, onDateSelect }) {
   const days = useMemo(() => {
@@ -375,47 +386,27 @@ export default function EventsPage() {
           </div>
 
           {showMap && (
-            <div className="mt-12 h-[500px] w-full bg-[#0a0c12] rounded-[40px] overflow-hidden relative border border-white/5 animate-fade-in-up">
-              <div
-                className="absolute inset-0 flex items-center justify-center bg-cover bg-center"
-                style={
-                  MAP_PREVIEW_URL
-                    ? { backgroundImage: `url(${MAP_PREVIEW_URL})` }
-                    : {
-                        background:
-                          "linear-gradient(135deg, #111827 0%, #020617 100%)",
-                      }
-                }
-              >
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
-                <div className="relative z-10 text-center">
-                  <div className="w-16 h-16 rounded-full bg-orange-500/20 border border-orange-500/50 flex items-center justify-center mx-auto mb-4 animate-bounce">
-                    <span className="text-2xl">📍</span>
-                  </div>
-                  <p className="text-xs font-black text-white uppercase tracking-[0.3em] bg-black/60 backdrop-blur-xl px-8 py-4 rounded-full border border-white/10 shadow-2xl">
-                    Exploring Mumbai
-                  </p>
-                </div>
-              </div>
+            <div className="mt-12 animate-fade-in-up">
+              <RealEventsMap events={filteredEvents} />
             </div>
           )}
         </header>
 
-        {loading ? (
+        {!showMap && loading ? (
           <div className="flex flex-col items-center justify-center py-40 animate-pulse">
             <div className="w-12 h-12 rounded-full border-t-2 border-orange-500 animate-spin mb-4" />
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
               Curating feed...
             </span>
           </div>
-        ) : events.length === 0 ? (
+        ) : !showMap && events.length === 0 ? (
           <div className="text-center py-40 glass rounded-[48px] border border-white/5">
             <div className="text-4xl mb-6 opacity-20">📂</div>
             <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mb-8">
               No events found in the database.
             </p>
           </div>
-        ) : filteredEvents.length === 0 ? (
+        ) : !showMap && filteredEvents.length === 0 ? (
           <div className="text-center py-40 glass rounded-[48px] border border-white/5">
             <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mb-4">
               No upcoming events match your filters.
@@ -436,7 +427,7 @@ export default function EventsPage() {
               Clear filters
             </button>
           </div>
-        ) : (
+        ) : !showMap ? (
           <div className="space-y-32">
             {groupedEvents.map((group) => (
               <section
@@ -466,7 +457,7 @@ export default function EventsPage() {
               </section>
             ))}
           </div>
-        )}
+        ) : null}
       </div>
     </main>
   );

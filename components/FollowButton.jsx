@@ -9,6 +9,7 @@ export function FollowButton({
   communitySlug,
   communityName,
   initialFollowing = false,
+  variant = "solid",
 }) {
   const [following, setFollowing] = useState(initialFollowing);
   const [loading, setLoading] = useState(false);
@@ -53,21 +54,30 @@ export function FollowButton({
   const label = communityName
     ? following
       ? "Following"
-      : "Follow community"
+      : variant === "ghost"
+        ? "Follow"
+        : "Follow community"
     : following
       ? "Following"
       : "Follow";
+
+  const base =
+    "rounded-lg px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-50";
+  const styles =
+    variant === "ghost"
+      ? following
+        ? `${base} border border-white/10 bg-white/[0.04] text-gray-400`
+        : `${base} border border-orange-500/30 bg-orange-500/10 text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/15`
+      : following
+        ? `${base} border border-white/20 bg-white/5 text-gray-300`
+        : `${base} bg-orange-500 text-white hover:bg-orange-600`;
 
   return (
     <button
       type="button"
       onClick={toggle}
       disabled={loading}
-      className={`rounded-full px-5 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-        following
-          ? "border border-white/20 bg-white/5 text-gray-300"
-          : "bg-orange-500 text-white hover:bg-orange-600"
-      }`}
+      className={styles}
     >
       {loading ? "..." : label}
     </button>
