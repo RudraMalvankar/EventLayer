@@ -112,6 +112,32 @@ export default function EventsPage() {
   const [showMap, setShowMap] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [showModalEventId, setShowModalEventId] = useState(null);
+  const [aiSearch, setAiSearch] = useState({
+    active: false,
+    query: "",
+    results: null,
+    summary: "",
+  });
+
+  function clearAiSearch() {
+    setAiSearch({ active: false, query: "", results: null, summary: "" });
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("q");
+      window.history.replaceState({}, "", `${url.pathname}${url.search}`);
+    }
+  }
+
+  function handleAiResults(aiEvents, _filters, summary, query) {
+    const list = Array.isArray(aiEvents) ? aiEvents : [];
+    setAiSearch({
+      active: true,
+      query: query || "",
+      results: list,
+      summary: summary || "",
+    });
+    setLoading(false);
+  }
 
   async function resolveToken() {
     const token = session?.access_token;
@@ -250,14 +276,27 @@ export default function EventsPage() {
   }, [session?.access_token]);
 
   const filteredEvents = useMemo(() => {
-    let result = events;
+    const source =
+      aiSearch.active &&
+      Array.isArray(aiSearch.results) &&
+      aiSearch.results.length > 0
+        ? aiSearch.results
+        : events;
+
+    let result = source;
     if (filters.platform !== "All") {
       result = result.filter((event) =>
         matchesPlatformFilter(event, filters.platform),
       );
     }
     return result;
-  }, [events, filters.platform]);
+  }, [events, aiSearch, filters.platform]);
+
+  const aiNoMatches =
+    aiSearch.active &&
+    Array.isArray(aiSearch.results) &&
+    aiSearch.results.length === 0 &&
+    events.length > 0;
 
   const groupedEvents = useMemo(() => {
     const groups = new Map();
@@ -338,14 +377,29 @@ export default function EventsPage() {
           <div className="mb-12">
             <AISearchBar
               initialQuery={initialQ}
-              onResults={(aiEvents) => {
-                setEvents(aiEvents);
-                setLoading(false);
-              }}
+              onResults={handleAiResults}
+              onClear={clearAiSearch}
               onLoading={(busy) => {
                 if (busy) setLoading(true);
               }}
             />
+            {aiNoMatches && (
+              <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-amber-100/90">
+                  No exact AI matches for &ldquo;{aiSearch.query}&rdquo;. Showing
+                  all upcoming events below — try a shorter query like{" "}
+                  <span className="text-orange-300">js mumbai</span> or{" "}
+                  <span className="text-orange-300">react meetup</span>.
+                </p>
+                <button
+                  type="button"
+                  onClick={clearAiSearch}
+                  className="shrink-0 rounded-full border border-white/20 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white hover:bg-white/10"
+                >
+                  Clear search
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center mb-12">
@@ -423,7 +477,7 @@ export default function EventsPage() {
               No events found in the database.
             </p>
           </div>
-        ) : !showMap && filteredEvents.length === 0 ? (
+        ) : !showMap && filteredEvents.length === 0 && !aiNoMatches ? (
           <div className="text-center py-40 glass rounded-[48px] border border-white/5">
             <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mb-4">
               No upcoming events match your filters.
@@ -432,6 +486,7 @@ export default function EventsPage() {
               type="button"
               onClick={() => {
                 setSelectedDateKey(null);
+                clearAiSearch();
                 setFilters({
                   category: "All",
                   mode: "All",

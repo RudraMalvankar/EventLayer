@@ -10,6 +10,7 @@ const EXAMPLES = [
 
 export function AISearchBar({
   onResults,
+  onClear,
   onLoading,
   initialQuery = "",
   compact = false,
@@ -19,14 +20,28 @@ export function AISearchBar({
   const [summary, setSummary] = useState("");
   const [parser, setParser] = useState("");
   const [error, setError] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
   const ranInitial = useRef(false);
 
+  function clearSearch() {
+    setValue("");
+    setSummary("");
+    setParser("");
+    setError("");
+    setHasSearched(false);
+    onClear?.();
+  }
+
   async function runSearch(queryText) {
-    const q = String(queryText || value).trim();
-    if (!q) return;
+    const q = String(queryText ?? value).trim();
+    if (!q) {
+      clearSearch();
+      return;
+    }
 
     setLoading(true);
     setError("");
+    setHasSearched(true);
     onLoading?.(true);
 
     try {
@@ -39,7 +54,7 @@ export function AISearchBar({
 
       if (!res.ok || json?.error) {
         setError(json?.error || "Search failed");
-        onResults?.([], null, "");
+        onClear?.();
         return;
       }
 
@@ -48,10 +63,10 @@ export function AISearchBar({
       const aiSummary = json?.data?.ai_summary || "";
       setSummary(aiSummary);
       setParser(json?.data?.parser === "gemini" ? "Gemini" : "Smart rules");
-      onResults?.(events, filters, aiSummary);
+      onResults?.(events, filters, aiSummary, q);
     } catch {
       setError("Could not reach search API");
-      onResults?.([], null, "");
+      onClear?.();
     } finally {
       setLoading(false);
       onLoading?.(false);
@@ -61,6 +76,7 @@ export function AISearchBar({
   useEffect(() => {
     if (!initialQuery || ranInitial.current) return;
     ranInitial.current = true;
+    setValue(initialQuery);
     runSearch(initialQuery);
   }, [initialQuery]);
 
@@ -79,14 +95,25 @@ export function AISearchBar({
             className="w-full bg-transparent py-3 text-sm text-white placeholder:text-gray-600 focus:outline-none"
           />
         </div>
-        <button
-          type="button"
-          onClick={() => runSearch()}
-          disabled={loading}
-          className="rounded-[18px] bg-orange-500 px-8 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white transition hover:bg-orange-600 disabled:opacity-50"
-        >
-          {loading ? "Thinking..." : "AI Search"}
-        </button>
+        <div className="flex gap-2">
+          {hasSearched && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="rounded-[18px] border border-white/15 px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 transition hover:border-white/30 hover:text-white"
+            >
+              Clear
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => runSearch()}
+            disabled={loading}
+            className="rounded-[18px] bg-orange-500 px-8 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white transition hover:bg-orange-600 disabled:opacity-50"
+          >
+            {loading ? "Thinking..." : "AI Search"}
+          </button>
+        </div>
       </div>
 
       {!compact && (

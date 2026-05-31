@@ -64,6 +64,42 @@ export function parseSearchQueryFallback(query) {
   return filters;
 }
 
+function simplifyKeyword(value = "") {
+  const text = String(value || "").toLowerCase().trim();
+  if (!text) return null;
+
+  const stop = new Set([
+    "event",
+    "events",
+    "in",
+    "at",
+    "for",
+    "this",
+    "next",
+    "near",
+    "around",
+    "show",
+    "find",
+    "free",
+    "online",
+    "offline",
+    "mumbai",
+    "pune",
+    "bangalore",
+    "bengaluru",
+    "delhi",
+  ]);
+
+  const tokens = text
+    .split(/[^a-z0-9+]+/)
+    .filter(Boolean)
+    .filter((t) => !stop.has(t));
+
+  if (!tokens.length) return null;
+  // Keep top 2-3 meaningful tokens so DB ilike can match.
+  return tokens.slice(0, 3).join(" ");
+}
+
 export async function parseSearchQuery(query) {
   const fallback = parseSearchQueryFallback(query);
 
@@ -176,19 +212,58 @@ export async function runAiSearch(query) {
   const range = dateRangeToFilter(filters?.date_range);
   const merged = {
     ...filters,
+    keyword: simplifyKeyword(filters?.keyword) || filters?.keyword || null,
     ...(range ? { start_from: range.from, start_to: range.to } : {}),
   };
   delete merged.date_range;
   delete merged._source;
 
   const { searchEventsService } = await import("../events/service.js");
-  const { data, error } = await searchEventsService(merged);
-  const events = data?.events || [];
-  const summary = await describeSearchFilters(query, merged, events.length);
+  const first = await searchEventsService(merged);
+
+  let events = first.data?.events || [];
+  let error = first.error;
+  let applied = merged;
+
+  // Retry with relaxed filters if first pass finds nothing.
+  if (!error && events.length === 0) {
+    const relaxed = {
+      ...merged,
+      category: undefined,
+      mode: undefined,
+      is_free: undefined,
+      start_from: undefined,
+      start_to: undefined,
+      tags: undefined,
+      keyword:
+        simplifyKeyword(String(filters?.keyword || "").replace(/\b(js)\b/gi, "javascript")) ||
+        simplifyKeyword(filters?.keyword) ||
+        null,
+    };
+
+    const second = await searchEventsService(relaxed);
+    if (!second.error && (second.data?.events || []).length > 0) {
+      events = second.data.events;
+      applied = relaxed;
+    } else if (!second.error) {
+      const broad = {
+        keyword: relaxed.keyword || null,
+        limit: 48,
+        upcomingOnly: true,
+      };
+      const third = await searchEventsService(broad);
+      if (!third.error && (third.data?.events || []).length > 0) {
+        events = third.data.events;
+        applied = broad;
+      }
+    }
+  }
+
+  const summary = await describeSearchFilters(query, applied, events.length);
 
   return {
     events,
-    filters_applied: merged,
+    filters_applied: applied,
     ai_summary: summary,
     parser: filters._source || "rules",
     error,
