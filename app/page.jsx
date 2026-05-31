@@ -1,7 +1,9 @@
 import { Navbar } from "../components/Navbar";
 import { EventCard } from "../components/EventCard";
 import dynamic from "next/dynamic";
-const RealEventsMap = dynamic(() => import("../components/RealEventsMap"), { ssr: false });
+const RealEventsMap = dynamic(() => import("../components/RealEventsMap"), {
+  ssr: false,
+});
 import {
   getEventsService,
   getTrendingEventsService,

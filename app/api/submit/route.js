@@ -42,6 +42,24 @@ function canonicalSubmitUrl(raw) {
   }
 }
 
+function normalizeManualPlatform(value) {
+  const platform = String(value || "").trim().toLowerCase();
+  if (!platform) return "";
+  if (platform.includes("luma")) return "luma";
+  if (platform.includes("meetup")) return "meetup";
+  if (platform.includes("eventbrite")) return "eventbrite";
+  if (platform.includes("devfolio")) return "devfolio";
+  if (platform.includes("unstop")) return "unstop";
+  if (platform.includes("hackculture")) return "hackculture";
+  return platform;
+}
+
+function normalizeManualDate(value) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
 async function buildEventFromUrl(eventUrl) {
   const canonicalUrl = canonicalSubmitUrl(eventUrl);
   const platform = detectPlatform(canonicalUrl);
@@ -94,6 +112,10 @@ export async function POST(request) {
     const body = await request.json().catch(() => ({}));
     const eventUrl = String(body?.event_url || body?.url || "").trim();
     const note = String(body?.note || "").trim();
+    const manualPlatform = normalizeManualPlatform(body?.platform);
+    const manualTitle = String(body?.title || body?.event_title || "").trim();
+    const manualCity = String(body?.city || "").trim();
+    const manualDate = normalizeManualDate(body?.start_date || body?.event_date);
 
     if (!eventUrl || !isValidUrl(eventUrl)) {
       return Response.json(
@@ -122,6 +144,49 @@ export async function POST(request) {
 
     let eventPayload = await buildEventFromUrl(eventUrl);
 
+    if (eventPayload) {
+      eventPayload = {
+        ...eventPayload,
+        platform: eventPayload.platform || manualPlatform || detectPlatform(eventUrl),
+        title: eventPayload.title || manualTitle || undefined,
+        city: eventPayload.city || manualCity || null,
+        start_date: eventPayload.start_date || manualDate,
+        raw_data: {
+          ...(eventPayload.raw_data || {}),
+          manual_platform: manualPlatform || null,
+          manual_title: manualTitle || null,
+          manual_city: manualCity || null,
+          manual_start_date: manualDate || null,
+        },
+      };
+    } else if (manualTitle || manualDate || manualCity || manualPlatform) {
+      eventPayload = {
+        title: manualTitle || eventUrl,
+        description: note || "",
+        platform: manualPlatform || detectPlatform(eventUrl),
+        city: manualCity || null,
+        country: "India",
+        mode: manualCity ? "offline" : "online",
+        category: "meetup",
+        tags: [],
+        banner_url: null,
+        event_url: canonicalSubmitUrl(eventUrl),
+        start_date: manualDate,
+        end_date: null,
+        organizer: "Unknown Organizer",
+        is_free: true,
+        raw_data: {
+          sourcePlatform: manualPlatform || detectPlatform(eventUrl),
+          originalPlatform: manualPlatform || detectPlatform(eventUrl),
+          sourceUrl: canonicalSubmitUrl(eventUrl),
+          manual_platform: manualPlatform || null,
+          manual_title: manualTitle || null,
+          manual_city: manualCity || null,
+          manual_start_date: manualDate || null,
+        },
+      };
+    }
+
     if (shouldEnrichWithGemini() && eventPayload) {
       const { html } = await fetchPageText(eventUrl);
       if (html) {
@@ -147,30 +212,13 @@ export async function POST(request) {
       }
     }
 
-    if (!eventPayload?.title || !eventPayload?.event_url) {
-      return Response.json(
-        {
-          data: null,
-          error:
-            "Could not read event details from that link. Try a Luma, Meetup, or Eventbrite URL.",
-        },
-        { status: 422 },
-      );
-    }
+    const canUpsertEvent = Boolean(
+      eventPayload?.title && eventPayload?.event_url && eventPayload?.start_date,
+    );
 
-    // Prevent creating events without a determinable start date (TBA entries)
-    if (!eventPayload?.start_date) {
-      return Response.json(
-        {
-          data: null,
-          error:
-            "Could not determine the event date from that link. Please provide a direct event page with the date or try a different link.",
-        },
-        { status: 422 },
-      );
-    }
-
-    const upsert = await upsertEventsService([eventPayload]);
+    const upsert = canUpsertEvent
+      ? await upsertEventsService([eventPayload])
+      : { data: { inserted: 0 }, error: null };
     if (upsert.error) {
       return Response.json(
         { data: null, error: upsert.error || "Failed to save event." },
@@ -190,7 +238,11 @@ export async function POST(request) {
       // ignore lookup errors
     }
 
-    const submissionStatus = eventRow?.id ? "added" : "received";
+    const submissionStatus = canUpsertEvent
+      ? eventRow?.id
+        ? "added"
+        : "received"
+      : "queued";
 
     let submissionRow = null;
     try {
@@ -198,11 +250,15 @@ export async function POST(request) {
         ...submission,
         user_id: user?.id,
         user_email: user?.email || null,
-        title: eventRow?.title || eventPayload.title,
+        title: eventRow?.title || eventPayload?.title || null,
         status: submissionStatus,
         event_id: eventRow?.id || null,
         raw_data: {
           platform: detectPlatform(eventUrl),
+          manual_platform: manualPlatform || null,
+          manual_title: manualTitle || null,
+          manual_city: manualCity || null,
+          manual_start_date: manualDate || null,
           event: eventPayload,
         },
       };

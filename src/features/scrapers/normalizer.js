@@ -97,6 +97,7 @@ export function detectPlatform(url) {
   if (lower.includes("unstop.com")) return "unstop";
   if (lower.includes("devpost.com")) return "devpost";
   if (lower.includes("eventbrite.com")) return "eventbrite";
+  if (lower.includes("hackculture.io")) return "hackculture";
   return "luma";
 }
 

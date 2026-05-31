@@ -135,11 +135,17 @@ export default function SavedClient() {
             <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-orange-500">
               Saved events
             </div>
-            <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Sign in to access your saved events</h1>
+            <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
+              Sign in to access your saved events
+            </h1>
             <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-gray-400 sm:text-base">
-              Save events you like, build your personal event list, and come back anytime.
+              Save events you like, build your personal event list, and come
+              back anytime.
             </p>
-            <Link href="/login?redirect=/saved" className="mt-8 inline-flex rounded-full bg-orange-500 px-7 py-3 text-xs font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-orange-600">
+            <Link
+              href="/login?redirect=/saved"
+              className="mt-8 inline-flex rounded-full bg-orange-500 px-7 py-3 text-xs font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-orange-600"
+            >
               Sign in to continue
             </Link>
           </div>
@@ -169,22 +175,40 @@ export default function SavedClient() {
       <Navbar />
       <div className="mx-auto max-w-6xl px-6 py-12">
         <h1 className="text-4xl font-black tracking-tight">Saved Events</h1>
-        <p className="mt-3 text-sm text-gray-500">Events you bookmarked to revisit later.</p>
+        <p className="mt-3 text-sm text-gray-500">
+          Events you bookmarked to revisit later.
+        </p>
 
         {error && (
-          <p className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</p>
+          <p className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {error}
+          </p>
         )}
 
         {!error && events.length === 0 ? (
           <div className="mt-10 rounded-[32px] border border-white/10 bg-[#0a0c12]/80 p-10 text-center">
-            <h2 className="text-2xl font-black tracking-tight">No saved events yet</h2>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-gray-500">Start exploring events and save the ones you do not want to miss.</p>
-            <Link href="/events" className="mt-8 inline-flex rounded-full bg-orange-500 px-7 py-3 text-xs font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-orange-600">Browse events</Link>
+            <h2 className="text-2xl font-black tracking-tight">
+              No saved events yet
+            </h2>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-gray-500">
+              Start exploring events and save the ones you do not want to miss.
+            </p>
+            <Link
+              href="/events"
+              className="mt-8 inline-flex rounded-full bg-orange-500 px-7 py-3 text-xs font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-orange-600"
+            >
+              Browse events
+            </Link>
           </div>
         ) : (
           <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {events.map((event) => (
-              <EventCard key={event.id || event.event_url} event={event} isSaved onSave={toggleSave} />
+              <EventCard
+                key={event.id || event.event_url}
+                event={event}
+                isSaved
+                onSave={toggleSave}
+              />
             ))}
           </div>
         )}

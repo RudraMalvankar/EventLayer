@@ -11,6 +11,7 @@ const ACCEPTED_PLATFORMS = [
   "Eventbrite",
   "Devfolio",
   "Unstop",
+  "HackCulture",
   "Other tech events",
 ];
 
@@ -53,7 +54,12 @@ export default function SubmitPage() {
   const router = useRouter();
   const { user, session } = useUser();
   const [eventUrl, setEventUrl] = useState("");
+  const [platform, setPlatform] = useState("Luma");
+  const [eventTitle, setEventTitle] = useState("");
+  const [eventDate, setEventDate] = useState("");
+  const [city, setCity] = useState("");
   const [note, setNote] = useState("");
+  const [showManualDetails, setShowManualDetails] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [status, setStatus] = useState("");
@@ -78,6 +84,10 @@ export default function SubmitPage() {
 
     const submission = {
       event_url: trimmedUrl,
+      platform,
+      title: eventTitle.trim(),
+      start_date: eventDate || null,
+      city: city.trim(),
       note: note.trim(),
       source: "submit-page",
       submitted_at: new Date().toISOString(),
@@ -116,9 +126,14 @@ export default function SubmitPage() {
       setSuccess(
         submitStatus === "added"
           ? "This event was added to EventLayer. Open /events to see it."
-          : "We saved your link. It may take a moment to appear on /events.",
+          : "We saved your link, but we need a few details to finish it.",
       );
+      setShowManualDetails(submitStatus === "queued");
       setEventUrl("");
+      setPlatform("Luma");
+      setEventTitle("");
+      setEventDate("");
+      setCity("");
       setNote("");
       if (submitStatus === "added") {
         setTimeout(() => router.push("/events"), 1200);
@@ -179,6 +194,85 @@ export default function SubmitPage() {
               />
             </label>
 
+            <div className="mt-5 rounded-3xl border border-white/10 bg-white/5 p-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-white">
+                    Auto-fill details
+                  </p>
+                  <p className="text-xs leading-relaxed text-gray-400">
+                    We only need these if the link cannot be parsed.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowManualDetails((value) => !value)}
+                  className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-orange-300 transition hover:border-orange-500/40 hover:bg-orange-500/10"
+                >
+                  {showManualDetails ? "Hide details" : "Enter details manually"}
+                </button>
+              </div>
+
+              {showManualDetails ? (
+                <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">
+                      Platform
+                    </span>
+                    <select
+                      value={platform}
+                      onChange={(event) => setPlatform(event.target.value)}
+                      className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none transition focus:border-orange-500/70"
+                    >
+                      {ACCEPTED_PLATFORMS.map((item) => (
+                        <option key={item} value={item} className="bg-[#0a0c12] text-white">
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">
+                      Event date
+                    </span>
+                    <input
+                      type="date"
+                      value={eventDate}
+                      onChange={(event) => setEventDate(event.target.value)}
+                      className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none transition focus:border-orange-500/70"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">
+                      Event title
+                    </span>
+                    <input
+                      type="text"
+                      value={eventTitle}
+                      onChange={(event) => setEventTitle(event.target.value)}
+                      placeholder="If the parser cannot read it, type the title here"
+                      className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-orange-500/70"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">
+                      City
+                    </span>
+                    <input
+                      type="text"
+                      value={city}
+                      onChange={(event) => setCity(event.target.value)}
+                      placeholder="Mumbai, Pune, Bengaluru, Online..."
+                      className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-orange-500/70"
+                    />
+                  </label>
+                </div>
+              ) : null}
+            </div>
+
             <label className="mt-5 block">
               <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">
                 Optional note
@@ -210,7 +304,7 @@ export default function SubmitPage() {
                 {status === "added"
                   ? "Added to feed"
                   : status === "queued"
-                    ? "Queued for review"
+                    ? "Needs details"
                     : "Received"}
               </p>
             ) : null}
@@ -256,6 +350,10 @@ export default function SubmitPage() {
               {recentCount
                 ? `${recentCount} submission${recentCount === 1 ? "" : "s"} saved locally on this device.`
                 : "Submissions are saved locally if no backend table is available yet."}
+            </p>
+
+            <p className="mt-4 text-xs leading-relaxed text-gray-500">
+              If the link does not parse cleanly, tap “Enter details manually” and add the missing title, date, and city.
             </p>
           </form>
         </div>
