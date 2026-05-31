@@ -1,5 +1,5 @@
 {
-  "runAt": "2026-05-28T15:22:41.533Z",
+  "runAt": "2026-05-31T11:04:26.536Z",
   "results": [
     {
       "id": "487cd957-a2b8-42f9-9447-74dcbf3528d0",
@@ -11,21 +11,69 @@
         },
         {
           "type": "debug",
-          "text": "Search endpoint requested!"
+          "text": "AuthProvider: loadSession start"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: loadSession start"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: session loaded {loadedAt: 1780225449967, hasSession: false, userId: null, email: null}"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: onAuthStateChange INITIAL_SESSION false"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /events/[id], path: /events/487cd957-a2b8-42f9-9447-74dcbf3528d0}"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /events/[id], path: /events/487cd957-a2b8-42f9-9447-74dcbf3528d0}"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c [view] http://localhost:3000/events/487cd957-a2b8-42f9-9447-74dcbf3528d0 color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/events/487cd957-a2b8-42f9-9447-74dcbf3528d0, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1780225450200} /_vercel/insights/view"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c [view] http://localhost:3000/events/487cd957-a2b8-42f9-9447-74dcbf3528d0 color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/events/487cd957-a2b8-42f9-9447-74dcbf3528d0, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1780225450200} /_vercel/insights/view"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(3), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(1), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals"
         }
       ],
       "errors": [],
       "responses": [
         {
-          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1779981735569",
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1780225448126",
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1779981735569",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1780225448126",
           "status": 200
         },
         {
           "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
           "status": 200
         },
         {
@@ -37,7 +85,7 @@
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1779981735569",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1780225448126",
           "status": 200
         }
       ],
@@ -53,17 +101,61 @@
         },
         {
           "type": "debug",
-          "text": "Search endpoint requested!"
+          "text": "AuthProvider: loadSession start"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: loadSession start"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: session loaded {loadedAt: 1780225453233, hasSession: false, userId: null, email: null}"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: onAuthStateChange INITIAL_SESSION false"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /events/[id], path: /events/8b480571-21eb-4a09-b0a1-153a26010416}"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /events/[id], path: /events/8b480571-21eb-4a09-b0a1-153a26010416}"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c [view] http://localhost:3000/events/8b480571-21eb-4a09-b0a1-153a26010416 color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/events/8b480571-21eb-4a09-b0a1-153a26010416, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1780225453249} /_vercel/insights/view"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c [view] http://localhost:3000/events/8b480571-21eb-4a09-b0a1-153a26010416 color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/events/8b480571-21eb-4a09-b0a1-153a26010416, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1780225453249} /_vercel/insights/view"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(3), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(1), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals"
         }
       ],
       "errors": [],
       "responses": [
         {
-          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1779981741919",
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1780225451123",
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1779981741919",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1780225451123",
           "status": 200
         },
         {
@@ -71,15 +163,19 @@
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
-          "status": 200
-        },
-        {
           "url": "http://localhost:3000/_next/static/media/13971731025ec697-s.p.woff2",
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1779981741919",
+          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1780225451123",
           "status": 200
         }
       ],
@@ -94,22 +190,66 @@
           "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
         },
         {
+          "type": "error",
+          "text": "Refused to display 'https://maps.apple.com/' in a frame because it set 'X-Frame-Options' to 'sameorigin'."
+        },
+        {
           "type": "debug",
-          "text": "Search endpoint requested!"
+          "text": "AuthProvider: loadSession start"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: loadSession start"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: session loaded {loadedAt: 1780225456243, hasSession: false, userId: null, email: null}"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: onAuthStateChange INITIAL_SESSION false"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /events/[id], path: /events/6a106e30-7d32-457b-a4a0-b3d9a59de395}"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /events/[id], path: /events/6a106e30-7d32-457b-a4a0-b3d9a59de395}"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c [view] http://localhost:3000/events/6a106e30-7d32-457b-a4a0-b3d9a59de395 color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/events/6a106e30-7d32-457b-a4a0-b3d9a59de395, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1780225456267} /_vercel/insights/view"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c [view] http://localhost:3000/events/6a106e30-7d32-457b-a4a0-b3d9a59de395 color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/events/6a106e30-7d32-457b-a4a0-b3d9a59de395, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1780225456267} /_vercel/insights/view"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(3), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(1), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals"
         }
       ],
       "errors": [],
       "responses": [
         {
-          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1779981746432",
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1780225454213",
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1779981746432",
-          "status": 200
-        },
-        {
-          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1780225454213",
           "status": 200
         },
         {
@@ -121,7 +261,15 @@
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1779981746432",
+          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1780225454213",
           "status": 200
         }
       ],
@@ -137,17 +285,61 @@
         },
         {
           "type": "debug",
-          "text": "Search endpoint requested!"
+          "text": "AuthProvider: loadSession start"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: loadSession start"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: session loaded {loadedAt: 1780225459281, hasSession: false, userId: null, email: null}"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: onAuthStateChange INITIAL_SESSION false"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /events/[id], path: /events/e37322f1-9b3e-4b72-99b5-db010a143260}"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /events/[id], path: /events/e37322f1-9b3e-4b72-99b5-db010a143260}"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c [view] http://localhost:3000/events/e37322f1-9b3e-4b72-99b5-db010a143260 color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/events/e37322f1-9b3e-4b72-99b5-db010a143260, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1780225459301} /_vercel/insights/view"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c [view] http://localhost:3000/events/e37322f1-9b3e-4b72-99b5-db010a143260 color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/events/e37322f1-9b3e-4b72-99b5-db010a143260, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1780225459302} /_vercel/insights/view"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(3), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(1), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals"
         }
       ],
       "errors": [],
       "responses": [
         {
-          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1779981749611",
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1780225457394",
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1779981749611",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1780225457394",
           "status": 200
         },
         {
@@ -155,7 +347,7 @@
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
           "status": 200
         },
         {
@@ -163,7 +355,11 @@
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1779981749611",
+          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1780225457394",
           "status": 200
         }
       ],
@@ -179,17 +375,61 @@
         },
         {
           "type": "debug",
-          "text": "Search endpoint requested!"
+          "text": "AuthProvider: loadSession start"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: loadSession start"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: session loaded {loadedAt: 1780225462132, hasSession: false, userId: null, email: null}"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: onAuthStateChange INITIAL_SESSION false"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /events/[id], path: /events/b0140da4-a777-4042-8ceb-8911850e52ed}"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /events/[id], path: /events/b0140da4-a777-4042-8ceb-8911850e52ed}"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c [view] http://localhost:3000/events/b0140da4-a777-4042-8ceb-8911850e52ed color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/events/b0140da4-a777-4042-8ceb-8911850e52ed, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1780225462154} /_vercel/insights/view"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c [view] http://localhost:3000/events/b0140da4-a777-4042-8ceb-8911850e52ed color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/events/b0140da4-a777-4042-8ceb-8911850e52ed, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1780225462155} /_vercel/insights/view"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"
+        },
+        {
+          "type": "error",
+          "text": "Refused to display 'https://maps.apple.com/' in a frame because it set 'X-Frame-Options' to 'sameorigin'."
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(3), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(1), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals"
         }
       ],
       "errors": [],
       "responses": [
         {
-          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1779981754573",
-          "status": 200
-        },
-        {
-          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1779981754573",
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1780225460267",
           "status": 200
         },
         {
@@ -197,7 +437,7 @@
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1780225460267",
           "status": 200
         },
         {
@@ -205,7 +445,15 @@
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1779981754573",
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/events/%5Bid%5D/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1780225460267",
           "status": 200
         }
       ],
@@ -220,22 +468,74 @@
           "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
         },
         {
+          "type": "error",
+          "text": "Refused to display 'https://maps.apple.com/' in a frame because it set 'X-Frame-Options' to 'sameorigin'."
+        },
+        {
           "type": "debug",
-          "text": "Search endpoint requested!"
+          "text": "AuthProvider: loadSession start"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: loadSession start"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: session loaded {loadedAt: 1780225465363, hasSession: false, userId: null, email: null}"
+        },
+        {
+          "type": "debug",
+          "text": "AuthProvider: onAuthStateChange INITIAL_SESSION false"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /events/[id], path: /events/810f59c6-cde9-4acf-82a5-6f06702041ea}"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /events/[id], path: /events/810f59c6-cde9-4acf-82a5-6f06702041ea}"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c [view] http://localhost:3000/events/810f59c6-cde9-4acf-82a5-6f06702041ea color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/events/810f59c6-cde9-4acf-82a5-6f06702041ea, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1780225465421} /_vercel/insights/view"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Web Analytics]%c [view] http://localhost:3000/events/810f59c6-cde9-4acf-82a5-6f06702041ea color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/events/810f59c6-cde9-4acf-82a5-6f06702041ea, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1780225465421} /_vercel/insights/view"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(3), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals"
+        },
+        {
+          "type": "log",
+          "text": "%c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(1), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals"
         }
       ],
       "errors": [],
       "responses": [
         {
-          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1779981757871",
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1780225463344",
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1779981757871",
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1780225463344",
           "status": 200
         },
         {
           "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
           "status": 200
         },
         {
@@ -247,7 +547,7 @@
           "status": 200
         },
         {
-          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1779981757871",
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1780225463344",
           "status": 200
         }
       ],

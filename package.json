@@ -9,7 +9,7 @@
     "clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\"",
     "start:cron": "node ./src/cron/scraperCron.js",
     "playwright:install": "npx playwright install",
-    "smoke": "node scripts/playwright_smoke.js",
+    "smoke": "node scripts/playwright_smoke.mjs",
     "e2e:signup": "node scripts/e2e_signup.mjs",
     "start": "next start -p 3000",
     "lint": "next lint",
