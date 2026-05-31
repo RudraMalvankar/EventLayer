@@ -2,7 +2,11 @@ import { chromium } from "playwright";
 import fs from "fs";
 
 function loadEvents() {
-  const candidates = ["scripts/events_list.json", "events.json", "dev/events.json"];
+  const candidates = [
+    "scripts/events_list.json",
+    "events.json",
+    "dev/events.json",
+  ];
 
   for (const file of candidates) {
     if (!fs.existsSync(file)) continue;
