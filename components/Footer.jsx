@@ -8,7 +8,6 @@ const productLinks = [
   { label: "Explore", href: "/explore" },
   { label: "Submit", href: "/submit" },
   { label: "Saved", href: "/saved" },
-  { label: "Organizer", href: "/organizer" },
 ];
 
 const legalLinks = [

@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "../../shared/clients/supabase.js";
+import { sanitizeIlike } from "../../shared/security/helpers.js";
 import { detectPlatform } from "../scrapers/normalizer.js";
 
 const ALLOWED_PLATFORMS = new Set([
@@ -145,7 +146,7 @@ export async function findEvents({
       .from("events")
       .select("*", { count: "exact" })
       .order("start_date", { ascending: true });
-    if (city) query = query.ilike("city", `%${city}%`);
+    if (city) query = query.ilike("city", `%${sanitizeIlike(city)}%`);
     if (category) query = query.eq("category", category);
     if (mode) query = query.eq("mode", mode);
     if (platform) {
@@ -157,10 +158,12 @@ export async function findEvents({
       const now = new Date().toISOString();
       query = query.gte("start_date", now);
     }
-    if (keyword)
+    if (keyword) {
+      const safe = sanitizeIlike(keyword);
       query = query.or(
-        `title.ilike.%${keyword}%,description.ilike.%${keyword}%`,
+        `title.ilike.%${safe}%,description.ilike.%${safe}%`,
       );
+    }
     const from = (Number(page) - 1) * Number(limit);
     const to = from + Number(limit) - 1;
     const { data, error, count } = await query.range(from, to);

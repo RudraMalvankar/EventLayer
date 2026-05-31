@@ -1,4 +1,4 @@
--- Run in Supabase SQL editor after schema.sql
+-- EventLayer feature tables (profiles extensions, follows, notifications, digests, analytics, communities)
 
 alter table public.profiles add column if not exists bio text;
 alter table public.profiles add column if not exists digest_enabled boolean default true;

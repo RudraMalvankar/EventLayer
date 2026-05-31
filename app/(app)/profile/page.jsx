@@ -39,7 +39,6 @@ const hubLinks = [
   { href: "/community", label: "Community", desc: "Follow & activity" },
   { href: "/digest", label: "Digest", desc: "Weekly summary" },
   { href: "/notifications", label: "Alerts", desc: "Notifications" },
-  { href: "/organizer", label: "Organizer", desc: "Your events" },
 ];
 
 function initialsFrom(profile, user) {

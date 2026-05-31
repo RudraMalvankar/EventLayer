@@ -3,20 +3,13 @@ import {
   trackEventRepo,
   getAnalyticsDashboardRepo,
 } from "../../../src/features/analytics/repository.js";
-import { env } from "../../../src/shared/config/env.js";
-
-function isAdmin(email) {
-  const list = String(env.adminEmails || "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  return list.includes(String(email || "").toLowerCase());
-}
+import { sanitizeAnalyticsPayload } from "../../../src/shared/security/helpers.js";
+import { isAdminEmail } from "../../../src/features/auth/admin.js";
 
 export async function GET(request) {
   try {
     const { user } = await requireAuth(request);
-    if (!isAdmin(user.email)) {
+    if (!isAdminEmail(user.email)) {
       return Response.json({ data: null, error: "Forbidden" }, { status: 403 });
     }
     const { data, error } = await getAnalyticsDashboardRepo();
@@ -30,18 +23,19 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json().catch(() => ({}));
+    const safe = sanitizeAnalyticsPayload(body);
     let userId = null;
     try {
       const { user } = await requireAuth(request);
       userId = user?.id || null;
     } catch {
-      // anonymous tracking allowed
+      // anonymous tracking allowed for page views only
     }
     const { data, error } = await trackEventRepo({
-      event_type: body.event_type,
+      event_type: safe.event_type,
       user_id: userId,
-      event_id: body.event_id || null,
-      metadata: body.metadata || {},
+      event_id: safe.event_id,
+      metadata: safe.metadata,
     });
     return Response.json({ data, error });
   } catch {

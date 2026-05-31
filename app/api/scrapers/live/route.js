@@ -1,6 +1,7 @@
 import { normalizeEvent } from "../../../../src/features/scrapers/normalizer.js";
 import { scrapeByPlatform } from "../../../../src/features/scrapers/service.js";
 import { upsertEventsService } from "../../../../src/features/events/service.js";
+import { verifyScrapeSecret } from "../../../../src/shared/security/helpers.js";
 
 const PLATFORMS = ["luma", "devfolio", "unstop", "devpost", "eventbrite"];
 
@@ -40,7 +41,7 @@ function dedupeEvents(events) {
   });
 }
 
-export async function GET() {
+export async function GET(request) {
   const events = [];
 
   for (const platform of PLATFORMS) {
@@ -58,8 +59,8 @@ export async function GET() {
 
   const deduped = dedupeEvents(events);
 
-  // Background upsert to DB
-  if (deduped.length > 0) {
+  // Only upsert when caller has scrape secret (prevents public DB spam)
+  if (deduped.length > 0 && verifyScrapeSecret(request)) {
     upsertEventsService(deduped).catch((err) => {
       console.error("Failed to upsert live events:", err);
     });

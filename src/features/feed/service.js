@@ -1,9 +1,11 @@
 import { supabaseAdmin } from "../../shared/clients/supabase.js";
 import { findEvents } from "../events/repository.js";
 import { getFollowingRepo } from "../follows/repository.js";
+import { getFollowedCommunitiesRepo } from "../communities/service.js";
+import { eventMatchesCommunity } from "../communities/mumbai.js";
 import { ok, fail, isMissingTableError } from "../../shared/db/errors.js";
 
-function scoreEvent(event, profile, followedOrganizers = new Set()) {
+function scoreEvent(event, profile, followedOrganizers = new Set(), followedCommunities = []) {
   let score = 0;
   const interests = (profile?.interests || []).map((i) => i.toLowerCase());
   const types = (profile?.event_types || []).map((t) => t.toLowerCase());
@@ -29,6 +31,12 @@ function scoreEvent(event, profile, followedOrganizers = new Set()) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-");
   if (orgSlug && followedOrganizers.has(orgSlug)) score += 5;
+  for (const community of followedCommunities) {
+    if (eventMatchesCommunity(event, community)) {
+      score += 6;
+      break;
+    }
+  }
   if (event.trending_saves) score += Math.min(event.trending_saves, 10);
   return score;
 }
@@ -43,9 +51,11 @@ export async function getPersonalizedFeedService(userId, { limit = 12, page = 1 
 
     const profile = profileRes.data || {};
     const following = await getFollowingRepo(userId);
+    const communitiesRes = await getFollowedCommunitiesRepo(userId);
     const followedOrganizers = new Set(
       (following.data?.organizers || []).map((o) => o.slug),
     );
+    const followedCommunities = communitiesRes.data?.communities || [];
 
     const eventsResult = await findEvents({
       city: profile.city || undefined,
@@ -59,8 +69,8 @@ export async function getPersonalizedFeedService(userId, { limit = 12, page = 1 
     const ranked = (eventsResult.data?.events || [])
       .map((event) => ({
         ...event,
-        feed_score: scoreEvent(event, profile, followedOrganizers),
-        feed_reason: buildReason(event, profile, followedOrganizers),
+        feed_score: scoreEvent(event, profile, followedOrganizers, followedCommunities),
+        feed_reason: buildReason(event, profile, followedOrganizers, followedCommunities),
       }))
       .sort((a, b) => b.feed_score - a.feed_score);
 
@@ -80,7 +90,12 @@ export async function getPersonalizedFeedService(userId, { limit = 12, page = 1 
   }
 }
 
-function buildReason(event, profile, followedOrganizers) {
+function buildReason(event, profile, followedOrganizers, followedCommunities = []) {
+  for (const community of followedCommunities) {
+    if (eventMatchesCommunity(event, community)) {
+      return `From ${community.name}`;
+    }
+  }
   const orgSlug = String(event.organizer || "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-");

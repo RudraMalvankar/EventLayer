@@ -127,13 +127,6 @@ function AuthMenu({ mobile = false, onNavigate }) {
         >
           Digest
         </Link>
-        <Link
-          href="/organizer"
-          onClick={onNavigate}
-          className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 hover:bg-white/5 hover:text-white"
-        >
-          Organizer
-        </Link>
         <button
           type="button"
           onClick={handleSignOut}
@@ -204,13 +197,6 @@ function AuthMenu({ mobile = false, onNavigate }) {
           >
             Digest
           </Link>
-          <Link
-            href="/organizer"
-            onClick={() => setOpen(false)}
-            className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 hover:bg-white/5 hover:text-white"
-          >
-            Organizer
-          </Link>
           <div className="my-2 h-px bg-white/10" />
           <button
             type="button"
@@ -234,8 +220,8 @@ export function Navbar() {
 
   const navItems = [
     { label: "Events", href: "/events" },
+    { label: "Community", href: "/community" },
     { label: "Feed", href: "/feed", auth: true },
-    { label: "Community", href: "/community", auth: true },
     { label: "Submit", href: "/submit" },
     { label: "Saved", href: "/saved" },
   ];
@@ -244,7 +230,7 @@ export function Navbar() {
     if (!initialized || loading) return;
 
     const locked =
-      item.auth || ["/calendar", "/saved", "/feed", "/community"].includes(item.href);
+      item.auth || ["/calendar", "/saved", "/feed"].includes(item.href);
     if (locked && !user) {
       const titles = {
         "/calendar": "Sign in to create your event calendar",

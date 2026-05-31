@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { supabase } from "../supabase/client";
 
-export function FollowButton({ userId, organizer, initialFollowing = false }) {
+export function FollowButton({
+  userId,
+  organizer,
+  communitySlug,
+  communityName,
+  initialFollowing = false,
+}) {
   const [following, setFollowing] = useState(initialFollowing);
   const [loading, setLoading] = useState(false);
 
@@ -14,16 +20,21 @@ export function FollowButton({ userId, organizer, initialFollowing = false }) {
     } = await supabase.auth.getSession();
     const token = session?.access_token;
     if (!token) {
-      window.location.href = "/login";
+      window.location.href = communitySlug
+        ? `/login?redirect=/community/${communitySlug}`
+        : "/login";
       return;
     }
 
     const method = following ? "DELETE" : "POST";
-    const body = organizer
-      ? following
-        ? { organizer_slug: organizer }
-        : { organizer }
-      : { following_id: userId };
+    let body;
+    if (communitySlug) {
+      body = { community_slug: communitySlug };
+    } else if (organizer) {
+      body = following ? { organizer_slug: organizer } : { organizer };
+    } else {
+      body = { following_id: userId };
+    }
 
     const res = await fetch("/api/follow", {
       method,
@@ -39,6 +50,14 @@ export function FollowButton({ userId, organizer, initialFollowing = false }) {
     setFollowing(!following);
   }
 
+  const label = communityName
+    ? following
+      ? "Following"
+      : "Follow community"
+    : following
+      ? "Following"
+      : "Follow";
+
   return (
     <button
       type="button"
@@ -50,7 +69,7 @@ export function FollowButton({ userId, organizer, initialFollowing = false }) {
           : "bg-orange-500 text-white hover:bg-orange-600"
       }`}
     >
-      {loading ? "..." : following ? "Following" : "Follow"}
+      {loading ? "..." : label}
     </button>
   );
 }

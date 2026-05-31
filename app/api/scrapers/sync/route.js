@@ -4,6 +4,7 @@ import { fetchDevfolioEventDetails } from "../../../../src/features/scrapers/dev
 import { fetchEventDetails } from "../../../../src/features/scrapers/luma/details.js";
 import { scrapeByPlatform } from "../../../../src/features/scrapers/service.js";
 import { detectPlatform } from "../../../../src/features/scrapers/normalizer.js";
+import { verifyScrapeSecret } from "../../../../src/shared/security/helpers.js";
 
 const PLATFORMS = [
   "luma",
@@ -121,7 +122,11 @@ function dedupeEvents(events) {
   });
 }
 
-export async function POST() {
+export async function POST(request) {
+  if (!verifyScrapeSecret(request)) {
+    return Response.json({ data: null, error: "Unauthorized" }, { status: 401 });
+  }
+
   const scraped = [];
   const platformResults = [];
 

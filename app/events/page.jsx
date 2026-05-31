@@ -7,7 +7,10 @@ import { SearchBar } from "../../components/SearchBar";
 import { Navbar } from "../../components/Navbar";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
-import { notifySavedEventsUpdated, subscribeToSavedEventsUpdated } from "../../src/shared/events/refresh";
+import {
+  notifySavedEventsUpdated,
+  subscribeToSavedEventsUpdated,
+} from "../../src/shared/events/refresh";
 import { dayKey, localDayKeyFromDate } from "../../src/shared/events/dates";
 
 const MAP_PREVIEW_URL = process.env.NEXT_PUBLIC_MAPBOX_STATIC_PREVIEW_URL || "";
@@ -29,9 +32,7 @@ function CalendarWidget({ selectedDate, events, onDateSelect }) {
       {days.map((date) => {
         const dateKey = localDayKeyFromDate(date);
         const isSelected = selectedDate === dateKey;
-        const hasEvents = events.some(
-          (e) => dayKey(e.start_date) === dateKey,
-        );
+        const hasEvents = events.some((e) => dayKey(e.start_date) === dateKey);
 
         return (
           <button
@@ -223,7 +224,9 @@ export default function EventsPage() {
   useEffect(() => {
     // refresh saved ids when other tabs update saved events
     const unsub = subscribeToSavedEventsUpdated(() => {
-      loadSavedIds().catch((err) => console.error("Failed to refresh saved ids", err));
+      loadSavedIds().catch((err) =>
+        console.error("Failed to refresh saved ids", err),
+      );
     });
     return unsub;
   }, [session?.access_token]);

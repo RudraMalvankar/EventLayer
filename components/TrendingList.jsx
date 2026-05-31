@@ -9,7 +9,7 @@ export default function TrendingList({ initial = [] }) {
 
   async function fetchTrending() {
     try {
-      const res = await fetch('/api/trending');
+      const res = await fetch("/api/trending");
       if (!res.ok) return;
       const json = await res.json();
       const events = Array.isArray(json?.data?.events) ? json.data.events : [];
