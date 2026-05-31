@@ -140,6 +140,9 @@ export async function findEvents({
   page = 1,
   limit = 12,
   upcomingOnly = true,
+  start_from,
+  start_to,
+  tags,
 } = {}) {
   try {
     let query = supabaseAdmin
@@ -154,21 +157,40 @@ export async function findEvents({
       query = query.or(`platform.eq.${p},raw_data->>sourcePlatform.eq.${p}`);
     }
     if (typeof is_free === "boolean") query = query.eq("is_free", is_free);
-    if (upcomingOnly) {
+    if (start_from) query = query.gte("start_date", start_from);
+    if (start_to) query = query.lte("start_date", start_to);
+    if (upcomingOnly && !start_from) {
       const now = new Date().toISOString();
       query = query.gte("start_date", now);
     }
     if (keyword) {
       const safe = sanitizeIlike(keyword);
       query = query.or(
-        `title.ilike.%${safe}%,description.ilike.%${safe}%`,
+        `title.ilike.%${safe}%,description.ilike.%${safe}%,organizer.ilike.%${safe}%`,
       );
     }
-    const from = (Number(page) - 1) * Number(limit);
-    const to = from + Number(limit) - 1;
-    const { data, error, count } = await query.range(from, to);
+    const fromIdx = (Number(page) - 1) * Number(limit);
+    const toIdx = fromIdx + Number(limit) - 1;
+    const { data, error, count } = await query.range(fromIdx, toIdx);
     if (error) return fail(error.message);
-    return ok({ events: (data || []).map(projectEventRow), total: count || 0 });
+
+    let events = (data || []).map(projectEventRow);
+    if (Array.isArray(tags) && tags.length) {
+      const tagSet = tags.map((t) => String(t).toLowerCase());
+      events = events.filter((ev) => {
+        const hay = [
+          ...(Array.isArray(ev.tags) ? ev.tags : []),
+          ev.title,
+          ev.description,
+          ev.category,
+        ]
+          .join(" ")
+          .toLowerCase();
+        return tagSet.some((t) => hay.includes(t));
+      });
+    }
+
+    return ok({ events, total: count || events.length });
   } catch {
     return fail("Failed to fetch events");
   }

@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { EventCard } from "../../components/EventCard";
 import { LoggedOutSaveModal } from "../../components/LoggedOutSaveModal";
-import { SearchBar } from "../../components/SearchBar";
+import { AISearchBar } from "../../components/AISearchBar";
 import { Navbar } from "../../components/Navbar";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
@@ -98,6 +98,7 @@ function formatDayLabel(value) {
 
 export default function EventsPage() {
   const { session, loading: authLoading, initialized } = useUser();
+  const [initialQ, setInitialQ] = useState("");
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savedIds, setSavedIds] = useState(new Set());
@@ -221,9 +222,15 @@ export default function EventsPage() {
   }
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setInitialQ(q);
+  }, []);
+
+  useEffect(() => {
     setSelectedDateKey(null);
-    loadEvents();
-  }, [filters.city, filters.category, filters.mode]);
+    if (!initialQ) loadEvents();
+  }, [filters.city, filters.category, filters.mode, initialQ]);
 
   useEffect(() => {
     if (!initialized || authLoading) return;
@@ -328,11 +335,21 @@ export default function EventsPage() {
             </div>
           </div>
 
+          <div className="mb-12">
+            <AISearchBar
+              initialQuery={initialQ}
+              onResults={(aiEvents) => {
+                setEvents(aiEvents);
+                setLoading(false);
+              }}
+              onLoading={(busy) => {
+                if (busy) setLoading(true);
+              }}
+            />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center mb-12">
-            <div className="md:col-span-6">
-              <SearchBar onSearch={(q) => loadEvents(q)} />
-            </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-4">
               <select
                 className="w-full bg-[#0a0c12] border border-white/5 rounded-2xl px-5 py-4 text-xs font-bold uppercase tracking-widest focus:outline-none focus:border-orange-500/50 transition-colors appearance-none text-gray-400"
                 onChange={(e) =>
@@ -348,7 +365,7 @@ export default function EventsPage() {
                 <option value="eventbrite">Eventbrite</option>
               </select>
             </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-4">
               <select
                 className="w-full bg-[#0a0c12] border border-white/5 rounded-2xl px-5 py-4 text-xs font-bold uppercase tracking-widest focus:outline-none focus:border-orange-500/50 transition-colors appearance-none text-gray-400"
                 onChange={(e) =>
@@ -362,7 +379,7 @@ export default function EventsPage() {
                 <option>Workshop</option>
               </select>
             </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-4">
               <input
                 placeholder="City..."
                 className="w-full bg-[#0a0c12] border border-white/5 rounded-2xl px-5 py-4 text-xs font-bold uppercase tracking-widest focus:outline-none focus:border-orange-500/50 transition-colors text-gray-400"

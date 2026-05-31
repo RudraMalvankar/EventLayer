@@ -1,11 +1,16 @@
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Navbar } from "../components/Navbar";
 import { EventCard } from "../components/EventCard";
-import dynamic from "next/dynamic";
 import {
   getEventsService,
   getTrendingEventsService,
 } from "../src/features/events/service";
+
+const HeroAISearch = dynamic(
+  () => import("../components/HeroAISearch").then((m) => m.HeroAISearch),
+  { ssr: false },
+);
 
 const RealEventsMap = dynamic(() => import("../components/RealEventsMap"), {
   ssr: false,
@@ -192,6 +197,8 @@ export default async function LandingPage() {
             The ultimate discovery layer for India's tech ecosystem. Unified
             feed, AI-powered discovery, and zero noise.
           </p>
+
+          <HeroAISearch />
 
           <div className="flex flex-wrap items-center gap-4">
             <a

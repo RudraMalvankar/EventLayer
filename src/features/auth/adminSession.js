@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 import { env } from "../../shared/config/env.js";
 import {
   HARDCODED_ADMIN_EMAIL,
@@ -13,8 +14,21 @@ const COOKIE_NAME = "el_admin_session";
 const MAX_AGE_SEC = 60 * 60 * 24 * 7;
 
 function signingSecret() {
-  return env.scrapeSecret || env.supabaseServiceKey || "eventlayer-admin-dev";
+  return (
+    process.env.ADMIN_SESSION_SECRET ||
+    env.scrapeSecret ||
+    env.supabaseServiceKey ||
+    "eventlayer-admin-dev"
+  );
 }
+
+const COOKIE_OPTS = {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+  maxAge: MAX_AGE_SEC,
+};
 
 export function verifyAdminCredentials(email, password) {
   const normalizedEmail = String(email || "").trim().toLowerCase();
@@ -37,7 +51,10 @@ export function verifyAdminCredentials(email, password) {
 function signToken(email) {
   const exp = Date.now() + MAX_AGE_SEC * 1000;
   const payload = `${email}|${exp}`;
-  const sig = crypto.createHmac("sha256", signingSecret()).update(payload).digest("hex");
+  const sig = crypto
+    .createHmac("sha256", signingSecret())
+    .update(payload)
+    .digest("hex");
   return `${Buffer.from(payload).toString("base64url")}.${sig}`;
 }
 
@@ -58,27 +75,18 @@ export function verifyToken(token) {
   return email;
 }
 
-export function setAdminSessionCookie(response, email) {
+/** Build login success response with session cookie (must use NextResponse). */
+export function createAdminLoginResponse(email) {
   const token = signToken(email.toLowerCase());
-  response.cookies.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: MAX_AGE_SEC,
-  });
-  return response;
+  const res = NextResponse.json({ data: { email }, error: null });
+  res.cookies.set(COOKIE_NAME, token, COOKIE_OPTS);
+  return res;
 }
 
-export function clearAdminSessionCookie(response) {
-  response.cookies.set(COOKIE_NAME, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
-  });
-  return response;
+export function createAdminLogoutResponse() {
+  const res = NextResponse.json({ data: { signed_out: true }, error: null });
+  res.cookies.set(COOKIE_NAME, "", { ...COOKIE_OPTS, maxAge: 0 });
+  return res;
 }
 
 export async function getAdminSessionFromRequest(request) {

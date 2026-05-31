@@ -93,9 +93,14 @@ export async function searchEventsService(filters = {}) {
     city: filters.city || undefined,
     category: filters.category || undefined,
     mode: filters.mode || undefined,
-    is_free: typeof filters.is_free === "boolean" ? filters.is_free : undefined,
+    is_free:
+      typeof filters.is_free === "boolean" ? filters.is_free : undefined,
     keyword: filters.keyword || undefined,
+    start_from: filters.start_from || undefined,
+    start_to: filters.start_to || undefined,
+    tags: filters.tags || undefined,
     page: filters.page || 1,
-    limit: filters.limit || 12,
+    limit: filters.limit || 48,
+    upcomingOnly: filters.upcomingOnly !== false,
   });
 }

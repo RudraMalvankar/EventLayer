@@ -1,7 +1,7 @@
 import {
   verifyAdminCredentials,
-  setAdminSessionCookie,
-  clearAdminSessionCookie,
+  createAdminLoginResponse,
+  createAdminLogoutResponse,
   getDefaultAdminHint,
 } from "../../../../src/features/auth/adminSession.js";
 
@@ -15,16 +15,18 @@ export async function POST(request) {
         { status: 401 },
       );
     }
-    const res = Response.json({ data: { email: result.email }, error: null });
-    return setAdminSessionCookie(res, result.email);
-  } catch {
-    return Response.json({ data: null, error: "Login failed" }, { status: 500 });
+    return createAdminLoginResponse(result.email);
+  } catch (err) {
+    console.error("Admin login error:", err);
+    return Response.json(
+      { data: null, error: "Login failed — check server logs" },
+      { status: 500 },
+    );
   }
 }
 
 export async function DELETE() {
-  const res = Response.json({ data: { signed_out: true }, error: null });
-  return clearAdminSessionCookie(res);
+  return createAdminLogoutResponse();
 }
 
 export async function GET() {
