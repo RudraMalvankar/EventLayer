@@ -1,11 +1,10 @@
 import { Navbar } from "../components/Navbar";
 import { EventCard } from "../components/EventCard";
+import { RealEventsMap } from "../components/RealEventsMap";
 import {
   getEventsService,
   getTrendingEventsService,
 } from "../src/features/events/service";
-
-const MAP_PREVIEW_URL = process.env.NEXT_PUBLIC_MAPBOX_STATIC_PREVIEW_URL || "";
 
 const floatingEvents = [
   {
@@ -197,13 +196,7 @@ export default async function LandingPage() {
 
           <div className="mt-12 flex items-center gap-6">
             <div className="flex -space-x-3">
-              {[
-                "R",
-                "A",
-                "S",
-                "P",
-                "K",
-              ].map((letter, index) => (
+              {["R", "A", "S", "P", "K"].map((letter, index) => (
                 <div
                   key={letter}
                   className="flex h-10 w-10 items-center justify-center rounded-full border-4 border-[#030407] text-[10px] font-black text-white"
@@ -342,34 +335,7 @@ export default async function LandingPage() {
         <div className="text-4xl font-black tracking-tighter mb-8">
           Find events <span className="text-gray-700">near you.</span>
         </div>
-        <div className="relative h-[450px] overflow-hidden rounded-[48px] border border-white/5 bg-[#0a0c12] shadow-2xl group">
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-60 transition-transform duration-[10s] group-hover:scale-110"
-            style={
-              MAP_PREVIEW_URL
-                ? { backgroundImage: `url(${MAP_PREVIEW_URL})` }
-                : {
-                    background:
-                      "linear-gradient(135deg, #111827 0%, #020617 100%)",
-                  }
-            }
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#030407] via-transparent to-transparent" />
-
-          <div className="absolute left-[25%] top-[55%] rounded-full bg-orange-500 px-4 py-2 text-[10px] font-black text-white uppercase tracking-widest shadow-[0_8px_30px_rgba(255,77,0,0.4)] animate-bounce">
-            Mumbai · 12
-          </div>
-          <div className="absolute left-[35%] top-[68%] rounded-full bg-[#7C3AED] px-4 py-2 text-[10px] font-black text-white uppercase tracking-widest shadow-[0_8px_30px_rgba(124,58,237,0.3)] animate-pulse">
-            Bangalore · 8
-          </div>
-          <div className="absolute left-[31%] top-[58%] rounded-full bg-[#2563EB] px-4 py-2 text-[10px] font-black text-white uppercase tracking-widest shadow-[0_8px_30px_rgba(37,99,235,0.3)]">
-            Pune · 5
-          </div>
-
-          <div className="absolute right-8 bottom-8 rounded-full border border-white/10 bg-black/60 backdrop-blur-xl px-6 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-            Tech map of Mumbai ecosystem
-          </div>
-        </div>
+        <RealEventsMap events={[...events, ...featuredTrending]} />
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-6 pb-32">
@@ -464,7 +430,6 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
-
     </main>
   );
 }

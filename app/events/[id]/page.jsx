@@ -7,6 +7,15 @@ import { getEventDetailsLiveService } from "../../../src/features/events/service
 
 export const dynamic = "force-dynamic";
 
+function buildAppleMapsUrl({ title, city, country, locationDetail }) {
+  const parts = [locationDetail, city, country]
+    .map((part) => String(part || "").trim())
+    .filter(Boolean);
+
+  const query = parts.join(", ") || title || "Mumbai, India";
+  return `https://maps.apple.com/?q=${encodeURIComponent(query)}&t=m&z=15&output=embed`;
+}
+
 function formatDate(value, withTime = false) {
   if (!value) return "TBA";
   const date = new Date(value);
@@ -60,6 +69,17 @@ export default async function EventDetailPage({ params }) {
   const ticketUrl = details?.ticket_url || event?.event_url;
   const ticketLabel = details?.ticket_label || "Register";
   const locationDetail = details?.location_detail || "";
+  const locationLabel = [locationDetail, event?.city, event?.country]
+    .map((part) => String(part || "").trim())
+    .filter(Boolean)
+    .join(", ");
+  const appleMapsUrl = buildAppleMapsUrl({
+    title: event?.title,
+    city: event?.city,
+    country: event?.country,
+    locationDetail,
+  });
+  const hasMapLocation = Boolean(locationLabel || event?.city);
 
   return (
     <main
@@ -260,14 +280,39 @@ export default async function EventDetailPage({ params }) {
                   <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted)]">
                     Location Map
                   </h3>
-                  <div className="overflow-hidden rounded-[24px] border border-[var(--border)] grayscale transition duration-500 hover:grayscale-0 shadow-lg">
-                    <iframe
-                      title="Event map"
-                      src={`https://maps.google.com/maps?q=${encodeURIComponent(event?.city || "Mumbai")}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
-                      className="h-64 w-full"
-                      loading="lazy"
-                    />
-                  </div>
+                  {hasMapLocation ? (
+                    <div className="overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--surface)] shadow-lg">
+                      <iframe
+                        title="Apple Maps location"
+                        src={appleMapsUrl}
+                        className="h-64 w-full"
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : (
+                    <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface)] p-6 text-sm text-[var(--muted)] shadow-lg">
+                      This event does not have a map location yet.
+                    </div>
+                  )}
+
+                  {hasMapLocation && (
+                    <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--faint)]">
+                        Exact location
+                      </p>
+                      <p className="mt-2 text-sm font-semibold text-[var(--text)]">
+                        {locationLabel || event?.city}
+                      </p>
+                      <a
+                        href={appleMapsUrl.replace("&output=embed", "")}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-4 inline-flex rounded-full border border-[var(--border)] bg-white/5 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text)] transition hover:bg-white/10"
+                      >
+                        Open in Apple Maps
+                      </a>
+                    </div>
+                  )}
                 </div>
 
                 <div className="rounded-[24px] bg-[var(--surface-2)] p-6 shadow-sm border border-[var(--border)]">
