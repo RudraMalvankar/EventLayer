@@ -2,9 +2,13 @@ import Link from "next/link";
 
 const productLinks = [
   { label: "Events", href: "/events" },
+  { label: "My Feed", href: "/feed" },
+  { label: "Community", href: "/community" },
+  { label: "Weekly Digest", href: "/digest" },
   { label: "Explore", href: "/explore" },
   { label: "Submit", href: "/submit" },
   { label: "Saved", href: "/saved" },
+  { label: "Organizer", href: "/organizer" },
 ];
 
 const legalLinks = [

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "../../../src/shared/clients/supabase.js";
+import { PublicProfileActions } from "../../../components/PublicProfileActions";
 
 function displayNameFrom(profile) {
   return (
@@ -112,14 +113,22 @@ export default async function PublicProfilePage({ params }) {
                   <span className="h-1 w-1 rounded-full bg-white/20" />
                   <span>{platforms.length} platforms followed</span>
                 </div>
+                {profile?.bio && (
+                  <p className="mt-4 max-w-xl text-sm leading-relaxed text-gray-400">
+                    {profile.bio}
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 text-sm text-gray-300">
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-500">
-                Profile link
-              </p>
-              <p className="mt-2 break-all text-orange-300">{profileUrl}</p>
+            <div className="flex flex-col items-end gap-4">
+              <PublicProfileActions userId={userId} />
+              <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 text-sm text-gray-300">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-500">
+                  Profile link
+                </p>
+                <p className="mt-2 break-all text-orange-300">{profileUrl}</p>
+              </div>
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 import { requireAuth } from '../../../src/features/auth/service'
 import { supabaseAdmin } from '../../../src/shared/clients/supabase'
 import { getSavedEventsService, toggleSaveEventService } from '../../../src/features/events/service'
+import { createNotificationRepo } from '../../../src/features/notifications/repository.js'
 
 export async function GET(request) {
   try {
@@ -20,6 +21,19 @@ export async function POST(request) {
     const eventId = body?.event_id
     if (!eventId) return Response.json({ data: null, error: 'event_id is required' }, { status: 400 })
     const { data, error } = await toggleSaveEventService(user.id, eventId)
+    if (!error && data?.saved) {
+      const { data: eventRow } = await supabaseAdmin
+        .from('events')
+        .select('title')
+        .eq('id', eventId)
+        .maybeSingle()
+      await createNotificationRepo(user.id, {
+        type: 'save',
+        title: 'Event saved',
+        body: eventRow?.title ? `You saved "${eventRow.title}"` : 'Added to your saved list',
+        link: '/saved',
+      })
+    }
     return Response.json({ data, error })
   } catch (e) {
     if (e instanceof Response) return e

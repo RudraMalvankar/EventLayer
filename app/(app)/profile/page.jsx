@@ -34,6 +34,14 @@ const cityOptions = [
 const platformOptions = ["luma", "meetup", "devfolio", "unstop", "eventbrite"];
 const SUBMISSION_STORAGE_KEY = "eventlayer.submit-links";
 
+const hubLinks = [
+  { href: "/feed", label: "My Feed", desc: "AI-ranked for you" },
+  { href: "/community", label: "Community", desc: "Follow & activity" },
+  { href: "/digest", label: "Digest", desc: "Weekly summary" },
+  { href: "/notifications", label: "Alerts", desc: "Notifications" },
+  { href: "/organizer", label: "Organizer", desc: "Your events" },
+];
+
 function initialsFrom(profile, user) {
   const source =
     profile?.first_name ||
@@ -168,10 +176,12 @@ export default function ProfilePage() {
   const [form, setForm] = useState({
     display_name: "",
     first_name: "",
+    bio: "",
     city: "Mumbai",
     interests: [],
     platforms_followed: [],
     profile_picture_url: "",
+    digest_enabled: true,
   });
 
   const displayName = useMemo(
@@ -264,12 +274,14 @@ export default function ProfilePage() {
         setForm({
           display_name: nextName,
           first_name: nextProfile.first_name || firstNameFrom(nextName),
+          bio: nextProfile.bio || "",
           city: nextProfile.city || "Mumbai",
           interests: Array.isArray(nextProfile.interests)
             ? nextProfile.interests
             : [],
           platforms_followed: normalizeList(nextProfile.platforms_followed),
           profile_picture_url: nextProfile.profile_picture_url || "",
+          digest_enabled: nextProfile.digest_enabled !== false,
         });
 
         if (savedResponse.ok && !savedJson?.error) {
@@ -400,10 +412,12 @@ export default function ProfilePage() {
       const payload = {
         display_name: form.display_name,
         first_name: form.first_name || firstNameFrom(form.display_name),
+        bio: form.bio,
         city: form.city,
         interests: form.interests,
         platforms_followed: form.platforms_followed,
         profile_picture_url: profilePictureUrl,
+        digest_enabled: form.digest_enabled,
       };
 
       const response = await fetch("/api/profile", {
@@ -529,6 +543,24 @@ export default function ProfilePage() {
                 View Public Profile
               </Link>
             ) : null}
+          </div>
+        </section>
+
+        <section className="mt-6">
+          <p className="mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">
+            Your hub
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {hubLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="rounded-2xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-orange-500/30 hover:bg-orange-500/5"
+              >
+                <p className="text-sm font-black text-white">{item.label}</p>
+                <p className="mt-1 text-xs text-gray-500">{item.desc}</p>
+              </Link>
+            ))}
           </div>
         </section>
 
@@ -748,6 +780,34 @@ export default function ProfilePage() {
                     }
                     className="h-12 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-white outline-none focus:border-orange-500/70"
                   />
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black uppercase tracking-[0.2em] text-gray-400">
+                    Bio
+                  </span>
+                  <textarea
+                    value={form.bio}
+                    onChange={(event) => updateForm("bio", event.target.value)}
+                    rows={3}
+                    maxLength={280}
+                    placeholder="Builder in Mumbai. Into AI hackathons and meetups."
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-orange-500/70"
+                  />
+                </label>
+
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={form.digest_enabled}
+                    onChange={(event) =>
+                      updateForm("digest_enabled", event.target.checked)
+                    }
+                    className="h-4 w-4 rounded border-white/20"
+                  />
+                  <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                    Weekly digest emails & alerts
+                  </span>
                 </label>
 
                 <label className="block">

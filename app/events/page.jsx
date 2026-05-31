@@ -7,7 +7,7 @@ import { SearchBar } from "../../components/SearchBar";
 import { Navbar } from "../../components/Navbar";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
-import { notifySavedEventsUpdated } from "../../src/shared/events/refresh";
+import { notifySavedEventsUpdated, subscribeToSavedEventsUpdated } from "../../src/shared/events/refresh";
 import { dayKey, localDayKeyFromDate } from "../../src/shared/events/dates";
 
 const MAP_PREVIEW_URL = process.env.NEXT_PUBLIC_MAPBOX_STATIC_PREVIEW_URL || "";
@@ -220,6 +220,14 @@ export default function EventsPage() {
     );
   }, [initialized, authLoading, session?.access_token]);
 
+  useEffect(() => {
+    // refresh saved ids when other tabs update saved events
+    const unsub = subscribeToSavedEventsUpdated(() => {
+      loadSavedIds().catch((err) => console.error("Failed to refresh saved ids", err));
+    });
+    return unsub;
+  }, [session?.access_token]);
+
   const filteredEvents = useMemo(() => {
     let result = events;
     if (filters.platform !== "All") {
@@ -403,13 +411,6 @@ export default function EventsPage() {
             <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mb-8">
               No events found in the database.
             </p>
-            <button
-              onClick={handleSync}
-              disabled={syncing}
-              className="bg-orange-500 text-white px-10 py-5 rounded-full text-xs font-black uppercase tracking-[0.2em] hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50 accent-glow"
-            >
-              {syncing ? "Syncing Data..." : "Force Sync Scrapers"}
-            </button>
           </div>
         ) : filteredEvents.length === 0 ? (
           <div className="text-center py-40 glass rounded-[48px] border border-white/5">

@@ -239,7 +239,7 @@ export async function findTrendingEvents(limit = 6) {
     const { data, error } = await supabaseAdmin
       .from("saved_events")
       // include the save `created_at` so we can prefer recently-saved items
-      .select("event_id, created_at, events(*)");
+      .select("event_id, saved_at, events(*)");
     if (error) return fail(error.message);
 
     const grouped = new Map();
@@ -256,7 +256,7 @@ export async function findTrendingEvents(limit = 6) {
         lastSaveAt: null,
       };
       current.saves += 1;
-      const saveAt = row?.created_at ? new Date(row.created_at) : null;
+      const saveAt = row?.saved_at ? new Date(row.saved_at) : null;
       if (saveAt && (!current.lastSaveAt || saveAt > current.lastSaveAt)) {
         current.lastSaveAt = saveAt;
       }

@@ -3,6 +3,7 @@ import { DM_Sans, Cormorant_Garamond } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "../components/AuthProvider";
 import { Footer } from "../components/Footer";
+import { AnalyticsTracker } from "../components/AnalyticsTracker";
 
 const sans = DM_Sans({ subsets: ["latin"] });
 const serif = Cormorant_Garamond({
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
         style={{ ["--serif-font"]: serif.style.fontFamily }}
       >
         <AuthProvider>
+          <AnalyticsTracker />
           {children}
           <Footer />
         </AuthProvider>

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useUser } from "./AuthProvider";
 import { supabase } from "../supabase/client";
 import { LockedRouteModal } from "./LockedRouteModal";
+import { NotificationBell } from "./NotificationBell";
 
 function getInitials(user) {
   const name =
@@ -99,11 +100,39 @@ function AuthMenu({ mobile = false, onNavigate }) {
           Profile
         </Link>
         <Link
+          href="/feed"
+          onClick={onNavigate}
+          className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 hover:bg-white/5 hover:text-white"
+        >
+          My Feed
+        </Link>
+        <Link
           href="/saved"
           onClick={onNavigate}
           className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 hover:bg-white/5 hover:text-white"
         >
           Saved Events
+        </Link>
+        <Link
+          href="/community"
+          onClick={onNavigate}
+          className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 hover:bg-white/5 hover:text-white"
+        >
+          Community
+        </Link>
+        <Link
+          href="/digest"
+          onClick={onNavigate}
+          className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 hover:bg-white/5 hover:text-white"
+        >
+          Digest
+        </Link>
+        <Link
+          href="/organizer"
+          onClick={onNavigate}
+          className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 hover:bg-white/5 hover:text-white"
+        >
+          Organizer
         </Link>
         <button
           type="button"
@@ -148,11 +177,39 @@ function AuthMenu({ mobile = false, onNavigate }) {
             Profile
           </Link>
           <Link
+            href="/feed"
+            onClick={() => setOpen(false)}
+            className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 hover:bg-white/5 hover:text-white"
+          >
+            My Feed
+          </Link>
+          <Link
             href="/saved"
             onClick={() => setOpen(false)}
             className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 hover:bg-white/5 hover:text-white"
           >
             Saved Events
+          </Link>
+          <Link
+            href="/community"
+            onClick={() => setOpen(false)}
+            className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 hover:bg-white/5 hover:text-white"
+          >
+            Community
+          </Link>
+          <Link
+            href="/digest"
+            onClick={() => setOpen(false)}
+            className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 hover:bg-white/5 hover:text-white"
+          >
+            Digest
+          </Link>
+          <Link
+            href="/organizer"
+            onClick={() => setOpen(false)}
+            className="block rounded-xl px-4 py-3 text-sm font-bold text-gray-300 hover:bg-white/5 hover:text-white"
+          >
+            Organizer
           </Link>
           <div className="my-2 h-px bg-white/10" />
           <button
@@ -177,30 +234,29 @@ export function Navbar() {
 
   const navItems = [
     { label: "Events", href: "/events" },
-    { label: "Submit Link", href: "/submit" },
-    { label: "Calendar", href: "/calendar" },
+    { label: "Feed", href: "/feed", auth: true },
+    { label: "Community", href: "/community", auth: true },
+    { label: "Submit", href: "/submit" },
     { label: "Saved", href: "/saved" },
   ];
 
   function handleNavClick(item) {
     if (!initialized || loading) return;
 
-    const locked = ["/calendar", "/saved"].includes(item.href);
+    const locked =
+      item.auth || ["/calendar", "/saved", "/feed", "/community"].includes(item.href);
     if (locked && !user) {
+      const titles = {
+        "/calendar": "Sign in to create your event calendar",
+        "/saved": "Sign in to access your saved events",
+        "/feed": "Sign in for your personalized feed",
+        "/community": "Sign in to follow the community",
+      };
       setLockedRoute({
         href: item.href,
-        title:
-          item.href === "/calendar"
-            ? "Sign in to create your event calendar"
-            : "Sign in to access your saved events",
-        body:
-          item.href === "/calendar"
-            ? "Track events you’re interested in, plan your week, and never miss an important tech event."
-            : "Save events you like, build your personal event list, and come back anytime.",
-        buttonLabel:
-          item.href === "/calendar"
-            ? "Sign in to create calendar"
-            : "Sign in to continue",
+        title: titles[item.href] || "Sign in to continue",
+        body: "Create a free account to sync saves, follow organizers, and get your AI-powered event feed.",
+        buttonLabel: "Sign in to continue",
       });
       return;
     }
@@ -238,13 +294,16 @@ export function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center gap-4">
+          <NotificationBell />
           <AuthMenu />
         </div>
 
-        <button
+        <div className="flex items-center gap-2 md:hidden">
+          <NotificationBell />
+          <button
           type="button"
           onClick={() => setMobileOpen((current) => !current)}
-          className="md:hidden flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-full border border-white/10 bg-white/5"
+          className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-full border border-white/10 bg-white/5"
           aria-expanded={mobileOpen}
           aria-label="Toggle navigation"
         >
@@ -252,6 +311,7 @@ export function Navbar() {
           <span className="h-0.5 w-4 rounded-full bg-white" />
           <span className="h-0.5 w-4 rounded-full bg-white" />
         </button>
+        </div>
       </div>
 
       {mobileOpen && (

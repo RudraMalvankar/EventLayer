@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Navbar } from "../../../components/Navbar";
 import { SaveEventButton } from "../../../components/SaveEventButton";
+import { OrganizerFollowButton } from "../../../components/OrganizerFollowButton";
 import { getEventDetailsLiveService } from "../../../src/features/events/service";
 
 export const dynamic = "force-dynamic";
@@ -172,9 +173,14 @@ export default async function EventDetailPage({ params }) {
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--faint)]">
                     Hosted By
                   </p>
-                  <p className="text-lg font-semibold text-[var(--text)]">
-                    {event?.organizer || "Community Host"}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <p className="text-lg font-semibold text-[var(--text)]">
+                      {event?.organizer || "Community Host"}
+                    </p>
+                    {event?.organizer && (
+                      <OrganizerFollowButton organizerName={event.organizer} />
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center">
                   <a

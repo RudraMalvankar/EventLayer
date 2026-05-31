@@ -1,13 +1,18 @@
+import Link from "next/link";
 import { Navbar } from "../components/Navbar";
 import { EventCard } from "../components/EventCard";
 import dynamic from "next/dynamic";
-const RealEventsMap = dynamic(() => import("../components/RealEventsMap"), {
-  ssr: false,
-});
 import {
   getEventsService,
   getTrendingEventsService,
 } from "../src/features/events/service";
+
+const RealEventsMap = dynamic(() => import("../components/RealEventsMap"), {
+  ssr: false,
+});
+const TrendingList = dynamic(() => import("../components/TrendingList"), {
+  ssr: false,
+});
 
 const floatingEvents = [
   {
@@ -41,34 +46,40 @@ const featureCards = [
     icon: "🔍",
     title: "AI Natural Search",
     description:
-      '"Free AI hackathons in Mumbai this weekend" just works with GPT-4o.',
+      '"Free AI hackathons in Mumbai this weekend" just works with Gemini.',
+    href: "/events",
   },
   {
     icon: "⚡",
     title: "Real-time Aggregation",
     description:
       "Events from Luma, Devfolio, Unstop, and more synced every 6 hours.",
+    href: "/events",
   },
   {
     icon: "🗺️",
     title: "Map Discovery",
     description:
       "Explore what is happening near you with quick city clustering.",
+    href: "/explore",
   },
   {
     icon: "🔔",
     title: "Smart Alerts",
     description: "Get a weekly digest tailored to your interests and location.",
+    href: "/digest",
   },
   {
     icon: "👥",
     title: "Community Graph",
     description: "Follow organizers, colleges, and communities in one place.",
+    href: "/community",
   },
   {
     icon: "🎯",
-    title: "One-Click Register",
-    description: "Jump to the original platform and register instantly.",
+    title: "Personalized Feed",
+    description: "AI-ranked events based on your city, interests, and follows.",
+    href: "/feed",
   },
 ];
 
@@ -285,20 +296,7 @@ export default async function LandingPage() {
         </div>
 
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-          {featuredTrending.length ? (
-            featuredTrending.map((event) => (
-              <div key={event.id || event.event_url} className="relative">
-                <div className="absolute left-4 top-4 z-20 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-orange-300 backdrop-blur-sm">
-                  {event.trending_saves || 0} saves
-                </div>
-                <EventCard event={event} />
-              </div>
-            ))
-          ) : (
-            <div className="text-xs font-black uppercase tracking-[0.3em] text-gray-700 py-20 border border-dashed border-white/5 rounded-[40px] text-center w-full col-span-full">
-              Trending feed is warming up...
-            </div>
-          )}
+          <TrendingList initial={featuredTrending} />
         </div>
       </section>
 
@@ -313,9 +311,10 @@ export default async function LandingPage() {
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featureCards.map((feature) => (
-            <div
+            <Link
               key={feature.title}
-              className="rounded-[32px] border border-white/5 bg-white/2 p-8 transition-all duration-500 hover:-translate-y-2 hover:border-orange-500/20 hover:bg-orange-500/5 group"
+              href={feature.href}
+              className="rounded-[32px] border border-white/5 bg-white/2 p-8 transition-all duration-500 hover:-translate-y-2 hover:border-orange-500/20 hover:bg-orange-500/5 group block"
             >
               <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/5 text-2xl group-hover:bg-orange-500 group-hover:text-white transition-all duration-500">
                 {feature.icon}
@@ -326,7 +325,7 @@ export default async function LandingPage() {
               <div className="text-sm text-gray-500 leading-relaxed font-medium">
                 {feature.description}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

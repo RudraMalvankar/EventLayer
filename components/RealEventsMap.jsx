@@ -149,7 +149,9 @@ function ClusterMarkers({ points }) {
     return () => {
       try {
         map.removeLayer(clusterGroup);
-      } catch (e) {}
+      } catch {
+        // layer may already be removed
+      }
     };
   }, [map, points]);
 

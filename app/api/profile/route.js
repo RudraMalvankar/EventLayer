@@ -10,6 +10,9 @@ const ALLOWED_FIELDS = [
   "interests",
   "event_types",
   "profile_picture_url",
+  "bio",
+  "digest_enabled",
+  "is_organizer",
 ];
 
 function profilePayload(body = {}) {

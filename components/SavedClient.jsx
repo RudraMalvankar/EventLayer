@@ -88,15 +88,31 @@ export default function SavedClient() {
       setLoading(true);
       setError("");
       try {
-        const response = await fetch("/api/saved", {
+        const response = await fetch("/api/saved/sync", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const json = await response.json();
         if (cancelled) return;
-        if (!response.ok || json?.error) {
-          throw new Error(json?.error || "Could not load saved events.");
+        if (response.ok && !json?.error) {
+          setEvents(json?.data?.events || []);
+          if (json?.data?.sync_token) {
+            localStorage.setItem(
+              "eventlayer.saved-sync",
+              json.data.sync_token,
+            );
+          }
+        } else {
+          const fallback = await fetch("/api/saved", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const fallbackJson = await fallback.json();
+          if (!fallback.ok || fallbackJson?.error) {
+            throw new Error(
+              fallbackJson?.error || "Could not load saved events.",
+            );
+          }
+          setEvents(normalizeSavedEvents(fallbackJson));
         }
-        setEvents(normalizeSavedEvents(json));
       } catch (loadError) {
         if (!cancelled) setError(loadError.message);
       } finally {
