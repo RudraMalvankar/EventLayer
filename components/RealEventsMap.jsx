@@ -78,7 +78,10 @@ function getEventDateLabel(value) {
 }
 
 function buildAppleMapsUrl({ city, locationDetail }) {
-  const query = [locationDetail, city].filter(Boolean).join(", ") || city || "Mumbai, India";
+  const query =
+    [locationDetail, city].filter(Boolean).join(", ") ||
+    city ||
+    "Mumbai, India";
   return `https://maps.apple.com/?q=${encodeURIComponent(query)}`;
 }
 
@@ -126,7 +129,7 @@ function ClusterMarkers({ points }) {
       const popupHtml = `
         <div style="min-width:200px">
           <div style="font-weight:700;color:#ff6b00;margin-bottom:6px">${point.city}</div>
-          <div style="font-weight:600;color:#111;margin-bottom:6px">${point.events.length} event${point.events.length===1?"":"s"}</div>
+          <div style="font-weight:600;color:#111;margin-bottom:6px">${point.events.length} event${point.events.length === 1 ? "" : "s"}</div>
         </div>
       `;
 
@@ -171,14 +174,16 @@ export function RealEventsMap({ events = [] }) {
         event?.raw_data?.location ||
         event?.country ||
         "unknown";
-      const key = normalizeCity(candidateText) || String(event.id || event.title);
+      const key =
+        normalizeCity(candidateText) || String(event.id || event.title);
       if (!cityMap.has(key)) {
         cityMap.set(key, {
           city: candidateText,
           coords,
           appleMapsUrl: buildAppleMapsUrl({
             city: event?.city || candidateText,
-            locationDetail: event?.location_detail || event?.raw_data?.location_detail || "",
+            locationDetail:
+              event?.location_detail || event?.raw_data?.location_detail || "",
           }),
           events: [],
         });
@@ -187,14 +192,24 @@ export function RealEventsMap({ events = [] }) {
       cityMap.get(key).events.push(event);
     }
 
-    return Array.from(cityMap.values()).sort((a, b) => b.events.length - a.events.length);
+    return Array.from(cityMap.values()).sort(
+      (a, b) => b.events.length - a.events.length,
+    );
   }, [events]);
 
-  const totalEvents = points.reduce((sum, point) => sum + point.events.length, 0);
+  const totalEvents = points.reduce(
+    (sum, point) => sum + point.events.length,
+    0,
+  );
 
   return (
     <div className="relative h-[450px] overflow-hidden rounded-[48px] border border-white/5 bg-[#0a0c12] shadow-2xl group">
-      <MapContainer center={[19.076, 72.8777]} zoom={4} scrollWheelZoom={false} className="absolute inset-0 h-full w-full">
+      <MapContainer
+        center={[19.076, 72.8777]}
+        zoom={4}
+        scrollWheelZoom={false}
+        className="absolute inset-0 h-full w-full"
+      >
         <TileLayer
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &amp; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
@@ -205,17 +220,26 @@ export function RealEventsMap({ events = [] }) {
 
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#030407] via-transparent to-transparent" />
 
-      <div className="absolute left-5 top-5 rounded-full border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-orange-200 backdrop-blur-md">Live events map</div>
+      <div className="absolute left-5 top-5 rounded-full border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-orange-200 backdrop-blur-md">
+        Live events map
+      </div>
 
       <div className="absolute left-5 bottom-5 flex max-w-[60%] flex-wrap gap-2">
         {points.slice(0, 4).map((point) => (
-          <div key={point.city} className="rounded-full border border-white/10 bg-black/60 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-white backdrop-blur-md">
+          <div
+            key={point.city}
+            className="rounded-full border border-white/10 bg-black/60 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-white backdrop-blur-md"
+          >
             {point.city} · {point.events.length}
           </div>
         ))}
       </div>
 
-      <div className="absolute right-5 bottom-5 rounded-full border border-white/10 bg-black/60 px-5 py-3 text-[10px] font-black uppercase tracking-[0.25em] text-gray-300 backdrop-blur-md">{points.length} city clusters · {totalEvents} events</div>
+      <div className="absolute right-5 bottom-5 rounded-full border border-white/10 bg-black/60 px-5 py-3 text-[10px] font-black uppercase tracking-[0.25em] text-gray-300 backdrop-blur-md">
+        {points.length} city clusters · {totalEvents} events
+      </div>
     </div>
   );
 }
+
+export default RealEventsMap;
