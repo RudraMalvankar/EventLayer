@@ -306,6 +306,11 @@ export async function findTrendingEvents(limit = 6) {
 
 export async function toggleSavedEventRepo(userId, eventId) {
   try {
+    await supabaseAdmin.from("profiles").upsert(
+      { id: userId },
+      { onConflict: "id", ignoreDuplicates: true },
+    );
+
     const existing = await supabaseAdmin
       .from("saved_events")
       .select("id")

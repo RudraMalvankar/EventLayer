@@ -1,20 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navbar } from "../../components/Navbar";
 import { EventCard } from "../../components/EventCard";
 import { CommunityCard } from "../../components/CommunityCard";
+import { EmailSubscribe } from "../../components/EmailSubscribe";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
 
 export default function CommunityPage() {
   const { user, loading: authLoading } = useUser();
   const [communities, setCommunities] = useState([]);
-  const [following, setFollowing] = useState({ users: [], organizers: [], communities: [] });
+  const [following, setFollowing] = useState({
+    users: [],
+    organizers: [],
+    communities: [],
+  });
   const [followedEvents, setFollowedEvents] = useState([]);
   const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeOnly, setActiveOnly] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,7 +41,9 @@ export default function CommunityPage() {
         const token = session?.access_token;
         if (token && !cancelled) {
           const [followRes, activityRes, followedRes] = await Promise.all([
-            fetch("/api/follow", { headers: { Authorization: `Bearer ${token}` } }),
+            fetch("/api/follow", {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
             fetch("/api/feed?activity=1", {
               headers: { Authorization: `Bearer ${token}` },
             }),
@@ -67,6 +75,16 @@ export default function CommunityPage() {
     };
   }, [user, authLoading]);
 
+  const activeCount = useMemo(
+    () => communities.filter((c) => (c.upcoming_count ?? 0) > 0).length,
+    [communities],
+  );
+
+  const visibleCommunities = useMemo(() => {
+    if (!activeOnly) return communities;
+    return communities.filter((c) => (c.upcoming_count ?? 0) > 0);
+  }, [communities, activeOnly]);
+
   return (
     <main className="min-h-screen bg-[#030407] text-white">
       <Navbar />
@@ -77,10 +95,35 @@ export default function CommunityPage() {
         <h1 className="mb-3 text-4xl font-black tracking-tighter">
           Discover & follow
         </h1>
-        <p className="mb-10 max-w-2xl text-sm text-gray-500">
+        <p className="mb-6 max-w-2xl text-sm text-gray-500">
           eChai, GDG Cloud Mumbai, PyMumbai, Null, and more — events are matched
           from scraped Luma, Devfolio, Meetup, and Unstop feeds.
         </p>
+
+        <div className="mb-8 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setActiveOnly(false)}
+            className={`rounded-full border px-4 py-2 text-[10px] font-bold uppercase tracking-wider transition ${
+              !activeOnly
+                ? "border-orange-500 bg-orange-500/15 text-orange-300"
+                : "border-white/10 bg-white/5 text-gray-500 hover:text-white"
+            }`}
+          >
+            All communities ({communities.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveOnly(true)}
+            className={`rounded-full border px-4 py-2 text-[10px] font-bold uppercase tracking-wider transition ${
+              activeOnly
+                ? "border-orange-500 bg-orange-500/15 text-orange-300"
+                : "border-white/10 bg-white/5 text-gray-500 hover:text-white"
+            }`}
+          >
+            With upcoming events ({activeCount})
+          </button>
+        </div>
 
         {loading ? (
           <p className="text-sm text-gray-500">Loading communities...</p>
@@ -88,17 +131,33 @@ export default function CommunityPage() {
           <>
             <section className="mb-16">
               <h2 className="mb-6 text-lg font-black uppercase tracking-tight">
-                Active in Mumbai ({communities.length})
+                {activeOnly ? "Communities with events" : "Active in Mumbai"} (
+                {visibleCommunities.length})
               </h2>
-              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                {communities.map((c) => (
-                  <CommunityCard key={c.slug} community={c} />
-                ))}
-              </div>
+
+              {visibleCommunities.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/10 p-10 text-center text-sm text-gray-500">
+                  No communities with upcoming events right now. Try{" "}
+                  <button
+                    type="button"
+                    onClick={() => setActiveOnly(false)}
+                    className="text-orange-400 hover:underline"
+                  >
+                    show all
+                  </button>{" "}
+                  or run a scrape sync from admin.
+                </div>
+              ) : (
+                <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                  {visibleCommunities.map((c) => (
+                    <CommunityCard key={c.slug} community={c} />
+                  ))}
+                </div>
+              )}
             </section>
 
             {user && (
-              <div className="grid gap-12 lg:grid-cols-2">
+              <div className="mb-16 grid gap-12 lg:grid-cols-2">
                 <section>
                   <h2 className="mb-4 text-lg font-black uppercase tracking-tight">
                     Communities you follow
@@ -160,7 +219,9 @@ export default function CommunityPage() {
                       <div key={`${item.event?.id}-${i}`} className="space-y-2">
                         <p className="text-xs text-gray-500">
                           <span className="font-bold text-white">
-                            {item.user?.display_name || item.user?.name || "Someone"}
+                            {item.user?.display_name ||
+                              item.user?.name ||
+                              "Someone"}
                           </span>{" "}
                           saved an event
                         </p>
@@ -173,13 +234,23 @@ export default function CommunityPage() {
             )}
 
             {!user && (
-              <p className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-gray-400">
-                <Link href="/login?redirect=/community" className="text-orange-400 hover:underline">
+              <p className="mb-10 rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-gray-400">
+                <Link
+                  href="/login?redirect=/community"
+                  className="text-orange-400 hover:underline"
+                >
                   Sign in
                 </Link>{" "}
                 to follow communities and sync events to your personalized feed.
               </p>
             )}
+
+            <section className="border-t border-white/5 pt-8">
+              <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-600">
+                Optional — email alerts
+              </p>
+              <EmailSubscribe city="Mumbai" compact />
+            </section>
           </>
         )}
       </div>

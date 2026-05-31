@@ -2,15 +2,39 @@ import { requireAuth } from '../../../src/features/auth/service'
 import { supabaseAdmin } from '../../../src/shared/clients/supabase'
 import { getSavedEventsService, toggleSaveEventService } from '../../../src/features/events/service'
 import { createNotificationRepo } from '../../../src/features/notifications/repository.js'
+import { privateNoStoreHeaders } from '../../../src/shared/cache/headers.js'
 
 export async function GET(request) {
   try {
     const { user } = await requireAuth(request)
+    const { searchParams } = new URL(request.url)
+    const eventId = searchParams.get('event_id')
+
+    if (eventId) {
+      const { data, error } = await supabaseAdmin
+        .from('saved_events')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('event_id', eventId)
+        .maybeSingle()
+      if (error) {
+        return Response.json({ data: null, error: error.message }, { status: 500, headers: privateNoStoreHeaders() })
+      }
+      return Response.json(
+        { data: { saved: Boolean(data?.id), event_id: eventId }, error: null },
+        { headers: privateNoStoreHeaders() },
+      )
+    }
+
     const { data, error } = await getSavedEventsService(user.id)
-    return Response.json({ data, error })
+    const events = Array.isArray(data) ? data : data?.events || []
+    return Response.json(
+      { data: { events }, error },
+      { headers: privateNoStoreHeaders() },
+    )
   } catch (e) {
     if (e instanceof Response) return e
-    return Response.json({ data: null, error: 'Unauthorized' }, { status: 401 })
+    return Response.json({ data: null, error: 'Unauthorized' }, { status: 401, headers: privateNoStoreHeaders() })
   }
 }
 

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Navbar } from "../../../components/Navbar";
 import { Input } from "../../../components/ui/input";
 import { supabase } from "../../../supabase/client";
+import { authCallbackUrl } from "../../../src/shared/config/siteUrl.js";
 
 function getRedirectPath(value) {
   if (!value || !value.startsWith("/")) return "/events";
@@ -45,6 +46,7 @@ function SignupContent() {
         data: {
           name: form.name,
         },
+        emailRedirectTo: authCallbackUrl("/login"),
       },
     });
 
@@ -77,7 +79,7 @@ function SignupContent() {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
-        redirectTo: `${window.location.origin}/onboarding?redirect=${encodeURIComponent(redirectTo)}`,
+        redirectTo: `${authCallbackUrl("/onboarding")}?redirect=${encodeURIComponent(redirectTo)}`,
       },
     });
 

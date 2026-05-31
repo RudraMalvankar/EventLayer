@@ -1,7 +1,8 @@
 import { getEventsService } from "../../../src/features/events/service";
+import { publicCacheHeaders } from "../../../src/shared/cache/headers.js";
+import { cacheKey, withCache, CACHE_TTL } from "../../../src/shared/cache/memory.js";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 export async function GET(request) {
   try {
@@ -22,17 +23,25 @@ export async function GET(request) {
       page,
       limit,
     };
-    const { data, error } = await getEventsService(args);
+
+    const key = cacheKey(["events", JSON.stringify(args)]);
+    const { data, error } = await withCache(key, CACHE_TTL.events, () =>
+      getEventsService(args),
+    );
+
     if (error) throw new Error(error);
-    return Response.json({
-      data: {
-        events: data?.events || [],
-        total: data?.total || 0,
-        page,
-        limit,
+    return Response.json(
+      {
+        data: {
+          events: data?.events || [],
+          total: data?.total || 0,
+          page,
+          limit,
+        },
+        error: null,
       },
-      error: null,
-    });
+      { headers: publicCacheHeaders(60, 300) },
+    );
   } catch (err) {
     console.error("API Events Error:", err.message);
     return Response.json(

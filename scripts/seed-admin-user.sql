@@ -1,7 +1,12 @@
--- ONE-TIME: Run in Supabase Dashboard → SQL Editor, then delete this file.
--- Creates/resets platform admin: rudracmalvankar@gmail.com / Admin@123
+-- ONE-TIME: Run in Supabase Dashboard → SQL Editor (or: npm run db:admin)
+-- Admin: rudracmalvankar@gmail.com / Admin@123
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Ensure profile columns exist (older DBs may only have id + name)
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS name text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS display_name text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS first_name text;
 
 DO $$
 DECLARE
@@ -78,10 +83,7 @@ BEGIN
     WHERE id = user_id;
   END IF;
 
-  INSERT INTO public.profiles (id, name, display_name, first_name)
-  VALUES (user_id, 'Platform Admin', 'Platform Admin', 'Admin')
-  ON CONFLICT (id) DO UPDATE SET
-    name = EXCLUDED.name,
-    display_name = EXCLUDED.display_name,
-    first_name = EXCLUDED.first_name;
+  INSERT INTO public.profiles (id, name)
+  VALUES (user_id, 'Platform Admin')
+  ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
 END $$;

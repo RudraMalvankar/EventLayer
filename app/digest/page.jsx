@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "../../components/Navbar";
 import { EventCard } from "../../components/EventCard";
+import { EmailSubscribe } from "../../components/EmailSubscribe";
 import { useUser } from "../../components/AuthProvider";
 import { supabase } from "../../supabase/client";
 
@@ -95,6 +96,9 @@ export default function DigestPage() {
                 to discover events for next week&apos;s digest.
               </p>
             )}
+            <div className="mt-10 border-t border-white/5 pt-6">
+              <EmailSubscribe city="Mumbai" compact />
+            </div>
           </>
         )}
       </div>

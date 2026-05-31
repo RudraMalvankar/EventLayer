@@ -13,7 +13,9 @@
     "e2e:signup": "node scripts/e2e_signup.mjs",
     "start": "next start -p 3000",
     "lint": "next lint",
-    "db:extensions": "node scripts/apply-schema-extensions.mjs"
+    "db:extensions": "node scripts/apply-schema-extensions.mjs",
+    "db:admin": "node scripts/seed-admin-user.mjs",
+    "db:email": "node scripts/apply-email-schema.mjs"
   },
   "dependencies": {
     "@google/genai": "^0.14.1",

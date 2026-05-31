@@ -4,9 +4,9 @@ import { notFound } from "next/navigation";
 import { Navbar } from "../../../components/Navbar";
 import { SaveEventButton } from "../../../components/SaveEventButton";
 import { OrganizerFollowButton } from "../../../components/OrganizerFollowButton";
-import { getEventDetailsLiveService } from "../../../src/features/events/service";
+import { getEventByIdService } from "../../../src/features/events/service";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 function buildAppleMapsUrl({ title, city, country, locationDetail }) {
   const parts = [locationDetail, city, country]
@@ -39,10 +39,11 @@ export default async function EventDetailPage({ params }) {
   const { id } = params || {};
   if (!id) return notFound();
 
-  const { data, error } = await getEventDetailsLiveService(id);
-  if (error || !data?.event) return notFound();
+  const { data, error } = await getEventByIdService(id);
+  if (error || !data) return notFound();
 
-  const { event, details } = data;
+  const event = data;
+  const details = event?.raw_data?.details || event?.raw_data || null;
   const displayPlatform = String(
     event?.raw_data?.sourcePlatform ||
       event?.raw_data?.originalPlatform ||

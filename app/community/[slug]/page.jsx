@@ -66,7 +66,7 @@ export default function CommunityDetailPage() {
               />
             </div>
 
-            <div className="mb-6 flex items-end justify-between gap-4">
+            <div id="upcoming-events" className="mb-6 flex scroll-mt-28 items-end justify-between gap-4">
               <h2 className="text-2xl font-black tracking-tight">
                 Upcoming events
                 <span className="ml-2 text-orange-500">({events.length})</span>

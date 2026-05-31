@@ -43,6 +43,7 @@ function CommunityLogo({ community, className = "" }) {
 export function CommunityCard({ community, detail = false }) {
   const slug = community?.slug || "";
   const count = community?.upcoming_count ?? 0;
+  const eventsHref = `/community/${slug}#upcoming-events`;
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0c0e14] transition-all duration-300 hover:border-white/15 hover:shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
@@ -81,18 +82,32 @@ export function CommunityCard({ community, detail = false }) {
         </div>
 
         {!detail ? (
-          <div className="mt-4 flex items-center gap-2">
+          <div className="mt-4 flex flex-col gap-2">
             <Link
-              href={`/community/${slug}`}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-transparent px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-300 transition hover:border-orange-500/40 hover:text-white"
+              href={eventsHref}
+              className="flex w-full items-center justify-between rounded-lg border border-orange-500/25 bg-orange-500/[0.06] px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-orange-300 transition hover:border-orange-500/45 hover:bg-orange-500/10 hover:text-orange-200"
             >
-              Open community
-              <span className="text-orange-500">→</span>
+              <span>View upcoming community events</span>
+              <span>{count > 0 ? `${count} →` : "→"}</span>
             </Link>
-            <CommunityFollowButton slug={slug} name={community?.name} variant="ghost" />
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/community/${slug}`}
+                className="inline-flex flex-1 items-center justify-center rounded-lg border border-white/10 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 transition hover:border-white/20 hover:text-white"
+              >
+                Open community
+              </Link>
+              <CommunityFollowButton slug={slug} name={community?.name} variant="ghost" />
+            </div>
           </div>
         ) : (
-          <div className="mt-4">
+          <div className="mt-4 space-y-3">
+            <Link
+              href={eventsHref}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-orange-500/30 bg-orange-500/10 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-orange-300 hover:bg-orange-500/15"
+            >
+              View upcoming events ({count}) →
+            </Link>
             <CommunityFollowButton slug={slug} name={community?.name} variant="ghost" />
           </div>
         )}
