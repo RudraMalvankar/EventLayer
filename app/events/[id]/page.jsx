@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Navbar } from "../../../components/Navbar";
 import { SaveEventButton } from "../../../components/SaveEventButton";
 import { OrganizerFollowButton } from "../../../components/OrganizerFollowButton";
+import { AddToCalendar } from "../../../components/AddToCalendar";
 import { getEventByIdService } from "../../../src/features/events/service";
 
 export const revalidate = 120;
@@ -333,6 +334,9 @@ export default async function EventDetailPage({ params }) {
                       eventId={event?.id}
                       redirectPath="/login"
                     />
+                  </div>
+                  <div className="mb-3">
+                    <AddToCalendar event={event} />
                   </div>
                   <a
                     href={ticketUrl}
