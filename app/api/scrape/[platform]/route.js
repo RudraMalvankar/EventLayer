@@ -5,9 +5,7 @@ import enrichWithGemini from "../../../../src/features/scrapers/enrichWithGemini
 
 export async function POST(request, { params }) {
   const key = request.headers.get("x-scrape-key");
-  // In development allow the request without a secret for convenience.
-  const requireSecret = process.env.NODE_ENV !== "development";
-  if (requireSecret && (!env.scrapeSecret || key !== env.scrapeSecret)) {
+  if (!env.scrapeSecret || key !== env.scrapeSecret) {
     return Response.json(
       { data: null, error: "Unauthorized" },
       { status: 401 },
