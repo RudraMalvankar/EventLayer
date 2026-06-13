@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { EventCard } from "../../components/EventCard";
+import { EventSkeleton } from "../../components/ui/EventSkeleton";
 import { LoggedOutSaveModal } from "../../components/LoggedOutSaveModal";
 import { AISearchBar } from "../../components/AISearchBar";
 import { Navbar } from "../../components/Navbar";
@@ -14,17 +15,14 @@ import {
 } from "../../src/shared/events/refresh";
 import { dayKey, localDayKeyFromDate } from "../../src/shared/events/dates";
 
-const RealEventsMap = dynamic(
-  () => import("../../components/RealEventsMap"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-[480px] items-center justify-center rounded-[40px] border border-white/10 bg-[#0a0c12]">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
-      </div>
-    ),
-  },
-);
+const RealEventsMap = dynamic(() => import("../../components/RealEventsMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[480px] items-center justify-center rounded-[40px] border border-white/10 bg-[#0a0c12]">
+      <div className="h-10 w-10 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+    </div>
+  ),
+});
 
 function CalendarWidget({ selectedDate, events, onDateSelect }) {
   const days = useMemo(() => {
@@ -101,6 +99,9 @@ export default function EventsPage() {
   const [initialQ, setInitialQ] = useState("");
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [savedIds, setSavedIds] = useState(new Set());
   const [filters, setFilters] = useState({
     category: "All",
@@ -206,11 +207,14 @@ export default function EventsPage() {
     setShowModalEventId(null);
   }
 
-  async function loadEvents(query = "") {
-    setLoading(true);
+  async function loadEvents(query = "", pageNum = 1, append = false) {
+    if (pageNum === 1) setLoading(true);
+    else setLoadingMore(true);
+
     try {
       const params = new URLSearchParams();
-      params.set("limit", "1000");
+      params.set("limit", "20");
+      params.set("page", String(pageNum));
       params.set("upcomingOnly", "true");
       if (filters.city) params.set("city", filters.city);
       if (filters.category !== "All")
@@ -222,12 +226,17 @@ export default function EventsPage() {
       const res = await fetch(`/api/events?${params.toString()}`);
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const json = await res.json();
-      setEvents(json?.data?.events || []);
+      
+      const newEvents = json?.data?.events || [];
+      const total = json?.data?.total || 0;
+
+      setEvents((prev) => (append ? [...prev, ...newEvents] : newEvents));
+      setHasMore(events.length + newEvents.length < total);
     } catch (error) {
       console.error("Failed to load events:", error);
-      // Optional: Set some error state to show in UI
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }
 
@@ -255,7 +264,8 @@ export default function EventsPage() {
 
   useEffect(() => {
     setSelectedDateKey(null);
-    if (!initialQ) loadEvents();
+    setPage(1);
+    loadEvents(initialQ, 1, false);
   }, [filters.city, filters.category, filters.mode, initialQ]);
 
   useEffect(() => {
@@ -330,6 +340,25 @@ export default function EventsPage() {
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [selectedDateKey, loading, groupedEvents]);
 
+  // Intersection Observer for Infinite Scroll
+  const observer = useRef(null);
+  const lastElementRef = (node) => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage((prev) => prev + 1);
+      }
+    });
+    if (node) observer.current.observe(node);
+  };
+
+  useEffect(() => {
+    if (page > 1) {
+      loadEvents(initialQ, page, true);
+    }
+  }, [page]);
+
   return (
     <main className="min-h-screen text-white pb-24">
       <Navbar />
@@ -386,8 +415,8 @@ export default function EventsPage() {
             {aiNoMatches && (
               <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-amber-100/90">
-                  No exact AI matches for &ldquo;{aiSearch.query}&rdquo;. Showing
-                  all upcoming events below — try a shorter query like{" "}
+                  No exact AI matches for &ldquo;{aiSearch.query}&rdquo;.
+                  Showing all upcoming events below — try a shorter query like{" "}
                   <span className="text-orange-300">js mumbai</span> or{" "}
                   <span className="text-orange-300">react meetup</span>.
                 </p>
@@ -464,11 +493,10 @@ export default function EventsPage() {
         </header>
 
         {!showMap && loading ? (
-          <div className="flex flex-col items-center justify-center py-40 animate-pulse">
-            <div className="w-12 h-12 rounded-full border-t-2 border-orange-500 animate-spin mb-4" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
-              Curating feed...
-            </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 py-10">
+            {[...Array(6)].map((_, i) => (
+              <EventSkeleton key={i} />
+            ))}
           </div>
         ) : !showMap && events.length === 0 ? (
           <div className="text-center py-40 glass rounded-[48px] border border-white/5">
@@ -526,6 +554,13 @@ export default function EventsPage() {
                     />
                   ))}
                 </div>
+                {loadingMore && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-10">
+                    {[...Array(3)].map((_, i) => (
+                      <EventSkeleton key={i} />
+                    ))}
+                  </div>
+                )}
               </section>
             ))}
           </div>
