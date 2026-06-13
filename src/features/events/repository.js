@@ -56,7 +56,7 @@ function resolveEventPlatform(row = {}) {
   );
 }
 
-function sanitizeEventRow(event = {}) {
+export function sanitizeEventRow(event = {}) {
   function canonicalUrl(raw) {
     try {
       const u = new URL(String(raw));

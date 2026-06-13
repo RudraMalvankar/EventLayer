@@ -1,6 +1,7 @@
 import { isAdminAuthorized } from "../../../../src/features/auth/adminSession.js";
 import { scrapeByPlatform } from "../../../../src/features/scrapers/service.js";
 import { upsertEventsService } from "../../../../src/features/events/service.js";
+import { sanitizeEventRow } from "../../../../src/features/events/repository.js";
 import { fetchDevfolioEventDetails } from "../../../../src/features/scrapers/devfolio/details.js";
 import { fetchEventDetails } from "../../../../src/features/scrapers/luma/details.js";
 import { detectPlatform } from "../../../../src/features/scrapers/normalizer.js";
@@ -48,28 +49,12 @@ async function enrichEvent(event) {
   };
 }
 
+/**
+ * Maps scraper-specific field names to standard event fields,
+ * then delegates to sanitizeEventRow for final validation/sanitization.
+ */
 function normalizeForDb(event) {
-  const url = event.url || event.redirectURL || event.event_url || null;
-  const detected = url ? detectPlatform(url) : "scraper";
-  const sourcePlatform = String(
-    event.sourcePlatform || event.platform || detected,
-  ).toLowerCase();
-  const allowed = new Set([
-    "luma",
-    "meetup",
-    "devfolio",
-    "unstop",
-    "devpost",
-    "eventbrite",
-    "eventtier",
-    "scraper",
-  ]);
-  const finalPlatform = allowed.has(sourcePlatform)
-    ? sourcePlatform
-    : allowed.has(detected)
-      ? detected
-      : "scraper";
-  return {
+  const standardized = {
     title: event.title || "",
     description: event.description || null,
     event_url: event.url || event.redirectURL || event.event_url || null,
@@ -79,20 +64,22 @@ function normalizeForDb(event) {
     organizer: event.organizer || event.hostedBy || null,
     city: event.city || null,
     country: event.country || null,
-    platform: finalPlatform,
+    platform: event.platform || null,
     category: event.category || event.type || null,
     tags: event.tags || [],
     mode: event.mode || null,
-      is_free:
-        Array.isArray(event.tags) && event.tags.includes("free") ? true : false,
+    is_free: Array.isArray(event.tags) && event.tags.includes("free") ? true : false,
     raw_data: {
-      sourcePlatform: finalPlatform,
+      sourcePlatform: event.sourcePlatform || event.platform || "scraper",
       originalPlatform: event.platform || event.sourcePlatform || null,
       sourceUrl: event.url || event.redirectURL || event.event_url || null,
       ai_summary: event.ai_summary || null,
     },
     created_at: new Date().toISOString(),
   };
+  // sanitizeEventRow handles URL normalization, platform resolution,
+  // mode/category validation, and raw_data.ai_summary packing.
+  return sanitizeEventRow(standardized);
 }
 
 function dedupeEvents(events) {
