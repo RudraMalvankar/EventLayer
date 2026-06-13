@@ -3,6 +3,8 @@ import { supabaseAdmin } from '../../../src/shared/clients/supabase'
 import { getSavedEventsService, toggleSaveEventService } from '../../../src/features/events/service'
 import { createNotificationRepo } from '../../../src/features/notifications/repository.js'
 import { privateNoStoreHeaders } from '../../../src/shared/cache/headers.js'
+import { savedPostBodySchema, savedDeleteBodySchema } from '../../../src/shared/validation/schemas.js'
+import { validateBody } from '../../../src/shared/validation/validate.js'
 
 export async function GET(request) {
   try {
@@ -41,9 +43,9 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const { user } = await requireAuth(request)
-    const body = await request.json()
-    const eventId = body?.event_id
-    if (!eventId) return Response.json({ data: null, error: 'event_id is required' }, { status: 400 })
+    const { data: parsed, error: validationError } = await validateBody(savedPostBodySchema, request)
+    if (validationError) return validationError
+    const eventId = parsed.event_id
     const { data, error } = await toggleSaveEventService(user.id, eventId)
     if (!error && data?.saved) {
       const { data: eventRow } = await supabaseAdmin
@@ -68,9 +70,9 @@ export async function POST(request) {
 export async function DELETE(request) {
   try {
     const { user } = await requireAuth(request)
-    const body = await request.json()
-    const eventId = body?.event_id
-    if (!eventId) return Response.json({ data: null, error: 'event_id is required' }, { status: 400 })
+    const { data: parsed, error: validationError } = await validateBody(savedDeleteBodySchema, request)
+    if (validationError) return validationError
+    const eventId = parsed.event_id
     const { error } = await supabaseAdmin.from('saved_events').delete().eq('user_id', user.id).eq('event_id', eventId)
     if (error) return Response.json({ data: null, error: error.message }, { status: 500 })
     return Response.json({ data: { saved: false }, error: null })

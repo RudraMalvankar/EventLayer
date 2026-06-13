@@ -3,6 +3,8 @@ import { scrapeByPlatform } from "../../../../src/features/scrapers/service";
 import { upsertEventsService } from "../../../../src/features/events/service";
 import enrichWithGemini from "../../../../src/features/scrapers/enrichWithGemini.js";
 import { withRateLimit } from "../../../../src/shared/security/rateLimiter.js";
+import { scrapePlatformParamsSchema } from "../../../../src/shared/validation/schemas.js";
+import { validateParams } from "../../../../src/shared/validation/validate.js";
 
 async function postHandler(request, { params }) {
   const key = request.headers.get("x-scrape-key");
@@ -12,6 +14,12 @@ async function postHandler(request, { params }) {
       { status: 401 },
     );
   }
+
+  const { error: validationError } = validateParams(
+    scrapePlatformParamsSchema,
+    { platform: params.platform },
+  );
+  if (validationError) return validationError;
 
   const {
     platform,

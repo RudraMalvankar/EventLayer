@@ -1,27 +1,29 @@
 import { getEventsService } from "../../../src/features/events/service";
 import { publicCacheHeaders } from "../../../src/shared/cache/headers.js";
 import { cacheKey, withCache, CACHE_TTL } from "../../../src/shared/cache/memory.js";
+import { eventsQuerySchema } from "../../../src/shared/validation/schemas.js";
+import { validateSearchParams } from "../../../src/shared/validation/validate.js";
 
 // Route is automatically dynamic because it reads searchParams from request.url.
 // CDN caching is handled via publicCacheHeaders below.
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const page = Number(searchParams.get("page") || 1);
-    const limit = Number(searchParams.get("limit") || 12);
+    const { data: parsed, error: validationError } = validateSearchParams(
+      eventsQuerySchema,
+      request,
+    );
+    if (validationError) return validationError;
+
     const args = {
-      city: searchParams.get("city") || undefined,
-      category: searchParams.get("category") || undefined,
-      mode: searchParams.get("mode") || undefined,
-      is_free:
-        searchParams.get("is_free") === null
-          ? undefined
-          : searchParams.get("is_free") === "true",
-      platform: searchParams.get("platform") || undefined,
-      keyword: searchParams.get("search") || undefined,
-      upcomingOnly: searchParams.get("upcomingOnly") !== "false",
-      page,
-      limit,
+      city: parsed.city || undefined,
+      category: parsed.category || undefined,
+      mode: parsed.mode || undefined,
+      is_free: parsed.is_free,
+      platform: parsed.platform || undefined,
+      keyword: parsed.search || undefined,
+      upcomingOnly: parsed.upcomingOnly,
+      page: parsed.page,
+      limit: parsed.limit,
     };
 
     const key = cacheKey(["events", JSON.stringify(args)]);
@@ -35,8 +37,8 @@ export async function GET(request) {
         data: {
           events: data?.events || [],
           total: data?.total || 0,
-          page,
-          limit,
+          page: parsed.page,
+          limit: parsed.limit,
         },
         error: null,
       },

@@ -5,11 +5,17 @@ import {
   getDefaultAdminHint,
 } from "../../../../src/features/auth/adminSession.js";
 import { withRateLimit } from "../../../../src/shared/security/rateLimiter.js";
+import { adminLoginBodySchema } from "../../../../src/shared/validation/schemas.js";
+import { validateBody } from "../../../../src/shared/validation/validate.js";
 
 async function postHandler(request) {
   try {
-    const body = await request.json().catch(() => ({}));
-    const result = verifyAdminCredentials(body.email, body.password);
+    const { data: parsed, error: validationError } = await validateBody(
+      adminLoginBodySchema,
+      request,
+    );
+    if (validationError) return validationError;
+    const result = verifyAdminCredentials(parsed.email, parsed.password);
     if (!result.ok) {
       return Response.json(
         { data: null, error: "Invalid admin email or password" },
