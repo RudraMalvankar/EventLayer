@@ -5,6 +5,7 @@ import { sanitizeEventRow } from "../../../../src/features/events/repository.js"
 import { fetchDevfolioEventDetails } from "../../../../src/features/scrapers/devfolio/details.js";
 import { fetchEventDetails } from "../../../../src/features/scrapers/luma/details.js";
 import { detectPlatform } from "../../../../src/features/scrapers/normalizer.js";
+import { withRateLimit } from "../../../../src/shared/security/rateLimiter.js";
 
 const PLATFORMS = [
   "luma",
@@ -92,7 +93,7 @@ function dedupeEvents(events) {
   });
 }
 
-export async function POST(request) {
+async function postHandler(request) {
   try {
     const allowed = await isAdminAuthorized(request);
     if (!allowed) {
@@ -163,3 +164,9 @@ export async function POST(request) {
     );
   }
 }
+
+export const POST = withRateLimit(postHandler, {
+  routeName: "admin-sync",
+  limit: 30,       // 30 sync requests
+  windowMs: 60_000, // per minute
+});

@@ -2,8 +2,9 @@ import { env } from "../../../../src/shared/config/env";
 import { scrapeByPlatform } from "../../../../src/features/scrapers/service";
 import { upsertEventsService } from "../../../../src/features/events/service";
 import enrichWithGemini from "../../../../src/features/scrapers/enrichWithGemini.js";
+import { withRateLimit } from "../../../../src/shared/security/rateLimiter.js";
 
-export async function POST(request, { params }) {
+async function postHandler(request, { params }) {
   const key = request.headers.get("x-scrape-key");
   if (!env.scrapeSecret || key !== env.scrapeSecret) {
     return Response.json(
@@ -57,3 +58,9 @@ export async function POST(request, { params }) {
   };
   return Response.json({ data: responseData, error });
 }
+
+export const POST = withRateLimit(postHandler, {
+  routeName: "scrape-platform",
+  limit: 20,       // 20 scrape requests
+  windowMs: 60_000, // per minute
+});

@@ -4,8 +4,9 @@ import {
   createAdminLogoutResponse,
   getDefaultAdminHint,
 } from "../../../../src/features/auth/adminSession.js";
+import { withRateLimit } from "../../../../src/shared/security/rateLimiter.js";
 
-export async function POST(request) {
+async function postHandler(request) {
   try {
     const body = await request.json().catch(() => ({}));
     const result = verifyAdminCredentials(body.email, body.password);
@@ -24,6 +25,12 @@ export async function POST(request) {
     );
   }
 }
+
+export const POST = withRateLimit(postHandler, {
+  routeName: "admin-login",
+  limit: 10,       // 10 attempts
+  windowMs: 60_000, // per minute
+});
 
 export async function DELETE() {
   return createAdminLogoutResponse();
