@@ -30,7 +30,12 @@ function normalizePlatform(value) {
     .trim();
   if (platform === "scraper" || !platform) return "luma";
   if (ALLOWED_PLATFORMS.has(platform)) return platform;
-  return "luma";
+  // Unknown platform — warn so developers know to add it to ALLOWED_PLATFORMS
+  console.warn(
+    `[EventLayer] Unknown platform "${value}" resolved to "${platform}". ` +
+    `Add it to ALLOWED_PLATFORMS in repository.js if this is a valid platform.`,
+  );
+  return platform;
 }
 
 function sanitizeMode(value) {
