@@ -14,12 +14,21 @@ const COOKIE_NAME = "el_admin_session";
 const MAX_AGE_SEC = 60 * 60 * 24 * 7;
 
 function signingSecret() {
-  return (
+  const secret =
     process.env.ADMIN_SESSION_SECRET ||
     env.scrapeSecret ||
-    env.supabaseServiceKey ||
-    "eventlayer-admin-dev"
-  );
+    env.supabaseServiceKey;
+
+  if (!secret) {
+    console.warn(
+      "[EventLayer] ADMIN_SESSION_SECRET env var is not set. " +
+      "Set a strong random value in production to prevent session forgery.",
+    );
+    // Generate a random per-process secret so there's no predictable default.
+    return crypto.randomBytes(32).toString("hex");
+  }
+
+  return secret;
 }
 
 const COOKIE_OPTS = {
