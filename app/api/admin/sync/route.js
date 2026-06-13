@@ -83,8 +83,8 @@ function normalizeForDb(event) {
     category: event.category || event.type || null,
     tags: event.tags || [],
     mode: event.mode || null,
-    is_free:
-      Array.isArray(event.tags) && event.tags.includes("free") ? true : null,
+      is_free:
+        Array.isArray(event.tags) && event.tags.includes("free") ? true : false,
     raw_data: {
       sourcePlatform: finalPlatform,
       originalPlatform: event.platform || event.sourcePlatform || null,
