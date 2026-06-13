@@ -2,8 +2,8 @@ import { getEventsService } from "../../../src/features/events/service";
 import { publicCacheHeaders } from "../../../src/shared/cache/headers.js";
 import { cacheKey, withCache, CACHE_TTL } from "../../../src/shared/cache/memory.js";
 
-export const dynamic = "force-dynamic";
-
+// Route is automatically dynamic because it reads searchParams from request.url.
+// CDN caching is handled via publicCacheHeaders below.
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
