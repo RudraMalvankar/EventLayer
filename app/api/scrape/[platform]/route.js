@@ -2,6 +2,7 @@ import { env } from "../../../../src/shared/config/env";
 import { scrapeByPlatform } from "../../../../src/features/scrapers/service";
 import { upsertEventsService } from "../../../../src/features/events/service";
 import enrichWithGemini from "../../../../src/features/scrapers/enrichWithGemini.js";
+import { generateEventSummary } from "../../../../src/features/scrapers/summarize.js";
 import { withRateLimit } from "../../../../src/shared/security/rateLimiter.js";
 import { scrapePlatformParamsSchema } from "../../../../src/shared/validation/schemas.js";
 import { validateParams } from "../../../../src/shared/validation/validate.js";
@@ -45,7 +46,14 @@ async function postHandler(request, { params }) {
           const rawText =
             ev.description || `${ev.title || ""} ${ev.description || ""}`;
           const merged = await enrichWithGemini(ev, rawText, { upsert: false });
-          enrichedEvents.push(merged || ev);
+          
+          // Generate a high-quality TL;DR summary
+          const summary = await generateEventSummary(merged || ev, rawText);
+          
+          enrichedEvents.push({
+            ...(merged || ev),
+            ai_summary: summary || (merged?.ai_summary || ev.ai_summary),
+          });
         } catch (e) {
           enrichedEvents.push(ev);
         }
@@ -69,6 +77,6 @@ async function postHandler(request, { params }) {
 
 export const POST = withRateLimit(postHandler, {
   routeName: "scrape-platform",
-  limit: 20,       // 20 scrape requests
+  limit: 20, // 20 scrape requests
   windowMs: 60_000, // per minute
 });
