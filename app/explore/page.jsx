@@ -175,8 +175,12 @@ export default function ExplorePage() {
     setShowModalEventId(null);
   }
 
+  // Debounced search - only trigger API call after user stops typing
   useEffect(() => {
-    loadEvents(query);
+    const timer = setTimeout(() => {
+      loadEvents(query);
+    }, 300);
+    return () => clearTimeout(timer);
   }, [filters.city, filters.category, filters.mode, query, loadEvents]);
 
   useEffect(() => {
@@ -337,10 +341,7 @@ export default function ExplorePage() {
             <input
               placeholder="Search events, cities, platforms..."
               value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                loadEvents(e.target.value);
-              }}
+              onChange={(e) => setQuery(e.target.value)}
               className="md:col-span-5 w-full rounded-2xl border border-white/5 bg-[#0a0c12] px-5 py-4 text-sm text-white outline-none placeholder:text-gray-600 focus:border-orange-500/60"
             />
             <select
