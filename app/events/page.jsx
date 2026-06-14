@@ -96,7 +96,12 @@ function formatDayLabel(value) {
 
 export default function EventsPage() {
   const { session, loading: authLoading, initialized } = useUser();
-  const [initialQ, setInitialQ] = useState("");
+  const [initialQ, setInitialQ] = useState(() => {
+    if (typeof window !== "undefined") {
+      return new URLSearchParams(window.location.search).get("q") || "";
+    }
+    return "";
+  });
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -256,11 +261,6 @@ export default function EventsPage() {
     }
   }
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const q = new URLSearchParams(window.location.search).get("q");
-    if (q) setInitialQ(q);
-  }, []);
 
   useEffect(() => {
     setSelectedDateKey(null);

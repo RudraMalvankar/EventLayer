@@ -1,4 +1,4 @@
-import { generateText } from "../shared/clients/gemini.js";
+import { generateText } from "../../shared/clients/gemini.js";
 
 /**
  * Generates a concise, engaging TL;DR summary for an event.
