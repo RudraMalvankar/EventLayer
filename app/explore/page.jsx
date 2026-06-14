@@ -52,38 +52,41 @@ export default function ExplorePage() {
   const [loadingSaved, setLoadingSaved] = useState(false);
   const [showModalEventId, setShowModalEventId] = useState(null);
 
-  async function resolveToken() {
+  const resolveToken = useCallback(async () => {
     const token = session?.access_token;
     if (token) return token;
     const { data } = await supabase.auth.getSession();
     return data?.session?.access_token || null;
-  }
+  }, [session?.access_token]);
 
-  const loadEvents = useCallback(async (nextQuery = "") => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.set("limit", "1000");
-      params.set("upcomingOnly", "true");
-      if (filters.city) params.set("city", filters.city);
-      if (filters.category !== "All") {
-        params.set("category", filters.category.toLowerCase());
-      }
-      if (filters.mode !== "All") {
-        params.set("mode", filters.mode.toLowerCase());
-      }
-      if (nextQuery) params.set("search", nextQuery);
+  const loadEvents = useCallback(
+    async (nextQuery = "") => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        params.set("limit", "1000");
+        params.set("upcomingOnly", "true");
+        if (filters.city) params.set("city", filters.city);
+        if (filters.category !== "All") {
+          params.set("category", filters.category.toLowerCase());
+        }
+        if (filters.mode !== "All") {
+          params.set("mode", filters.mode.toLowerCase());
+        }
+        if (nextQuery) params.set("search", nextQuery);
 
-      const response = await fetch(`/api/events?${params.toString()}`);
-      const json = await response.json();
-      setEvents(Array.isArray(json?.data?.events) ? json.data.events : []);
-    } catch (error) {
-      console.error("Failed to load explore events:", error);
-      setEvents([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [filters.city, filters.category, filters.mode]);
+        const response = await fetch(`/api/events?${params.toString()}`);
+        const json = await response.json();
+        setEvents(Array.isArray(json?.data?.events) ? json.data.events : []);
+      } catch (error) {
+        console.error("Failed to load explore events:", error);
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [filters.city, filters.category, filters.mode],
+  );
 
   const loadSavedIds = useCallback(async () => {
     const token = await resolveToken();
@@ -112,7 +115,7 @@ export default function ExplorePage() {
     } finally {
       setLoadingSaved(false);
     }
-  }, [session?.access_token]);
+  }, [resolveToken]);
 
   const loadProfile = useCallback(async () => {
     const token = await resolveToken();
@@ -135,7 +138,7 @@ export default function ExplorePage() {
       console.error("Failed to load profile:", error);
       setProfile(null);
     }
-  }, [session?.access_token]);
+  }, [resolveToken]);
 
   async function handleToggleSave(event) {
     const token = await resolveToken();
@@ -256,8 +259,7 @@ export default function ExplorePage() {
       const startTime = event?.start_date
         ? new Date(event.start_date).getTime()
         : Number.MAX_SAFE_INTEGER;
-      const nowMs = typeof window !== "undefined" ? Date.now() : 0;
-      const hoursUntil = (startTime - nowMs) / (1000 * 60 * 60);
+      const hoursUntil = (startTime - Date.now()) / (1000 * 60 * 60);
       if (hoursUntil >= 0 && hoursUntil <= 72) score += 2;
       if (event?.banner_url) score += 1;
       if (event?.is_free) score += 1;

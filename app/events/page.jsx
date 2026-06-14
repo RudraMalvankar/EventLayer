@@ -106,7 +106,6 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [savedIds, setSavedIds] = useState(new Set());
   const [filters, setFilters] = useState({
     category: "All",
@@ -145,14 +144,14 @@ export default function EventsPage() {
     setLoading(false);
   }
 
-  async function resolveToken() {
+  const resolveToken = useCallback(async () => {
     const token = session?.access_token;
     if (token) return token;
     const { data } = await supabase.auth.getSession();
     return data?.session?.access_token || null;
-  }
+  }, [session?.access_token]);
 
-  async function loadSavedIds() {
+  const loadSavedIds = useCallback(async () => {
     const token = await resolveToken();
     if (!token) {
       setSavedIds(new Set());
@@ -172,7 +171,7 @@ export default function EventsPage() {
     setSavedIds(
       new Set(items.map((item) => item.id || item.event_id).filter(Boolean)),
     );
-  }
+  }, [resolveToken]);
 
   async function handleToggleSave(event) {
     const token = await resolveToken();
@@ -233,13 +232,7 @@ export default function EventsPage() {
       const json = await res.json();
       
       const newEvents = json?.data?.events || [];
-      const total = json?.data?.total || 0;
-
-      setEvents((prev) => {
-        const updated = append ? [...prev, ...newEvents] : newEvents;
-        setHasMore(updated.length < total);
-        return updated;
-      });
+      setEvents((prev) => (append ? [...prev, ...newEvents] : newEvents));
     } catch (error) {
       console.error("Failed to load events:", error);
     } finally {
@@ -265,17 +258,31 @@ export default function EventsPage() {
   }
 
 
+  // Track previous filter values to detect changes
+  const prevFiltersRef = useRef({ city: filters.city, category: filters.category, mode: filters.mode });
+  
   useEffect(() => {
-    setSelectedDateKey(null);
-    setPage(1);
-    loadEvents(initialQ, 1, false);
-  }, [filters.city, filters.category, filters.mode, loadEvents]);
+    const prev = prevFiltersRef.current;
+    const filtersChanged = prev.city !== filters.city || prev.category !== filters.category || prev.mode !== filters.mode;
+    if (filtersChanged) {
+      setSelectedDateKey(null);
+      setPage(1);
+      loadEvents(initialQ, 1, false);
+      prevFiltersRef.current = { city: filters.city, category: filters.category, mode: filters.mode };
+    }
+  }, [filters.city, filters.category, filters.mode, loadEvents, initialQ]);
 
   useEffect(() => {
     if (!initialized || authLoading) return;
-    loadSavedIds().catch((error) =>
-      console.error("Failed to load saved ids", error),
-    );
+    let cancelled = false;
+    (async () => {
+      try {
+        await loadSavedIds();
+      } catch (error) {
+        if (!cancelled) console.error("Failed to load saved ids", error);
+      }
+    })();
+    return () => { cancelled = true; };
   }, [initialized, authLoading, session?.access_token, loadSavedIds]);
 
   useEffect(() => {
@@ -342,24 +349,19 @@ export default function EventsPage() {
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [selectedDateKey, loading, groupedEvents]);
 
-  // Intersection Observer for Infinite Scroll
-  const observer = useRef(null);
-  const lastElementRef = (node) => {
-    if (loading) return;
-    if (observer.current) observer.current.disconnect();
-    observer.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage((prev) => prev + 1);
-      }
-    });
-    if (node) observer.current.observe(node);
-  };
-
   useEffect(() => {
     if (page > 1) {
-      loadEvents(initialQ, page, true);
+      let cancelled = false;
+      (async () => {
+        try {
+          await loadEvents(initialQ, page, true);
+        } catch (error) {
+          if (!cancelled) console.error("Failed to load page", error);
+        }
+      })();
+      return () => { cancelled = true; };
     }
-  }, [page, loadEvents]);
+  }, [page, loadEvents, initialQ]);
 
   return (
     <main className="min-h-screen text-white pb-24">
