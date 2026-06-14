@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { supabase } from "../src/shared/clients/supabase";
 import { notifySavedEventsUpdated } from "../src/shared/events/refresh";
 import { LoggedOutSaveModal } from "./LoggedOutSaveModal";
@@ -53,7 +53,7 @@ function getCountdownLabel(startDate, endDate, nowMs) {
   return `Starts in ${Math.max(minutes, 0)} minute${minutes === 1 ? "" : "s"}`;
 }
 
-export function EventCard({ event, onSave, isSaved }) {
+export const EventCard = memo(function EventCard({ event, onSave, isSaved }) {
   const detailsHref = event?.id ? `/events/${event.id}` : null;
   const start = resolveStartDate(event);
   const end = resolveEndDate(event);
@@ -63,7 +63,10 @@ export function EventCard({ event, onSave, isSaved }) {
       event?.platform ||
       "scraper",
   ).toLowerCase();
-  const [nowMs, setNowMs] = useState(Date.now());
+  const [nowMs, setNowMs] = useState(() => {
+    if (typeof window !== "undefined") return Date.now();
+    return 0;
+  });
   const [shareMessage, setShareMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [localSaved, setLocalSaved] = useState(isSaved || false);
@@ -100,7 +103,6 @@ export function EventCard({ event, onSave, isSaved }) {
 
   const summary =
     event?.ai_summary ||
-    // TODO: Populate ai_summary during ingestion/scraping using server-side AI.
     event?.description ||
     "Join this curated tech event on EventLayer.";
 
@@ -384,4 +386,4 @@ export function EventCard({ event, onSave, isSaved }) {
       )}
     </article>
   );
-}
+});

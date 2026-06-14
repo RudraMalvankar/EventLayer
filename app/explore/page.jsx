@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Navbar } from "../../components/Navbar";
 import { EventCard } from "../../components/EventCard";
 import { LoggedOutSaveModal } from "../../components/LoggedOutSaveModal";
@@ -59,7 +59,7 @@ export default function ExplorePage() {
     return data?.session?.access_token || null;
   }
 
-  async function loadEvents(nextQuery = "") {
+  const loadEvents = useCallback(async (nextQuery = "") => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -83,9 +83,9 @@ export default function ExplorePage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [filters.city, filters.category, filters.mode]);
 
-  async function loadSavedIds() {
+  const loadSavedIds = useCallback(async () => {
     const token = await resolveToken();
     if (!token) {
       setSavedIds(new Set());
@@ -112,9 +112,9 @@ export default function ExplorePage() {
     } finally {
       setLoadingSaved(false);
     }
-  }
+  }, [session?.access_token]);
 
-  async function loadProfile() {
+  const loadProfile = useCallback(async () => {
     const token = await resolveToken();
     if (!token) {
       setProfile(null);
@@ -135,7 +135,7 @@ export default function ExplorePage() {
       console.error("Failed to load profile:", error);
       setProfile(null);
     }
-  }
+  }, [session?.access_token]);
 
   async function handleToggleSave(event) {
     const token = await resolveToken();
@@ -177,17 +177,17 @@ export default function ExplorePage() {
 
   useEffect(() => {
     loadEvents(query);
-  }, [filters.city, filters.category, filters.mode]);
+  }, [filters.city, filters.category, filters.mode, query, loadEvents]);
 
   useEffect(() => {
     if (!initialized || authLoading) return;
     loadSavedIds().catch((error) => console.error(error));
-  }, [initialized, authLoading, session?.access_token]);
+  }, [initialized, authLoading, loadSavedIds]);
 
   useEffect(() => {
     if (!initialized || authLoading) return;
     loadProfile().catch((error) => console.error(error));
-  }, [initialized, authLoading, session?.access_token]);
+  }, [initialized, authLoading, loadProfile]);
 
   const filteredEvents = useMemo(() => {
     let result = events;
@@ -252,7 +252,8 @@ export default function ExplorePage() {
       const startTime = event?.start_date
         ? new Date(event.start_date).getTime()
         : Number.MAX_SAFE_INTEGER;
-      const hoursUntil = (startTime - Date.now()) / (1000 * 60 * 60);
+      const nowMs = typeof window !== "undefined" ? Date.now() : 0;
+      const hoursUntil = (startTime - nowMs) / (1000 * 60 * 60);
       if (hoursUntil >= 0 && hoursUntil <= 72) score += 2;
       if (event?.banner_url) score += 1;
       if (event?.is_free) score += 1;

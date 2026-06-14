@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { EventCard } from "../../components/EventCard";
 import { EventSkeleton } from "../../components/ui/EventSkeleton";
 import { LoggedOutSaveModal } from "../../components/LoggedOutSaveModal";
@@ -96,7 +96,7 @@ function formatDayLabel(value) {
 
 export default function EventsPage() {
   const { session, loading: authLoading, initialized } = useUser();
-  const [initialQ, setInitialQ] = useState(() => {
+  const [initialQ] = useState(() => {
     if (typeof window !== "undefined") {
       return new URLSearchParams(window.location.search).get("q") || "";
     }
@@ -212,7 +212,7 @@ export default function EventsPage() {
     setShowModalEventId(null);
   }
 
-  async function loadEvents(query = "", pageNum = 1, append = false) {
+  const loadEvents = useCallback(async (query = "", pageNum = 1, append = false) => {
     if (pageNum === 1) setLoading(true);
     else setLoadingMore(true);
 
@@ -235,15 +235,18 @@ export default function EventsPage() {
       const newEvents = json?.data?.events || [];
       const total = json?.data?.total || 0;
 
-      setEvents((prev) => (append ? [...prev, ...newEvents] : newEvents));
-      setHasMore(events.length + newEvents.length < total);
+      setEvents((prev) => {
+        const updated = append ? [...prev, ...newEvents] : newEvents;
+        setHasMore(updated.length < total);
+        return updated;
+      });
     } catch (error) {
       console.error("Failed to load events:", error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }
+  }, [filters.city, filters.category, filters.mode]);
 
   async function handleSync() {
     setSyncing(true);
@@ -266,24 +269,23 @@ export default function EventsPage() {
     setSelectedDateKey(null);
     setPage(1);
     loadEvents(initialQ, 1, false);
-  }, [filters.city, filters.category, filters.mode, initialQ]);
+  }, [filters.city, filters.category, filters.mode, loadEvents]);
 
   useEffect(() => {
     if (!initialized || authLoading) return;
     loadSavedIds().catch((error) =>
       console.error("Failed to load saved ids", error),
     );
-  }, [initialized, authLoading, session?.access_token]);
+  }, [initialized, authLoading, session?.access_token, loadSavedIds]);
 
   useEffect(() => {
-    // refresh saved ids when other tabs update saved events
     const unsub = subscribeToSavedEventsUpdated(() => {
       loadSavedIds().catch((err) =>
         console.error("Failed to refresh saved ids", err),
       );
     });
     return unsub;
-  }, [session?.access_token]);
+  }, [loadSavedIds]);
 
   const filteredEvents = useMemo(() => {
     const source =
@@ -357,7 +359,7 @@ export default function EventsPage() {
     if (page > 1) {
       loadEvents(initialQ, page, true);
     }
-  }, [page]);
+  }, [page, loadEvents]);
 
   return (
     <main className="min-h-screen text-white pb-24">
