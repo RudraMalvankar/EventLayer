@@ -200,10 +200,25 @@ Supported platforms include: `luma`, `meetup`, `devfolio`, `unstop`, `devpost`, 
 
 ## Deployment (Vercel)
 
+### Manual deployment
 1. Import the repo on Vercel.  
 2. Set the same env vars as `.env.example` (use `NEXT_PUBLIC_SITE_URL` = your production URL).  
 3. In **Supabase → Authentication → URL configuration**, add your production URL and `http://localhost:3000/**` to redirect allowlist.  
 4. Schedule scraping via admin sync, GitHub Actions, or `npm run start:cron` on a worker.
+
+### CI/CD with GitHub Actions
+This repo includes automated Vercel deployment via GitHub Actions.
+
+**Required secrets** (set in GitHub repo Settings → Secrets and variables → Actions):
+- `VERCEL_TOKEN` — Vercel API token
+- `VERCEL_ORG_ID` — Your Vercel organization/team ID
+- `VERCEL_PROJECT_ID` — Vercel project ID
+
+**Workflow**: `.github/workflows/vercel-deploy.yml`
+- Triggers on push/PR to `main`
+- Runs lint + build
+- Deploys to Vercel production
+- Comments preview URL on PRs
 
 ---
 
