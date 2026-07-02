@@ -1,4 +1,4 @@
-# EventLayer.dev
+# EventLayer.dev by Rudra Malvankar
 
 **The discovery layer for the tech ecosystem.**
 
