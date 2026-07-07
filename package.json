@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@google/genai": "^0.14.1",
-    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/supabase-js": "^2.49.8",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
